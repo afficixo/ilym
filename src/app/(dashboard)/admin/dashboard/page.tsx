@@ -244,7 +244,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#07090e] text-center">
-        <div className="flex flex-col items-center justify-center gap-8">
+        <div className="flex flex-col items-center justify-center gap-4">
           <motion.div
             animate={{ scale: [1, 1.05, 1] }}
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
@@ -253,10 +253,10 @@ export default function DashboardPage() {
             <Image
               src="/afficixo-logo.png"
               alt="Afficixo logo"
-              width={200}
-              height={200}
-              sizes="(max-width: 768px) 200px, 240px"
-              className="mx-auto object-cover"
+              width={140}
+              height={42}
+              sizes="140px"
+              className="mx-auto object-contain"
               priority
             />
             <motion.div
@@ -266,8 +266,8 @@ export default function DashboardPage() {
             />
           </motion.div>
           
-          <div className="flex flex-col items-center gap-3">
-            <div className="relative h-1.5 w-32 overflow-hidden rounded-full bg-white/5 border border-white/10">
+          <div className="flex flex-col items-center gap-2">
+            <div className="relative h-1 w-24 overflow-hidden rounded-full bg-white/5 border border-white/10">
               <motion.div
                 className="absolute inset-0 bg-gradient-to-r from-transparent via-indigo-400 to-transparent opacity-0"
                 animate={{ x: ["-100%", "100%"], opacity: [0, 1, 0] }}
@@ -287,7 +287,7 @@ export default function DashboardPage() {
               />
             </div>
             <motion.p
-              className="text-xs text-slate-400"
+              className="text-[10px] text-slate-400"
               animate={{ opacity: [0.5, 1, 0.5] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >

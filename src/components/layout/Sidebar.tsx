@@ -229,7 +229,7 @@ export default function Sidebar() {
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
-      <div className={`relative flex w-full flex-shrink-0 items-center gap-3 ${isMobile ? 'h-[4.5rem] border-b border-white/10 px-5' : 'h-10 justify-start p-0'}`}>
+      <div className={`relative flex w-full flex-shrink-0 items-center gap-3 ${isMobile ? 'h-[4.5rem] border-b border-slate-200/80 dark:border-white/10 px-5' : 'h-10 justify-start p-0'}`}>
           {(!collapsed || isMobile) && (
             <div className="relative h-9 w-28 overflow-hidden">
               <Image
@@ -246,7 +246,7 @@ export default function Sidebar() {
       {!isMobile && (
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="relative z-10 hidden lg:flex items-center justify-center p-1 mx-2 mt-1 rounded-md border border-white/10 bg-white/[0.04] text-slate-400 transition-colors duration-200 hover:border-cyan-400/20 hover:bg-cyan-400/10 hover:text-cyan-200 flex-shrink-0"
+          className="relative z-10 hidden lg:flex items-center justify-center p-1 mx-2 mt-1 rounded-md border border-slate-300/70 bg-slate-900/[0.04] text-slate-500 transition-colors duration-200 hover:border-cyan-400/30 hover:bg-cyan-400/10 hover:text-cyan-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400 dark:hover:text-cyan-200 flex-shrink-0"
         >
           {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
@@ -261,22 +261,22 @@ export default function Sidebar() {
                 : pathname === item.href || pathname?.startsWith(item.href + '/')
               const Icon = item.icon
               const iconColor = {
-                'Manage Publishers': 'text-amber-300',
-                Dashboard: 'text-lime-300',
-                'Create Link Account': 'text-cyan-300',
-                'Bulk Create': 'text-violet-300',
-                'All Link Account': 'text-sky-300',
-                'Offer Vault': 'text-orange-300',
-                'Custom Domains': 'text-emerald-300',
-                Analytics: 'text-blue-300',
-                'S2S Postbacks': 'text-pink-300',
-                'Landing Builder': 'text-indigo-300',
-                'URL Shortener': 'text-teal-300',
-                Templates: 'text-fuchsia-300',
-                Payments: 'text-yellow-300',
-                Settings: 'text-slate-300',
-                'Support Inbox': 'text-rose-300',
-              }[item.label] || 'text-slate-300'
+                'Manage Publishers': 'text-amber-600 dark:text-amber-300',
+                Dashboard: 'text-lime-600 dark:text-lime-300',
+                'Create Link Account': 'text-cyan-600 dark:text-cyan-300',
+                'Bulk Create': 'text-violet-600 dark:text-violet-300',
+                'All Link Account': 'text-sky-600 dark:text-sky-300',
+                'Offer Vault': 'text-orange-600 dark:text-orange-300',
+                'Custom Domains': 'text-emerald-600 dark:text-emerald-300',
+                Analytics: 'text-blue-600 dark:text-blue-300',
+                'S2S Postbacks': 'text-pink-600 dark:text-pink-300',
+                'Landing Builder': 'text-indigo-600 dark:text-indigo-300',
+                'URL Shortener': 'text-teal-600 dark:text-teal-300',
+                Templates: 'text-fuchsia-600 dark:text-fuchsia-300',
+                Payments: 'text-yellow-600 dark:text-yellow-300',
+                Settings: 'text-slate-600 dark:text-slate-300',
+                'Support Inbox': 'text-rose-600 dark:text-rose-300',
+              }[item.label] || 'text-slate-600 dark:text-slate-300'
               return (
                 <Link
                   key={item.href}
@@ -285,11 +285,11 @@ export default function Sidebar() {
                   className={`group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} ${isMobile ? 'min-h-10 rounded-md px-2.5 py-1.5 border-0' : 'rounded-md px-2 py-1.5 border'} transition-colors duration-200 ${
                     isActive
                       ? isMobile 
-                        ? 'border-0 bg-[#344047] font-medium text-slate-100'
-                        : 'border-transparent bg-[#344047] font-medium text-slate-100'
+                        ? 'border-0 bg-slate-700 font-medium text-white dark:bg-[#344047] dark:text-slate-100'
+                        : 'border-transparent bg-slate-700 font-medium text-white dark:bg-[#344047] dark:text-slate-100'
                       : isMobile
-                        ? 'border-0 text-[#b7bec2] hover:bg-white/[0.06] hover:text-white'
-                        : 'border-transparent text-[#b7bec2] hover:bg-white/[0.06] hover:text-white'
+                        ? 'border-0 text-slate-600 hover:bg-slate-200/80 hover:text-slate-950 dark:text-[#b7bec2] dark:hover:bg-white/[0.06] dark:hover:text-white'
+                        : 'border-transparent text-slate-600 hover:bg-slate-200/80 hover:text-slate-950 dark:text-[#b7bec2] dark:hover:bg-white/[0.06] dark:hover:text-white'
                   }`}
                 >
                   <Icon className={`h-5 w-5 shrink-0 transition-colors duration-200 ${iconColor}`} />
@@ -304,10 +304,10 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className={`relative z-10 flex-shrink-0 border-t ${isMobile ? 'border-white/10 space-y-1 px-2 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-2' : 'border-white/10 space-y-0.5 px-2 py-2'}`}>
+      <div className={`relative z-10 flex-shrink-0 border-t ${isMobile ? 'border-slate-200/80 dark:border-white/10 space-y-1 px-2 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-2' : 'border-slate-200/80 dark:border-white/10 space-y-0.5 px-2 py-2'}`}>
         <button
           onClick={handleLogout}
-          className={`w-full group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} ${isMobile ? 'rounded-md px-2.5 py-1.5 min-h-10 border-0' : 'rounded-md px-2 py-1.5 border border-transparent'} transition-colors duration-200 ${isMobile ? 'text-[#d6a2a2] hover:text-white hover:bg-white/[0.06] font-medium' : 'text-red-300/80 hover:text-red-200 hover:bg-red-500/10 hover:border-red-400/20'}`}
+          className={`w-full group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} ${isMobile ? 'rounded-md px-2.5 py-1.5 min-h-10 border-0' : 'rounded-md px-2 py-1.5 border border-transparent'} transition-colors duration-200 ${isMobile ? 'text-rose-600 hover:text-rose-950 hover:bg-rose-100 font-medium dark:text-[#d6a2a2] dark:hover:text-white dark:hover:bg-white/[0.06]' : 'text-red-600/80 hover:text-red-700 hover:bg-red-500/10 hover:border-red-400/20 dark:text-red-300/80 dark:hover:text-red-200'}`}
           aria-label="Logout"
           title="Logout"
         >
