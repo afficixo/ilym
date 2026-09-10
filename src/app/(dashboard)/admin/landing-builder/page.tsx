@@ -13,6 +13,8 @@ import {
   Link as LinkIcon,
   Zap,
   ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 
 interface Template {
@@ -80,6 +82,7 @@ export default function LandingPageBuilder() {
   const [subdomain, setSubdomain] = useState('')
   const [trackingUrl, setTrackingUrl] = useState('')
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null)
+  const [templateIndex, setTemplateIndex] = useState(0)
   const [subdomainError, setSubdomainError] = useState('')
 
   const fetchCurrentUser = useCallback(async () => {
@@ -119,12 +122,22 @@ export default function LandingPageBuilder() {
     try {
       const response = await fetch('/api/landing-pages/templates')
       if (response.ok) {
-        setTemplates(await response.json())
+        const availableTemplates: Template[] = await response.json()
+        setTemplates(availableTemplates)
+        setTemplateIndex(0)
+        setSelectedTemplate(availableTemplates[0] || null)
       }
     } catch (err) {
       console.error(err)
     }
   }, [])
+
+  const selectTemplateAt = (index: number) => {
+    const template = templates[index]
+    if (!template) return
+    setTemplateIndex(index)
+    setSelectedTemplate(template)
+  }
 
   useEffect(() => {
     setLandingPageDomain(getDomain())
@@ -561,7 +574,7 @@ export default function LandingPageBuilder() {
                           type="text"
                           value={subdomain}
                           onChange={(e) => validateSubdomain(e.target.value)}
-                          placeholder="myoffer"
+                          placeholder="your-campaign"
                           className="w-full bg-transparent text-sm text-white placeholder-slate-500 focus:outline-none"
                         />
                         <span className="shrink-0 text-sm text-slate-500">.{landingPageDomain}</span>
@@ -599,7 +612,7 @@ export default function LandingPageBuilder() {
                 <div className="order-1 rounded-xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6">
                   <div className="mb-4 flex items-center gap-2">
                     <Zap className="h-4 w-4 text-indigo-400" />
-                    <h3 className="text-lg font-semibold text-white">Select Template</h3>
+                    <h3 className="text-lg font-semibold text-white">Choose a template</h3>
                   </div>
 
                   {templates.length === 0 ? (
@@ -607,61 +620,75 @@ export default function LandingPageBuilder() {
                       No templates available. Contact your administrator.
                     </p>
                   ) : (
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      {templates.map((template) => (
+                    <div className="space-y-3">
+                      <p className="text-xs text-slate-400">
+                        Use the arrows to browse and change the template.
+                      </p>
+                      <div className="flex items-center justify-center gap-3 rounded-lg border border-slate-800 bg-slate-950/30 px-2 py-1.5">
                         <button
-                          key={template.id}
                           type="button"
-                          onClick={() => setSelectedTemplate(template)}
-                          className={`rounded-lg border p-3 text-left transition-colors ${
-                            selectedTemplate?.id === template.id
-                              ? 'border-indigo-500 bg-indigo-500/10'
-                              : 'border-slate-700 bg-slate-800 hover:bg-slate-700'
-                          }`}
+                          aria-label="Previous template"
+                          disabled={templates.length <= 1}
+                          onClick={() => selectTemplateAt((templateIndex - 1 + templates.length) % templates.length)}
+                          className="rounded-md border border-slate-700 bg-slate-800 p-1.5 text-slate-300 transition-colors hover:border-slate-600 hover:bg-slate-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                         >
-                          {template.thumbnail && (
-                            <Image
-                              src={template.thumbnail}
-                              alt={template.name}
-                              width={400}
-                              height={96}
-                              className="mb-2 h-auto max-h-64 w-full rounded object-contain"
-                            />
-                          )}
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0">
-                              <h4 className="break-words text-sm font-medium text-white">{template.name}</h4>
-                              {template.description && (
-                                <p className="mt-2 break-words rounded-md border border-amber-400/40 bg-amber-400/10 px-2 py-1.5 text-sm font-semibold leading-5 text-amber-200">
-                                  {template.description}
-                                </p>
-                              )}
-                            </div>
-                            {selectedTemplate?.id === template.id && (
-                              <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-500">
-                                <Check className="h-3 w-3 text-white" />
-                              </div>
-                            )}
-                          </div>
+                          <ChevronLeft className="h-4 w-4" />
                         </button>
-                      ))}
+                        <span className="min-w-28 text-center text-xs font-medium text-slate-300">
+                          Template {templateIndex + 1} of {templates.length}
+                        </span>
+                        <button
+                          type="button"
+                          aria-label="Next template"
+                          disabled={templates.length <= 1}
+                          onClick={() => selectTemplateAt((templateIndex + 1) % templates.length)}
+                          className="rounded-md border border-slate-700 bg-slate-800 p-1.5 text-slate-300 transition-colors hover:border-slate-600 hover:bg-slate-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </button>
+                      </div>
+
+                      {(() => {
+                        const template = templates[templateIndex]
+                        return (
+                          <button
+                            key={template.id}
+                            type="button"
+                            onClick={() => selectTemplateAt(templateIndex)}
+                            className="w-full rounded-lg border border-slate-700 bg-slate-800/80 p-3 text-left transition-colors hover:border-slate-600 hover:bg-slate-800"
+                          >
+                            {template.thumbnail && (
+                              <Image
+                                src={template.thumbnail}
+                                alt={template.name}
+                                width={400}
+                                height={96}
+                                className="mb-3 h-48 w-full rounded-md bg-slate-950/40 object-contain"
+                              />
+                            )}
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0">
+                                <h4 className="break-words text-sm font-medium text-white">{template.name}</h4>
+                                {template.description && (
+                                  <p className="mt-2 break-words rounded-md border border-amber-400/30 bg-amber-400/10 px-2 py-1.5 text-xs font-medium leading-5 text-amber-200">
+                                    {template.description}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </button>
+                        )
+                      })()}
                     </div>
                   )}
                 </div>
 
                 {/* Submit */}
-                <div className="order-3 flex flex-col-reverse gap-3 sm:flex-row">
-                  <button
-                    type="button"
-                    onClick={() => setCurrentStep('list')}
-                    className="rounded-lg border border-slate-700 bg-slate-800 px-5 py-2.5 text-sm font-medium text-slate-300 hover:bg-slate-700 transition-colors"
-                  >
-                    Cancel
-                  </button>
+                <div className="order-3 flex justify-end">
                   <button
                     type="submit"
                     disabled={loading || !selectedTemplate}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm shadow-emerald-600/25 transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm shadow-emerald-600/25 transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                   >
                     {loading ? (
                       <>

@@ -57,6 +57,31 @@ const CopyButton = ({ text, onCopy }: { text: string; onCopy: () => void }) => {
   );
 };
 
+const ResultCopyButton = ({ text, label }: { text: string; label: string }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy:", error);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      className="self-end inline-flex items-center gap-1.5 rounded-lg border border-slate-600/80 bg-slate-800/70 px-2.5 py-1.5 text-xs font-semibold text-slate-200 transition-colors hover:border-indigo-300/40 hover:bg-indigo-400/10 hover:text-indigo-100"
+    >
+      {copied ? <Check className="h-3.5 w-3.5 text-emerald-300" /> : <Copy className="h-3.5 w-3.5" />}
+      {copied ? "Copied" : label}
+    </button>
+  );
+};
+
 const buildSmartSlug = (value: string) => {
   const stopWords = new Set([
     "a",
@@ -359,7 +384,7 @@ export default function CreateLinkPage() {
           {/* Sidebar / Result */}
           {createdAccount && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-sm">
-              <div className="relative w-full max-w-2xl rounded-2xl border border-slate-700 bg-slate-900/95 p-5 shadow-[0_20px_50px_rgba(15,23,42,0.6)] sm:p-6">
+              <div className="relative w-full max-w-2xl rounded-2xl border border-slate-700/80 bg-slate-900/95 p-5 shadow-[0_20px_50px_rgba(15,23,42,0.6)] sm:p-6">
                 <button
                   type="button"
                   onClick={() => setCreatedAccount(null)}
@@ -369,60 +394,50 @@ export default function CreateLinkPage() {
                   <X className="h-4 w-4" />
                 </button>
 
-                <div className="space-y-4 text-sm pr-8">
+                <div className="space-y-5 pr-8 text-sm">
                   <div>
-                    <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-200">
+                    <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-200">
                       Public analytics link
                     </div>
-                    <div className="rounded-xl border border-slate-700/80 bg-slate-950/60 p-3">
+                    <div className="rounded-xl border border-slate-700/70 bg-slate-950/45 p-3">
                       <a
                         href={createdAccount.publicStatsUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="block break-all text-[11px] leading-relaxed text-sky-300 underline decoration-sky-400/60 underline-offset-2 sm:text-xs"
+                        className="block break-all text-xs font-medium leading-5 text-sky-200 underline decoration-sky-400/70 underline-offset-2 sm:text-[13px]"
                       >
                         {createdAccount.publicStatsUrl}
                       </a>
-                      <p className="mt-2 text-[10px] leading-relaxed text-slate-300">
+                      <p className="mt-2.5 text-xs leading-5 text-slate-300">
                         Share this public analytics link with your team to monitor clicks and campaign performance.
                       </p>
-                      <button
-                        type="button"
-                        onClick={() => navigator.clipboard.writeText(createdAccount.publicStatsUrl)}
-                        className="mt-2 w-full rounded-xl border border-emerald-200/20 bg-gradient-to-r from-emerald-500/90 to-emerald-600/90 px-2 py-2.5 text-[11px] font-semibold tracking-[0.02em] text-white shadow-[0_8px_18px_rgba(16,185,129,0.22)] transition-all hover:from-emerald-400/90 hover:to-emerald-500/90"
-                      >
-                        Copy link
-                      </button>
+                      <div className="mt-3 flex justify-end">
+                        <ResultCopyButton text={createdAccount.publicStatsUrl} label="Copy link" />
+                      </div>
                     </div>
                   </div>
 
                   <div>
-                    <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-indigo-200">
+                    <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-200">
                       Tracking URL
                     </div>
-                    <div className="rounded-xl border border-slate-700/80 bg-slate-950/60 p-3">
+                    <div className="rounded-xl border border-slate-700/70 bg-slate-950/45 p-3">
                       <div className="flex flex-col gap-2.5">
                         <a
                           href={createdAccount.trackingUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="block break-all text-[11px] leading-relaxed text-sky-300 underline decoration-sky-400/60 underline-offset-2 sm:text-xs"
+                          className="block break-all text-xs font-medium leading-5 text-sky-200 underline decoration-sky-400/70 underline-offset-2 sm:text-[13px]"
                         >
                           {createdAccount.trackingUrl}
                         </a>
-                        <button
-                          type="button"
-                          onClick={() => navigator.clipboard.writeText(createdAccount.trackingUrl)}
-                          className="w-full rounded-xl border border-indigo-200/20 bg-gradient-to-r from-indigo-500/90 to-indigo-600/90 px-2 py-2.5 text-[11px] font-semibold tracking-[0.02em] text-white shadow-[0_8px_18px_rgba(99,102,241,0.22)] transition-all hover:from-indigo-400/90 hover:to-indigo-500/90"
-                        >
-                          Copy URL
-                        </button>
-                        <p className="text-[10px] leading-relaxed text-slate-300">
+                        <ResultCopyButton text={createdAccount.trackingUrl} label="Copy URL" />
+                        <p className="text-xs leading-5 text-slate-300">
                           Copy this tracking link, create a landing page in the Landing Builder, and share it on social media to start earning.
                         </p>
                         <a
                           href="/admin/landing-builder"
-                          className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-cyan-200/20 bg-gradient-to-r from-cyan-500/90 to-cyan-600/90 px-2 py-2.5 text-[11px] font-semibold tracking-[0.02em] text-white shadow-[0_8px_18px_rgba(6,182,212,0.22)] transition-all hover:from-cyan-400/90 hover:to-cyan-500/90"
+                          className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-cyan-300/30 bg-cyan-400/10 px-3 py-2 text-xs font-semibold text-cyan-100 transition-colors hover:border-cyan-200/55 hover:bg-cyan-400/20"
                         >
                           <span>Go to Landing Builder</span>
                           <ArrowRight className="h-3.5 w-3.5" />
