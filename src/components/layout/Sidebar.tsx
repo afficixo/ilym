@@ -157,7 +157,8 @@ export default function Sidebar() {
       items: [
         { href: `${dashboardBasePath}/links/create`, label: 'Create Link Account', icon: Plus },
         { href: `${dashboardBasePath}/links/create-turbo`, label: 'Bulk Create', icon: Zap },
-        { href: `${dashboardBasePath}/links`, label: 'All Link Account', icon: Link2 },
+        { href: `${dashboardBasePath}/links`, label: 'All Link Account', icon: Link2, exact: true },
+        { href: `${dashboardBasePath}/landing-builder`, label: 'Landing Builder', icon: Layers },
       ],
     },
     {
@@ -178,7 +179,6 @@ export default function Sidebar() {
     {
       label: 'Workspace',
       items: [
-        { href: `${dashboardBasePath}/landing-builder`, label: 'Landing Builder', icon: Layers },
         { href: `${dashboardBasePath}/url-shortener`, label: 'URL Shortener', icon: Link2 },
         ...(userRole === 'OWNER'
           ? [{ href: `${dashboardBasePath}/templates`, label: 'Templates', icon: Layers }]
@@ -229,9 +229,7 @@ export default function Sidebar() {
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.2),transparent_36%),radial-gradient(circle_at_bottom_right,rgba(244,114,182,0.16),transparent_38%),linear-gradient(135deg,rgba(34,211,238,0.08),transparent_40%,rgba(129,140,248,0.08))]" />
-      <div className={`relative flex w-full flex-shrink-0 items-center gap-3 ${isMobile ? 'h-[5.5rem] border-b border-slate-200/50 px-5 dark:border-white/10 bg-gradient-to-b from-slate-50/50 to-transparent dark:from-white/5 dark:to-transparent' : 'h-10 justify-start p-0'}`}>
+      <div className={`relative flex w-full flex-shrink-0 items-center gap-3 ${isMobile ? 'h-[4.5rem] border-b border-white/10 px-5' : 'h-10 justify-start p-0'}`}>
           {(!collapsed || isMobile) && (
             <div className="relative h-9 w-28 overflow-hidden">
               <Image
@@ -254,39 +252,50 @@ export default function Sidebar() {
         </button>
       )}
 
-      <nav className={`relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain ${isMobile ? 'space-y-4 px-3 py-4' : 'space-y-2 px-2 py-2'}`}>
+      <nav className={`relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain ${isMobile ? 'space-y-1 px-2 py-2' : 'space-y-1 px-2 py-2'}`}>
         {menuGroups.map((group) => group.items.length > 0 && (
-          <div key={group.label} className={`space-y-1.5 ${isMobile ? 'pb-2' : ''}`}>
-            {(!collapsed || isMobile) && (
-              <div className={`${isMobile ? 'px-3 py-1 !bg-transparent text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400' : 'px-2 pt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500 first:pt-0 dark:text-slate-400'}`}>
-                {group.label}
-              </div>
-            )}
+          <div key={group.label} className="space-y-1">
             {group.items.map((item) => {
-              const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
+              const isActive = item.exact
+                ? pathname === item.href
+                : pathname === item.href || pathname?.startsWith(item.href + '/')
               const Icon = item.icon
+              const iconColor = {
+                'Manage Publishers': 'text-amber-300',
+                Dashboard: 'text-lime-300',
+                'Create Link Account': 'text-cyan-300',
+                'Bulk Create': 'text-violet-300',
+                'All Link Account': 'text-sky-300',
+                'Offer Vault': 'text-orange-300',
+                'Custom Domains': 'text-emerald-300',
+                Analytics: 'text-blue-300',
+                'S2S Postbacks': 'text-pink-300',
+                'Landing Builder': 'text-indigo-300',
+                'URL Shortener': 'text-teal-300',
+                Templates: 'text-fuchsia-300',
+                Payments: 'text-yellow-300',
+                Settings: 'text-slate-300',
+                'Support Inbox': 'text-rose-300',
+              }[item.label] || 'text-slate-300'
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => isMobile && setMobileOpen(false)}
-                  className={`group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-3'} ${isMobile ? 'min-h-12 rounded-lg px-4 py-3 border-0' : 'rounded-lg px-2 py-1.5 border'} transition-all duration-200 ${
+                  className={`group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} ${isMobile ? 'min-h-10 rounded-md px-2.5 py-1.5 border-0' : 'rounded-md px-2 py-1.5 border'} transition-colors duration-200 ${
                     isActive
                       ? isMobile 
-                        ? 'border-0 bg-cyan-500/15 font-medium text-slate-900 shadow-sm dark:text-slate-50'
-                        : 'border-cyan-500/25 bg-cyan-500/[0.12] font-medium text-slate-800 dark:text-slate-50'
+                        ? 'border-0 bg-[#344047] font-medium text-slate-100'
+                        : 'border-transparent bg-[#344047] font-medium text-slate-100'
                       : isMobile
-                        ? 'border-0 !bg-transparent text-slate-700 dark:text-slate-300'
-                        : 'border-transparent text-slate-600 hover:border-slate-300/70 hover:bg-slate-100/70 hover:text-slate-900 dark:text-slate-400 dark:hover:border-white/10 dark:hover:bg-white/[0.06] dark:hover:text-slate-100'
+                        ? 'border-0 text-[#b7bec2] hover:bg-white/[0.06] hover:text-white'
+                        : 'border-transparent text-[#b7bec2] hover:bg-white/[0.06] hover:text-white'
                   }`}
                 >
-                  <Icon className={`${isMobile ? 'h-5 w-5' : 'h-4 w-4'} shrink-0 transition-all duration-200 ${isActive ? 'text-cyan-400' : isMobile ? 'text-slate-500 dark:text-slate-400' : 'text-slate-500'}`} />
+                  <Icon className={`h-5 w-5 shrink-0 transition-colors duration-200 ${iconColor}`} />
                   {(!collapsed || isMobile) && <span className={`tracking-[0.01em] ${isMobile ? 'text-sm font-medium' : 'text-xs'}`}>{item.label}</span>}
                   {isActive && !collapsed && !isMobile && (
                     <span className="ml-auto h-5 w-0.5 rounded-full bg-cyan-300" />
-                  )}
-                  {isActive && isMobile && (
-                    <span className="ml-auto h-2 w-2 rounded-full bg-cyan-400" />
                   )}
                 </Link>
               )
@@ -295,14 +304,14 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className={`relative z-10 flex-shrink-0 border-t ${isMobile ? 'border-slate-300/30 dark:border-white/10 space-y-2 px-3 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-4' : 'border-white/10 space-y-0.5 px-2 py-2'}`}>
+      <div className={`relative z-10 flex-shrink-0 border-t ${isMobile ? 'border-white/10 space-y-1 px-2 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-2' : 'border-white/10 space-y-0.5 px-2 py-2'}`}>
         <button
           onClick={handleLogout}
-          className={`w-full group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2'} ${isMobile ? 'rounded-lg px-4 py-3 min-h-12 border-0' : 'rounded-lg px-2 py-1.5 border border-transparent'} transition-all duration-200 ${isMobile ? 'text-red-600 dark:text-red-300 hover:text-red-700 dark:hover:text-red-200 hover:bg-red-50 dark:hover:bg-red-500/10 font-medium' : 'text-red-400/80 hover:text-red-300 hover:bg-red-500/10 hover:border-red-400/20'}`}
+          className={`w-full group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} ${isMobile ? 'rounded-md px-2.5 py-1.5 min-h-10 border-0' : 'rounded-md px-2 py-1.5 border border-transparent'} transition-colors duration-200 ${isMobile ? 'text-[#d6a2a2] hover:text-white hover:bg-white/[0.06] font-medium' : 'text-red-300/80 hover:text-red-200 hover:bg-red-500/10 hover:border-red-400/20'}`}
           aria-label="Logout"
           title="Logout"
         >
-          <LogOut className={`${collapsed && !isMobile ? 'w-5 h-5' : isMobile ? 'w-5 h-5' : 'w-4 h-4'} transition-transform duration-200 group-hover:scale-110`} />
+          <LogOut className={`${collapsed && !isMobile ? 'w-5 h-5' : 'w-5 h-5'} transition-colors duration-200`} />
           {(!collapsed || isMobile) && <span className={`tracking-[0.01em] ${isMobile ? 'text-sm' : 'text-xs'}`}>Logout</span>}
         </button>
       </div>

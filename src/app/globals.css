@@ -477,11 +477,20 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--primary-600);
+  background: rgba(148, 163, 184, 0.35);
   border-radius: 100px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-500);
+  background: rgba(148, 163, 184, 0.55);
+}
+
+.panel-bleed nav {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.panel-bleed nav::-webkit-scrollbar {
+  display: none;
 }
 
 /* ──────────────────────────────────────────────

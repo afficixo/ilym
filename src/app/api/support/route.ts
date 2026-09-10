@@ -45,6 +45,28 @@ export async function POST(request: Request) {
   const body = typeof payload?.body === 'string' ? payload.body.trim() : ''
   if (!body || body.length > 5000) return NextResponse.json({ error: 'Message must be between 1 and 5000 characters.' }, { status: 400 })
 
+  if (isOwner(user) && payload?.broadcast === true) {
+    const managers = await prisma.user.findMany({ where: { role: 'MANAGER' }, select: { id: true } })
+    const conversationIds = await prisma.$transaction(async (transaction) => {
+      const ids: string[] = []
+      for (const manager of managers) {
+        const conversation = await transaction.supportConversation.upsert({
+          where: { managerId: manager.id },
+          create: { managerId: manager.id },
+          update: { status: 'OPEN' },
+          select: { id: true },
+        })
+        await transaction.supportMessage.create({ data: { conversationId: conversation.id, senderId: user.id, body } })
+        ids.push(conversation.id)
+      }
+      return ids
+    })
+    const conversations = conversationIds.length
+      ? await prisma.supportConversation.findMany({ where: { id: { in: conversationIds } }, include: messageInclude, orderBy: { updatedAt: 'desc' } })
+      : []
+    return NextResponse.json({ conversations }, { status: 201 })
+  }
+
   let conversationId = typeof payload?.conversationId === 'string' ? payload.conversationId : null
   if (isManager(user)) {
     const conversation = await prisma.supportConversation.upsert({ where: { managerId: user.id }, create: { managerId: user.id }, update: { status: 'OPEN' }, select: { id: true } })

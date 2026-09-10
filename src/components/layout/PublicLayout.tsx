@@ -52,14 +52,14 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             </div>
 
             <div className="flex items-center gap-2 sm:gap-4">
-              <Link href="/login" className="public-header-login hidden text-xs font-semibold uppercase tracking-[0.15em] text-slate-400 transition-colors hover:text-white sm:block">
-                Login
+              <Link href="/signup" className="public-header-login hidden text-xs font-semibold uppercase tracking-[0.15em] text-slate-400 transition-colors hover:text-white sm:block">
+                Join Now
               </Link>
               <Link
-                href="/signup"
+                href="/login"
                 className="inline-flex items-center gap-2 rounded-md bg-emerald-300 px-3 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[#071014] shadow-[0_0_24px_rgba(110,231,183,0.22)] transition-all duration-300 hover:bg-emerald-200 hover:-translate-y-0.5 md:px-4 md:text-sm"
               >
-                Join Now
+                Login
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <button
@@ -98,6 +98,13 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Login
+                </Link>
+                <Link
+                  href="/signup"
+                  className="block py-1 text-sm text-slate-300 transition-colors hover:text-white"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Sign Up
                 </Link>
               </div>
             </motion.div>
