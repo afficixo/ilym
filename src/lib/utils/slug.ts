@@ -69,7 +69,7 @@ export async function ensureUserSlugPrefix(prismaClient: any, userId: string) {
   const usedPrefixes = new Set(
     existingUsers
       .map((user: { slugPrefix?: string | null }) => user.slugPrefix)
-      .filter((slugPrefix): slugPrefix is string => Boolean(slugPrefix))
+      .filter((slugPrefix: string | null | undefined): slugPrefix is string => Boolean(slugPrefix))
   )
 
   let prefix = generateFixedPrefix()
