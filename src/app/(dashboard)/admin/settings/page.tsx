@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import AfficixoLoading from "@/components/ui/AfficixoLoading";
 import {
@@ -17,6 +17,9 @@ import {
   ShieldCheck,
   Mail,
   CircleDollarSign,
+  Check,
+  ChevronDown,
+  Search,
 } from "lucide-react";
 
 interface FeedbackState {
@@ -40,6 +43,9 @@ export default function SettingsPage() {
   const [clickRate, setClickRate] = useState("0");
   const [managers, setManagers] = useState<ManagerOption[]>([]);
   const [selectedManagerId, setSelectedManagerId] = useState("");
+  const [isManagerMenuOpen, setIsManagerMenuOpen] = useState(false);
+  const [managerSearch, setManagerSearch] = useState("");
+  const managerPickerRef = useRef<HTMLDivElement | null>(null);
   const [managerClickRate, setManagerClickRate] = useState("0");
   const [managerCommissionRate, setManagerCommissionRate] = useState("20");
   const [showClickRateForm, setShowClickRateForm] = useState(false);
@@ -55,6 +61,33 @@ export default function SettingsPage() {
     newPassword: "",
     confirmPassword: "",
   });
+
+  const selectedManager = managers.find((manager) => manager.id === selectedManagerId);
+  const normalizedManagerSearch = managerSearch.trim().toLowerCase();
+  const filteredManagers = managers.filter((manager) => {
+    if (!normalizedManagerSearch) return true;
+    return `${manager.fullName || ""} ${manager.username}`.toLowerCase().includes(normalizedManagerSearch);
+  });
+
+  useEffect(() => {
+    if (!isManagerMenuOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!managerPickerRef.current?.contains(event.target as Node)) {
+        setIsManagerMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsManagerMenuOpen(false);
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isManagerMenuOpen]);
 
   useEffect(() => {
     const readTheme = () => {
@@ -449,10 +482,69 @@ export default function SettingsPage() {
                   <div className="space-y-3 rounded-lg border border-cyan-500/20 bg-cyan-500/5 p-4">
                     <div>
                       <label className="mb-1 block text-xs font-medium text-slate-400">Select manager</label>
-                      <select value={selectedManagerId} onChange={(event) => setSelectedManagerId(event.target.value)} required className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500">
-                        <option value="" disabled>Select a manager</option>
-                        {managers.map((manager) => <option key={manager.id} value={manager.id}>{manager.fullName || manager.username} (@{manager.username})</option>)}
-                      </select>
+                      <div ref={managerPickerRef} className="relative">
+                        <button
+                          type="button"
+                          aria-haspopup="listbox"
+                          aria-expanded={isManagerMenuOpen}
+                          onClick={() => {
+                            setManagerSearch("");
+                            setIsManagerMenuOpen((open) => !open);
+                          }}
+                          className="flex w-full items-center justify-between gap-3 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-left text-sm text-slate-900 shadow-sm transition hover:border-cyan-400 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:border-cyan-500"
+                        >
+                          <span className="flex min-w-0 items-center gap-2">
+                            <User className="h-4 w-4 shrink-0 text-cyan-600 dark:text-cyan-300" />
+                            <span className="truncate">
+                              {selectedManager ? `${selectedManager.fullName || selectedManager.username} (@${selectedManager.username})` : "Select a manager"}
+                            </span>
+                          </span>
+                          <ChevronDown className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${isManagerMenuOpen ? "rotate-180" : ""}`} />
+                        </button>
+
+                        {isManagerMenuOpen && (
+                          <div className="manager-picker-menu absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+                            <div className="relative">
+                              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                              <input
+                                type="search"
+                                value={managerSearch}
+                                onChange={(event) => setManagerSearch(event.target.value)}
+                                placeholder="Search managers..."
+                                aria-label="Search managers"
+                                autoFocus
+                                className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                              />
+                            </div>
+                            <div className="mt-2 max-h-52 overflow-y-auto" role="listbox" aria-label="Managers">
+                              {filteredManagers.length > 0 ? filteredManagers.map((manager) => {
+                                const isSelected = manager.id === selectedManagerId;
+                                return (
+                                  <button
+                                    key={manager.id}
+                                    type="button"
+                                    role="option"
+                                    aria-selected={isSelected}
+                                    onClick={() => {
+                                      setSelectedManagerId(manager.id);
+                                      setIsManagerMenuOpen(false);
+                                    }}
+                                    className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-slate-700 transition hover:bg-cyan-50 dark:text-slate-200 dark:hover:bg-cyan-500/10"
+                                  >
+                                    <span className="min-w-0">
+                                      <span className="block truncate font-medium">{manager.fullName || manager.username}</span>
+                                      <span className="block truncate text-xs text-slate-500 dark:text-slate-400">@{manager.username}</span>
+                                    </span>
+                                    {isSelected && <Check className="h-4 w-4 shrink-0 text-cyan-600 dark:text-cyan-300" />}
+                                  </button>
+                                );
+                              }) : (
+                                <p className="px-3 py-4 text-center text-xs text-slate-500 dark:text-slate-400">No managers found</p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <form onSubmit={handleManagerClickRateSubmit} className="space-y-3">

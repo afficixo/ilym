@@ -383,8 +383,8 @@ export default function CreateLinkPage() {
 
           {/* Sidebar / Result */}
           {createdAccount && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-sm">
-              <div className="relative w-full max-w-2xl rounded-2xl border border-slate-700/80 bg-slate-900/95 p-5 shadow-[0_20px_50px_rgba(15,23,42,0.6)] sm:p-6">
+            <div className="link-result-modal fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-sm">
+              <div className="link-result-modal-panel relative w-full max-w-2xl rounded-2xl border border-slate-700/80 bg-slate-900/95 p-5 shadow-[0_20px_50px_rgba(15,23,42,0.6)] sm:p-6">
                 <button
                   type="button"
                   onClick={() => setCreatedAccount(null)}

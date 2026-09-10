@@ -632,6 +632,58 @@ html:not(.dark) [class*="text-gray-600"] {
   color: #64748b !important;
 }
 
+html:not(.dark) .link-result-modal {
+  background-color: rgba(15, 23, 42, 0.42) !important;
+}
+
+html:not(.dark) .link-result-modal-panel {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a;
+}
+
+html:not(.dark) .link-result-modal-panel [class*="bg-slate-950"] {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+html:not(.dark) .link-result-modal-panel [class*="text-emerald-200"] {
+  color: #047857 !important;
+}
+
+html:not(.dark) .link-result-modal-panel [class*="text-indigo-200"] {
+  color: #4338ca !important;
+}
+
+html:not(.dark) .link-result-modal-panel [class*="text-sky-200"] {
+  color: #0369a1 !important;
+}
+
+html:not(.dark) .link-result-modal-panel [class*="text-slate-300"] {
+  color: #475569 !important;
+}
+
+html:not(.dark) .link-result-modal-panel [class*="text-slate-400"] {
+  color: #64748b !important;
+}
+
+html:not(.dark) .link-result-modal-panel button[class*="bg-slate-800"] {
+  background-color: #ffffff !important;
+  border-color: #94a3b8 !important;
+  color: #1e293b !important;
+}
+
+html:not(.dark) .link-result-modal-panel a[class*="bg-cyan-400"] {
+  background-color: #cffafe !important;
+  border-color: #67e8f9 !important;
+  color: #0e7490 !important;
+}
+
+html:not(.dark) .manager-picker-menu {
+  background-color: #ffffff !important;
+  opacity: 1 !important;
+}
+
 html:not(.dark) [class*="text-[#8B95A7]"],
 html:not(.dark) [class*="text-[#E5E7EB]"] {
   color: #475569 !important;
