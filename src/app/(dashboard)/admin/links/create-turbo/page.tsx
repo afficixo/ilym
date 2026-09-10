@@ -228,7 +228,7 @@ export default function CreateLinkTurboPage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-slate-300">Account Name Base</label>
                 <input
@@ -277,7 +277,7 @@ export default function CreateLinkTurboPage() {
                   disabled={loading || selectableDomains.length === 0}
                   className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-60"
                 >
-                  <option value="">Default domain</option>
+                  <option value="">Select a domain</option>
                   {selectableDomains.map((d) => (
                     <option key={d.id} value={d.id}>
                       {d.domain}
@@ -288,14 +288,14 @@ export default function CreateLinkTurboPage() {
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-slate-300">Offer Group</label>
+                <label className="mb-1.5 block text-xs font-medium text-slate-300">Active offers</label>
                 <select
                   value={offerGroupName}
                   onChange={(e) => setOfferGroupName(e.target.value)}
                   disabled={loading}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm font-medium text-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 >
-                  <option value="">Default routing</option>
+                  <option value="">Select an offer</option>
                   {offerGroups.map((g) => (
                     <option key={g} value={g}>
                       {g}

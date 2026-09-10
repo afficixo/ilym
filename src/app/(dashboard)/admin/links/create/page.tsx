@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
+  ArrowRight,
   CheckCircle2,
   Copy,
   Check,
   Rocket,
+  X,
 } from "lucide-react";
 import { buildOfferGroupList } from "@/lib/utils/offer-groups";
 import { coerceArray } from "@/lib/utils/array-response";
@@ -55,11 +57,71 @@ const CopyButton = ({ text, onCopy }: { text: string; onCopy: () => void }) => {
   );
 };
 
+const buildSmartSlug = (value: string) => {
+  const stopWords = new Set([
+    "a",
+    "an",
+    "and",
+    "as",
+    "at",
+    "by",
+    "for",
+    "from",
+    "in",
+    "is",
+    "of",
+    "on",
+    "or",
+    "the",
+    "to",
+    "with",
+    "media",
+    "marketing",
+    "campaign",
+    "group",
+    "team",
+    "official",
+    "global",
+    "network",
+    "brand",
+    "agency",
+    "studio",
+    "store",
+    "shop",
+    "links",
+    "link",
+  ]);
+
+  const normalized = value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, " ")
+    .trim();
+
+  const words = normalized
+    .split(/\s+/)
+    .map((word) => word.trim())
+    .filter((word) => word.length > 1 && !stopWords.has(word))
+    .filter((word, index, array) => array.indexOf(word) === index);
+
+  if (words.length === 0) {
+    return "";
+  }
+
+  const slug = words.slice(0, 3).join("-");
+
+  if (!slug) {
+    return "";
+  }
+
+  return slug.slice(0, 32).replace(/-+/g, "-").replace(/^-+|-+$/g, "");
+};
+
 // ========== MAIN PAGE ==========
 export default function CreateLinkPage() {
   const router = useRouter();
   const [accountName, setAccountName] = useState("");
-  const [slug, setSlug] = useState("");
   const [customDomainId, setCustomDomainId] = useState("");
   const [offerGroupName, setOfferGroupName] = useState("");
   const [domains, setDomains] = useState<Domain[]>([]);
@@ -133,7 +195,6 @@ export default function CreateLinkPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           accountName,
-          slug,
           customDomainId: customDomainId || null,
           offerGroupName: offerGroupName || null,
         }),
@@ -160,7 +221,6 @@ export default function CreateLinkPage() {
       });
       setSuccess(`Link account “${data.accountName}” was created successfully.`);
       setAccountName("");
-      setSlug("");
       setCustomDomainId("");
       setOfferGroupName("");
     } catch (err: any) {
@@ -173,8 +233,6 @@ export default function CreateLinkPage() {
   const templateText = createdAccount
     ? `Account Name: \`${createdAccount.accountName}\`\nPublic Analytics: ${createdAccount.publicStatsUrl}\nTracking URL: \`${createdAccount.trackingUrl}\``
     : "";
-
-  const hasCustomizations = customDomainId || offerGroupName;
 
   return (
     <div className="min-h-screen bg-slate-950 px-4 py-6 sm:px-6 lg:px-8">
@@ -203,22 +261,16 @@ export default function CreateLinkPage() {
         </div>
 
         {/* Main Grid */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.3fr_0.7fr] items-start">
+        <div className={createdAccount ? "grid grid-cols-1 gap-6 lg:grid-cols-[1.3fr_0.7fr] items-start" : "grid grid-cols-1 gap-6 items-start"}>
           {/* Form Card */}
-          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6">
+          <div className="rounded-2xl border border-slate-700/80 bg-slate-900/70 p-5 shadow-[0_12px_30px_rgba(2,6,23,0.45)] sm:p-6">
             <div className="mb-5 flex items-center gap-2">
-              <div className="rounded-md bg-indigo-500/10 p-1.5">
-                <Rocket className="h-4 w-4 text-indigo-400" />
+              <div className="rounded-md bg-indigo-500/10 p-1.5 ring-1 ring-indigo-400/20">
+                <Rocket className="h-4 w-4 text-indigo-300" />
               </div>
-              <span className="text-xs font-medium uppercase tracking-wider text-indigo-400">
+              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-300">
                 Campaign Builder
               </span>
-              {hasCustomizations && (
-                <span className="ml-auto flex items-center gap-1.5 text-xs text-emerald-400">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                  Customized
-                </span>
-              )}
             </div>
 
             {error && (
@@ -228,15 +280,15 @@ export default function CreateLinkPage() {
             )}
 
             {success && (
-              <div className="mb-4 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+              <div className="mb-4 rounded-xl border border-emerald-400/20 bg-gradient-to-r from-emerald-500/10 to-emerald-400/5 px-4 py-3 text-sm text-emerald-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
                 <div className="flex items-start gap-2">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />
                   <span>{success}</span>
                 </div>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-slate-300">Account Name</label>
                 <input
@@ -246,22 +298,8 @@ export default function CreateLinkPage() {
                   placeholder="Enter Account Holder Name"
                   required
                   disabled={loading}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-800/90 px-3 py-2.5 text-sm text-white placeholder-slate-500 shadow-inner shadow-slate-950/40 transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
                 />
-              </div>
-
-              <div>
-                <label className="mb-1.5 block text-xs font-medium text-slate-300">Sub_ID</label>
-                <input
-                  type="text"
-                  value={slug}
-                  onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/\s/g, "-"))}
-                  placeholder="use random words"
-                  required
-                  disabled={loading}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                />
-                <p className="mt-1 text-xs text-slate-500">Letters, numbers, and hyphens only</p>
               </div>
 
               <div>
@@ -270,9 +308,9 @@ export default function CreateLinkPage() {
                   value={customDomainId}
                   onChange={(e) => setCustomDomainId(e.target.value)}
                   disabled={loading || selectableDomains.length === 0}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-60"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-800/90 px-3 py-2.5 text-sm text-white shadow-inner shadow-slate-950/40 transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 disabled:opacity-60"
                 >
-                  <option value="">Default domain</option>
+                  <option value="">Select a domain</option>
                   {selectableDomains.map((d) => (
                     <option key={d.id} value={d.id}>
                       {d.domain}
@@ -282,27 +320,26 @@ export default function CreateLinkPage() {
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-slate-300">Offer Group</label>
+                <label className="mb-1.5 block text-xs font-medium text-slate-300">Active offers</label>
                 <select
                   value={offerGroupName}
                   onChange={(e) => setOfferGroupName(e.target.value)}
                   disabled={loading}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-800/90 px-3 py-2.5 text-sm font-medium text-slate-300 shadow-inner shadow-slate-950/40 transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
                 >
-                  <option value="">Default routing</option>
+                  <option value="" className="text-slate-400">Select an offer</option>
                   {offerGroups.map((g) => (
                     <option key={g} value={g}>
                       {g}
                     </option>
                   ))}
                 </select>
-                <p className="mt-1 text-xs text-slate-500">Select an offer group</p>
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(99,102,241,0.32)] transition-all hover:from-indigo-400 hover:to-violet-400 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? (
                   <>
@@ -320,70 +357,80 @@ export default function CreateLinkPage() {
           </div>
 
           {/* Sidebar / Result */}
-          {createdAccount ? (
-            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5 sm:p-6">
-              <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                  <span className="text-xs font-medium uppercase tracking-wider text-emerald-400">
-                    Ready to share
-                  </span>
-                </div>
-                <CopyButton text={templateText} onCopy={() => {}} />
-              </div>
+          {createdAccount && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-sm">
+              <div className="relative w-full max-w-2xl rounded-2xl border border-slate-700 bg-slate-900/95 p-5 shadow-[0_20px_50px_rgba(15,23,42,0.6)] sm:p-6">
+                <button
+                  type="button"
+                  onClick={() => setCreatedAccount(null)}
+                  aria-label="Close result panel"
+                  className="absolute right-3 top-3 rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+                >
+                  <X className="h-4 w-4" />
+                </button>
 
-              <div className="pt-4 space-y-4 text-sm">
-                <div>
-                  <div className="text-xs font-medium text-slate-400">Publisher ID</div>
-                  <div className="mt-1 flex items-center justify-between gap-2 rounded-md bg-slate-800/50 px-3 py-2 font-mono text-sm break-all text-slate-100">
-                    <code>{createdAccount.accountName}</code>
+                <div className="space-y-4 text-sm pr-8">
+                  <div>
+                    <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-200">
+                      Public analytics link
+                    </div>
+                    <div className="rounded-xl border border-slate-700/80 bg-slate-950/60 p-3">
+                      <a
+                        href={createdAccount.publicStatsUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="block break-all text-[11px] leading-relaxed text-sky-300 underline decoration-sky-400/60 underline-offset-2 sm:text-xs"
+                      >
+                        {createdAccount.publicStatsUrl}
+                      </a>
+                      <p className="mt-2 text-[10px] leading-relaxed text-slate-300">
+                        Share this public analytics link with your team to monitor clicks and campaign performance.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => navigator.clipboard.writeText(createdAccount.publicStatsUrl)}
+                        className="mt-2 w-full rounded-xl border border-emerald-200/20 bg-gradient-to-r from-emerald-500/90 to-emerald-600/90 px-2 py-2.5 text-[11px] font-semibold tracking-[0.02em] text-white shadow-[0_8px_18px_rgba(16,185,129,0.22)] transition-all hover:from-emerald-400/90 hover:to-emerald-500/90"
+                      >
+                        Copy link
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-indigo-200">
+                      Tracking URL
+                    </div>
+                    <div className="rounded-xl border border-slate-700/80 bg-slate-950/60 p-3">
+                      <div className="flex flex-col gap-2.5">
+                        <a
+                          href={createdAccount.trackingUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="block break-all text-[11px] leading-relaxed text-sky-300 underline decoration-sky-400/60 underline-offset-2 sm:text-xs"
+                        >
+                          {createdAccount.trackingUrl}
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => navigator.clipboard.writeText(createdAccount.trackingUrl)}
+                          className="w-full rounded-xl border border-indigo-200/20 bg-gradient-to-r from-indigo-500/90 to-indigo-600/90 px-2 py-2.5 text-[11px] font-semibold tracking-[0.02em] text-white shadow-[0_8px_18px_rgba(99,102,241,0.22)] transition-all hover:from-indigo-400/90 hover:to-indigo-500/90"
+                        >
+                          Copy URL
+                        </button>
+                        <p className="text-[10px] leading-relaxed text-slate-300">
+                          Copy this tracking link, create a landing page in the Landing Builder, and share it on social media to start earning.
+                        </p>
+                        <a
+                          href="/admin/landing-builder"
+                          className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-cyan-200/20 bg-gradient-to-r from-cyan-500/90 to-cyan-600/90 px-2 py-2.5 text-[11px] font-semibold tracking-[0.02em] text-white shadow-[0_8px_18px_rgba(6,182,212,0.22)] transition-all hover:from-cyan-400/90 hover:to-cyan-500/90"
+                        >
+                          <span>Go to Landing Builder</span>
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </a>
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                <div>
-                  <div className="text-xs font-medium text-slate-400">Public analytics</div>
-                  <div className="mt-1 flex items-center justify-between gap-2 rounded-md bg-slate-800/50 px-3 py-2">
-                    <span className="break-all text-xs text-slate-300 sm:text-sm">{createdAccount.publicStatsUrl}</span>
-                    <a
-                      href={createdAccount.publicStatsUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="shrink-0 rounded-md border border-slate-700 bg-slate-800 px-2 py-1 text-[10px] font-medium text-slate-300 hover:bg-slate-700"
-                    >
-                      Open
-                    </a>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-xs font-medium text-slate-400">Tracking URL</div>
-                  <div className="mt-1 flex items-center justify-between gap-2 rounded-md bg-slate-800/50 px-3 py-2 font-mono text-xs sm:text-sm break-all text-slate-100">
-                    <code>{createdAccount.trackingUrl}</code>
-                    <a
-                      href={createdAccount.trackingUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="shrink-0 rounded-md border border-slate-700 bg-slate-800 px-2 py-1 text-[10px] font-medium text-slate-300 hover:bg-slate-700"
-                    >
-                      Open
-                    </a>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-4 flex items-center gap-2 border-t border-slate-800 pt-4 text-xs font-medium text-emerald-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                Your link is live and ready to share
-              </div>
-            </div>
-          ) : (
-            <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-6 text-center">
-              <div className="flex flex-col items-center justify-center py-8">
-                <div className="rounded-lg bg-slate-800 p-3 mb-3">
-                  <Rocket className="h-6 w-6 text-slate-500" />
-                </div>
-                <p className="text-sm text-slate-400">Your link will appear here</p>
-                <p className="mt-1 text-xs text-slate-500">Complete the form to create one</p>
               </div>
             </div>
           )}

@@ -4,6 +4,7 @@ import { getUserFromToken, getTokenFromCookie, getOwnerUserId, isAdmin, isOwner 
 import { getCorsHeaders } from '@/config/cors'
 import { getLinkAccountVisibilityWhereClause } from '@/lib/utils/link-account-access'
 import { isDesktopDeviceType } from '@/lib/utils/visitor-profile'
+import { buildPublisherSlug, ensureUserSlugPrefix } from '@/lib/utils/slug'
 import crypto from 'crypto'
 
 export const dynamic = 'force-dynamic'
@@ -165,7 +166,7 @@ export async function POST(request: Request) {
       )
     }
     
-    const { accountName, slug, customDomainId, offerGroupName } = body
+    const { accountName, customDomainId, offerGroupName } = body
 
     let finalUserId: string = user.id
     if (typeof finalUserId === 'string' && finalUserId.startsWith('local-')) {
@@ -204,23 +205,28 @@ export async function POST(request: Request) {
       }
     }
 
-    if (!accountName || !slug) {
+    if (!accountName) {
       return NextResponse.json(
-        { error: 'Account name and slug required' },
+        { error: 'Account name required' },
         { status: 400, headers: getCorsHeaders(origin) }
       )
     }
 
+    const prefix = await ensureUserSlugPrefix(prisma, finalUserId)
+    const generatedSlug = buildPublisherSlug(prefix)
+
     const existing = await prisma.linkAccount.findUnique({
-      where: { slug },
+      where: { slug: generatedSlug },
     })
 
     if (existing) {
       return NextResponse.json(
-        { error: 'Slug already exists' },
+        { error: 'Slug already exists, please try again' },
         { status: 400, headers: getCorsHeaders(origin) }
       )
     }
+
+    const finalSlug = generatedSlug
 
     // Use 32 bytes (256 bits) for public ID to prevent brute-force guessing
     // 16 bytes = 128 bits = 32 hex chars, but 32 bytes = 256 bits = 64 hex chars
@@ -229,7 +235,7 @@ export async function POST(request: Request) {
     const link = await prisma.linkAccount.create({
       data: {
         accountName,
-        slug,
+        slug: finalSlug,
         customDomainId: customDomainId || null,
         offerGroupName: typeof offerGroupName === 'string' ? offerGroupName.trim() || null : null,
         userId: finalUserId,

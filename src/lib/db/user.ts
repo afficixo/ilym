@@ -1,5 +1,6 @@
 import { prisma } from './prisma'
 import { Prisma } from '@prisma/client'
+import { generateFixedPrefix } from '@/lib/utils/slug'
 
 export async function createUserSafe(initialData: Prisma.UserCreateInput) {
   let data: Record<string, any> = { ...initialData } as Record<string, any>
@@ -27,6 +28,25 @@ export async function createUserSafe(initialData: Prisma.UserCreateInput) {
 
   while (true) {
     try {
+      if (!data.slugPrefix) {
+        const users = await prisma.user.findMany({
+          select: { slugPrefix: true },
+        })
+
+        const usedPrefixes = new Set(
+          users
+            .map((user) => user.slugPrefix)
+            .filter((slugPrefix): slugPrefix is string => Boolean(slugPrefix))
+        )
+
+        let prefix = generateFixedPrefix()
+        while (usedPrefixes.has(prefix)) {
+          prefix = generateFixedPrefix()
+        }
+
+        data.slugPrefix = prefix
+      }
+
       // Ensure we only include columns that actually exist in the DB to avoid P2022 errors.
       const existing = await getExistingUserColumns()
       const filtered = Object.fromEntries(
