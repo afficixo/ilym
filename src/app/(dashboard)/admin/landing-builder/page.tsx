@@ -15,6 +15,7 @@ import {
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
+  AlertTriangle,
 } from 'lucide-react'
 
 interface Template {
@@ -49,6 +50,11 @@ interface LandingPage {
   createdAt: string
 }
 
+interface DeleteConfirmation {
+  pageIds: string[]
+  pages: LandingPage[]
+}
+
 const getDomain = (): string => {
   if (typeof window !== 'undefined') {
     const host = window.location.hostname
@@ -77,6 +83,8 @@ export default function LandingPageBuilder() {
   const [managerFilter, setManagerFilter] = useState('all')
   const [searchFilter, setSearchFilter] = useState('')
   const [selectedPageIds, setSelectedPageIds] = useState<string[]>([])
+  const [deleteConfirmation, setDeleteConfirmation] = useState<DeleteConfirmation | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Builder form state
   const [subdomain, setSubdomain] = useState('')
@@ -150,6 +158,17 @@ export default function LandingPageBuilder() {
       fetchLandingPages()
     }
   }, [fetchLandingPages, userId])
+
+  useEffect(() => {
+    if (!deleteConfirmation) return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !isDeleting) setDeleteConfirmation(null)
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [deleteConfirmation, isDeleting])
 
   const validateSubdomain = async (value: string) => {
     setSubdomain(value)
@@ -241,24 +260,9 @@ export default function LandingPageBuilder() {
     }
   }
 
-  const deleteLandingPage = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this landing page?')) return
-    if (!userId) return
-
-    try {
-      const response = await fetch(`/api/landing-pages/${id}`, {
-        method: 'DELETE',
-        headers: { 'x-user-id': userId },
-      })
-
-      if (response.ok) {
-        setLandingPages(landingPages.filter(page => page.id !== id))
-        setSuccess('Landing page deleted')
-        setTimeout(() => setSuccess(''), 2000)
-      }
-    } catch {
-      setError('Failed to delete landing page')
-    }
+  const requestDeleteLandingPage = (id: string) => {
+    const page = landingPages.find((item) => item.id === id)
+    if (page) setDeleteConfirmation({ pageIds: [id], pages: [page] })
   }
 
   const managerGroups = landingPages.reduce<Record<string, LandingPage[]>>((groups, page) => {
@@ -318,25 +322,33 @@ export default function LandingPageBuilder() {
     }
   }
 
-  const deleteSelectedPages = async () => {
-    if (!canDeleteSelected || !confirm(`Delete ${selectedPages.length} selected landing page${selectedPages.length === 1 ? '' : 's'}?`)) return
+  const requestDeleteSelectedPages = () => {
+    if (canDeleteSelected) setDeleteConfirmation({ pageIds: selectedPages.map((page) => page.id), pages: selectedPages })
+  }
 
+  const deleteConfirmedPages = async () => {
+    if (!deleteConfirmation || !userId) return
+
+    setIsDeleting(true)
     try {
-      const results = await Promise.all(selectedPages.map((page) => fetch(`/api/landing-pages/${page.id}`, {
+      const results = await Promise.all(deleteConfirmation.pageIds.map((id) => fetch(`/api/landing-pages/${id}`, {
         method: 'DELETE',
-        headers: { 'x-user-id': userId || '' },
+        headers: { 'x-user-id': userId },
       })))
       if (results.every((response) => response.ok)) {
-        const deletedIds = new Set(selectedPages.map((page) => page.id))
+        const deletedIds = new Set(deleteConfirmation.pageIds)
         setLandingPages((pages) => pages.filter((page) => !deletedIds.has(page.id)))
-        setSelectedPageIds([])
-        setSuccess('Selected landing pages deleted')
+        setSelectedPageIds((ids) => ids.filter((id) => !deletedIds.has(id)))
+        setSuccess(`${deleteConfirmation.pageIds.length === 1 ? 'Landing page' : `${deleteConfirmation.pageIds.length} landing pages`} deleted`)
         setTimeout(() => setSuccess(''), 3000)
+        setDeleteConfirmation(null)
       } else {
         setError('Some selected pages could not be deleted')
       }
     } catch {
       setError('Failed to delete selected pages')
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -440,13 +452,45 @@ export default function LandingPageBuilder() {
                   </button>
                   <button
                     type="button"
-                    onClick={deleteSelectedPages}
+                    onClick={requestDeleteSelectedPages}
                     disabled={!canDeleteSelected}
                     title={!canDeleteSelected ? 'You can only delete pages you own' : 'Delete selected pages'}
                     className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm font-medium text-red-300 transition-colors hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     Delete selected
                   </button>
+                </div>
+              )}
+              {deleteConfirmation && deleteConfirmation.pageIds.length > 1 && (
+                <div className="flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between lg:col-span-4 dark:border-amber-500/20 dark:bg-amber-500/10">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-300" />
+                    <div>
+                      <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                        Delete {deleteConfirmation.pageIds.length} selected pages?
+                      </p>
+                      <p className="text-xs text-amber-700/80 dark:text-amber-300/80">This action cannot be undone.</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 sm:shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setDeleteConfirmation(null)}
+                      disabled={isDeleting}
+                      className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={deleteConfirmedPages}
+                      disabled={isDeleting}
+                      className="inline-flex items-center gap-1.5 rounded-md bg-amber-600 px-3 py-2 text-xs font-semibold text-white shadow-sm shadow-amber-600/20 hover:bg-amber-700 disabled:opacity-60"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      {isDeleting ? 'Deleting...' : 'Confirm delete'}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -517,8 +561,8 @@ export default function LandingPageBuilder() {
                           <div className="flex gap-2 border-t border-slate-800 pt-3">
                             {(page.userId === userId || userRole === 'OWNER') && (
                               <button
-                                onClick={() => deleteLandingPage(page.id)}
-                                className="flex flex-1 items-center justify-center gap-1 rounded-md px-2 py-2 text-xs font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
+                                onClick={() => requestDeleteLandingPage(page.id)}
+                                className="flex flex-1 items-center justify-center gap-1 rounded-md px-2 py-2 text-xs font-medium text-amber-600 transition-colors hover:bg-amber-500/10 hover:text-amber-700 dark:text-amber-300 dark:hover:text-amber-200"
                                 title="Delete landing page"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
@@ -535,6 +579,35 @@ export default function LandingPageBuilder() {
                         <span className="hidden sm:inline">Copy</span>
                       </button>
                           </div>
+                          {deleteConfirmation?.pageIds.length === 1 && deleteConfirmation.pageIds[0] === page.id && (
+                            <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-500/20 dark:bg-amber-500/10">
+                              <div className="flex items-start gap-2">
+                                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-300" />
+                                <div className="min-w-0">
+                                  <p className="text-xs font-semibold text-amber-800 dark:text-amber-200">Delete this landing page?</p>
+                                  <p className="mt-0.5 truncate text-[11px] text-amber-700/80 dark:text-amber-300/80">This cannot be undone.</p>
+                                </div>
+                              </div>
+                              <div className="mt-2 flex gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setDeleteConfirmation(null)}
+                                  disabled={isDeleting}
+                                  className="flex-1 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={deleteConfirmedPages}
+                                  disabled={isDeleting}
+                                  className="flex-1 rounded-md bg-amber-600 px-2 py-1.5 text-xs font-semibold text-white shadow-sm shadow-amber-600/20 hover:bg-amber-700 disabled:opacity-60"
+                                >
+                                  {isDeleting ? 'Deleting...' : 'Confirm delete'}
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>

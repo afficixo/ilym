@@ -3,6 +3,7 @@
 import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { Loader2, MessageCircle, Send } from 'lucide-react'
+import MessageBody from '@/components/support/MessageBody'
 
 type Message = { id: string; body: string; createdAt: string; sender: { role: string } }
 type Conversation = { id: string; messages: Message[] }
@@ -79,7 +80,7 @@ export default function PublisherHelpPage() {
             const previousMessage = conversation.messages[index - 1]
             const startsOwnerGroup = !isManagerMessage && previousMessage?.sender.role === 'MANAGER'
             const showOwnerAvatar = !isManagerMessage && (index === 0 || startsOwnerGroup)
-            return <div key={message.id} className={`flex items-end gap-2 ${isManagerMessage ? 'justify-end' : 'justify-start'}`}>{!isManagerMessage && <div className={`hidden h-7 w-7 shrink-0 overflow-hidden rounded-full border border-slate-200 dark:border-white/10 sm:flex ${showOwnerAvatar ? '' : 'invisible'}`}><Image src="/apple-touch-icon.png" alt="Afficixo" width={28} height={28} className="h-full w-full object-cover" /></div>}<div className={`max-w-[88%] sm:max-w-[75%] ${isManagerMessage ? 'items-end' : 'items-start'} flex flex-col`}><div className={`whitespace-pre-wrap break-words rounded-2xl px-4 py-3 text-sm leading-6 ${isManagerMessage ? 'rounded-br-md bg-cyan-500 text-slate-950 shadow-sm' : `border border-slate-200/80 bg-white text-slate-700 shadow-sm dark:border-white/10 dark:bg-slate-800/80 dark:text-slate-200 ${showOwnerAvatar ? 'rounded-bl-md' : 'rounded-l-md'}`}`}>{message.body}</div></div></div>
+            return <div key={message.id} className={`flex items-end gap-2 ${isManagerMessage ? 'justify-end' : 'justify-start'}`}>{!isManagerMessage && <div className={`hidden h-7 w-7 shrink-0 overflow-hidden rounded-full border border-slate-200 dark:border-white/10 sm:flex ${showOwnerAvatar ? '' : 'invisible'}`}><Image src="/apple-touch-icon.png" alt="Afficixo" width={28} height={28} className="h-full w-full object-cover" /></div>}<div className={`max-w-[88%] sm:max-w-[75%] ${isManagerMessage ? 'items-end' : 'items-start'} flex flex-col`}><div className={`whitespace-pre-wrap break-words rounded-2xl px-4 py-3 text-sm leading-6 ${isManagerMessage ? 'rounded-br-md bg-cyan-500 text-slate-950 shadow-sm' : `border border-slate-200/80 bg-white text-slate-700 shadow-sm dark:border-white/10 dark:bg-slate-800/80 dark:text-slate-200 ${showOwnerAvatar ? 'rounded-bl-md' : 'rounded-l-md'}`}`}><MessageBody body={message.body} /></div></div></div>
           })}
         </div>
 

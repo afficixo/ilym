@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import MessageBody from '@/components/support/MessageBody'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { FormEvent, useState, useEffect, useRef } from 'react'
@@ -356,7 +357,7 @@ export default function Sidebar() {
           const isManagerMessage = message.sender.role === 'MANAGER'
           const previousMessage = supportConversation.messages[index - 1]
           const showOwnerAvatar = !isManagerMessage && (index === 0 || previousMessage?.sender.role === 'MANAGER')
-          return <div key={message.id} className={`flex items-end gap-1.5 ${isManagerMessage ? 'justify-end' : 'justify-start'}`}>{!isManagerMessage && <div className={`flex h-5 w-5 shrink-0 overflow-hidden rounded-full border border-slate-200 dark:border-white/10 ${showOwnerAvatar ? '' : 'invisible'}`}><Image src="/apple-touch-icon.png" alt="Afficixo" width={20} height={20} className="h-full w-full object-cover" /></div>}<div className={`max-w-[78%] whitespace-pre-wrap break-words px-3 py-2 text-xs leading-5 ${isManagerMessage ? 'rounded-xl rounded-br-sm bg-cyan-500 text-slate-950' : `rounded-xl border border-slate-200 bg-white text-slate-700 dark:border-white/10 dark:bg-slate-800 dark:text-slate-200 ${showOwnerAvatar ? 'rounded-bl-sm' : 'rounded-l-md'}`}`}>{message.body}</div></div>
+          return <div key={message.id} className={`flex items-end gap-1.5 ${isManagerMessage ? 'justify-end' : 'justify-start'}`}>{!isManagerMessage && <div className={`flex h-5 w-5 shrink-0 overflow-hidden rounded-full border border-slate-200 dark:border-white/10 ${showOwnerAvatar ? '' : 'invisible'}`}><Image src="/apple-touch-icon.png" alt="Afficixo" width={20} height={20} className="h-full w-full object-cover" /></div>}<div className={`max-w-[78%] whitespace-pre-wrap break-words px-3 py-2 text-xs leading-5 ${isManagerMessage ? 'rounded-xl rounded-br-sm bg-cyan-500 text-slate-950' : `rounded-xl border border-slate-200 bg-white text-slate-700 dark:border-white/10 dark:bg-slate-800 dark:text-slate-200 ${showOwnerAvatar ? 'rounded-bl-sm' : 'rounded-l-md'}`}`}><MessageBody body={message.body} /></div></div>
         })}
       </div>
       {supportError && <p className="border-t border-red-500/15 bg-red-500/5 px-3 py-2 text-xs text-red-600 dark:text-red-300">{supportError}</p>}
