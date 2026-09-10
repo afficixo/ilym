@@ -67,7 +67,7 @@ export default function OwnerSupportPage() {
         setConversations((items) => items.some((item) => item.id === data.conversation.id) ? items.map((item) => item.id === data.conversation.id ? data.conversation : item) : [data.conversation, ...items])
       } else {
         setConversations((items) => {
-          const updated = new Map(data.conversations.map((conversation: Conversation) => [conversation.id, conversation]))
+          const updated = new Map<string, Conversation>(data.conversations.map((conversation: Conversation) => [conversation.id, conversation]))
           return [...updated.values(), ...items.filter((conversation) => !updated.has(conversation.id))]
         })
       }
