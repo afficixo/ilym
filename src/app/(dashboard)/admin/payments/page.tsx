@@ -393,9 +393,12 @@ export default function PaymentsPage() {
             aria-expanded={showManagerPayments}
             className="flex w-full items-center justify-between gap-4 p-4 text-left transition hover:bg-slate-50 dark:hover:bg-white/[0.03]"
           >
-            <span>
-              <span className="block text-sm font-semibold text-slate-900 dark:text-white">Manager payments</span>
-              <span className="mt-1 block text-xs text-slate-500">Track pending commission and permanently recorded manager payouts.</span>
+            <span className="min-w-0">
+              <span className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
+                Manager payments
+                <span className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-cyan-700 dark:text-cyan-300">{managerPaymentRows.length}</span>
+              </span>
+              <span className="mt-1 block max-w-2xl text-xs leading-5 text-slate-500">Track pending commission and permanently recorded manager payouts.</span>
             </span>
             <ChevronDown className={`h-4 w-4 shrink-0 text-slate-500 transition-transform ${showManagerPayments ? "rotate-180" : ""}`} />
           </button>
@@ -406,18 +409,25 @@ export default function PaymentsPage() {
           ) : (
             <div className="divide-y divide-slate-200 border-t border-slate-200 dark:divide-white/10 dark:border-white/10">
               {managerPaymentRows.map(({ manager, invoiceCount, paid, pending, total, commissionRate, payoutMethod, payoutAccount, nextUnpaidInvoice }) => (
-                <div key={manager.id} className="grid gap-3 p-4 sm:grid-cols-[1.3fr_repeat(3,0.7fr)_1.4fr] sm:items-center">
+                <div key={manager.id} className="grid gap-4 rounded-lg border border-slate-700/40 bg-slate-900/35 p-3 transition hover:border-cyan-400/25 hover:bg-white/[0.04] sm:rounded-none sm:border-0 sm:border-b sm:border-white/5 sm:bg-transparent sm:p-4 sm:hover:border-white/5 sm:hover:bg-white/[0.025] sm:grid-cols-[1.3fr_repeat(3,0.7fr)_1.4fr] sm:items-center">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{manager.fullName || manager.username}</p>
+                    <p className="mb-1 text-[9px] font-bold uppercase tracking-[0.16em] text-slate-500 sm:hidden">Manager account</p>
+                    <p className="truncate text-base font-bold text-slate-900 dark:text-white sm:text-sm sm:font-semibold">{manager.fullName || manager.username}</p>
                     <p className="mt-0.5 truncate text-xs text-slate-500">@{manager.username} · {invoiceCount} {invoiceCount === 1 ? "invoice" : "invoices"}</p>
                   </div>
-                  <div><p className="text-[10px] uppercase tracking-wide text-slate-500">Revenue</p><p className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">{money(total)}</p><p className="mt-0.5 text-[10px] text-slate-500">{commissionRate.toFixed(2)}% commission</p></div>
-                  <div><p className="text-[10px] uppercase tracking-wide text-slate-500">Paid out</p><p className="mt-1 text-sm font-semibold text-emerald-700 dark:text-emerald-300">{money(paid)}</p></div>
-                  <div><p className="text-[10px] uppercase tracking-wide text-slate-500">Pending</p><p className="mt-1 text-sm font-semibold text-amber-700 dark:text-amber-300">{money(pending)}</p></div>
+                  <div className="grid grid-cols-3 gap-2 sm:contents">
+                    <div className="rounded-md border border-slate-200 bg-white/60 p-2 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0"><p className="text-[9px] font-bold uppercase tracking-wide text-slate-500">Revenue</p><p className="mt-1 text-sm font-bold text-slate-900 dark:text-white">{money(total)}</p><p className="mt-0.5 text-[10px] text-slate-500">{commissionRate.toFixed(2)}%</p></div>
+                    <div className="rounded-md border border-emerald-200/70 bg-emerald-50/60 p-2 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0"><p className="text-[9px] font-bold uppercase tracking-wide text-slate-500">Paid out</p><p className="mt-1 text-sm font-bold text-emerald-700 dark:text-emerald-300">{money(paid)}</p></div>
+                    <div className="rounded-md border border-amber-200/70 bg-amber-50/60 p-2 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0"><p className="text-[9px] font-bold uppercase tracking-wide text-slate-500">Pending</p><p className="mt-1 text-sm font-bold text-amber-700 dark:text-amber-300">{money(pending)}</p></div>
+                  </div>
                   <div className="min-w-0">
-                    <p className="text-[10px] uppercase tracking-wide text-slate-500">Payment details</p>
+                    <p className="border-t border-slate-200 pt-3 text-[10px] font-bold uppercase tracking-wide text-slate-500 sm:border-0 sm:pt-0">Payment details</p>
                     <div className="mt-1 flex min-w-0 items-center gap-1.5">
-                      <p className="truncate text-sm font-medium text-slate-900 dark:text-white">{payoutMethod ? `${payoutMethod === "BKASH" ? "bKash" : payoutMethod} · ${payoutAccount || "Account missing"}` : "Payment method missing"}</p>
+                      {payoutMethod ? (
+                        <p className="break-all text-sm font-medium text-slate-900 dark:text-white sm:truncate">{`${payoutMethod === "BKASH" ? "bKash" : payoutMethod} · ${payoutAccount || "Account missing"}`}</p>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-[10px] font-semibold text-amber-700 dark:text-amber-300">Not set</span>
+                      )}
                       {payoutAccount && <button type="button" onClick={() => void copyPaymentAccount(manager.id, payoutAccount)} className="shrink-0 rounded p-1 text-slate-500 transition hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-white/10 dark:hover:text-indigo-300" aria-label={`Copy payment account for ${manager.username}`} title={copiedPaymentAccount === manager.id ? "Copied" : "Copy payment account"}>
                         {copiedPaymentAccount === manager.id ? <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-300" /> : <Copy className="h-3.5 w-3.5" />}
                       </button>}
@@ -561,7 +571,7 @@ export default function PaymentsPage() {
               const hasUnpaidInvoice = invoices.some((invoice) => !invoice.isPaid);
               const hasPaidInvoice = paidAmount > 0;
               return (
-                <div key={link.id} className="mx-3 my-2 grid gap-3 rounded-lg border border-slate-700/40 bg-slate-900/35 p-3 transition hover:border-cyan-400/25 hover:bg-white/[0.04] sm:mx-0 sm:my-0 sm:gap-4 sm:rounded-none sm:border-0 sm:border-b sm:border-white/5 sm:bg-transparent sm:p-4 sm:hover:border-white/5 sm:hover:bg-white/[0.025] sm:grid-cols-[minmax(180px,1.25fr)_minmax(150px,1fr)_repeat(3,minmax(88px,0.75fr))_minmax(120px,auto)] sm:items-center">
+                <div key={link.id} className="mx-3 my-2 grid gap-4 rounded-lg border border-slate-700/40 bg-slate-900/35 p-3 transition hover:border-cyan-400/25 hover:bg-white/[0.04] sm:mx-0 sm:my-0 sm:gap-4 sm:rounded-none sm:border-0 sm:border-b sm:border-white/5 sm:bg-transparent sm:p-4 sm:hover:border-white/5 sm:hover:bg-white/[0.025] sm:grid-cols-[minmax(180px,1.25fr)_minmax(150px,1fr)_repeat(3,minmax(88px,0.75fr))_minmax(120px,auto)] sm:items-center">
                   <div className="min-w-0">
                     <p className="mb-1 text-[9px] font-bold uppercase tracking-[0.16em] text-slate-500 sm:hidden">Account name</p>
                     <div className="flex items-center gap-2">
@@ -576,17 +586,23 @@ export default function PaymentsPage() {
                   <div className="min-w-0 text-xs text-slate-400">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Payment method</p>
                     <div className="mt-1 flex min-w-0 items-center gap-1.5">
-                      <p className="truncate text-sm font-medium text-slate-200 sm:text-xs">{link.payoutMethod ? `${link.payoutMethod === "BKASH" ? "bKash" : link.payoutMethod} · ${link.payoutAccount || "Account not set"}` : "Not set"}</p>
+                      {link.payoutMethod ? (
+                        <p className="break-all text-sm font-medium text-slate-200 sm:truncate sm:text-xs">{`${link.payoutMethod === "BKASH" ? "bKash" : link.payoutMethod} · ${link.payoutAccount || "Account not set"}`}</p>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-[10px] font-semibold text-amber-300">Not set</span>
+                      )}
                       {link.payoutAccount && <button type="button" onClick={() => void copyPaymentAccount(link.id, link.payoutAccount!)} className="shrink-0 rounded p-1 text-slate-500 transition hover:bg-white/10 hover:text-cyan-300" aria-label={`Copy payment account for ${link.accountName}`} title="Copy payment account">
                         {copiedPaymentAccount === link.id ? <Check className="h-3.5 w-3.5 text-emerald-300" /> : <Copy className="h-3.5 w-3.5" />}
                       </button>}
                     </div>
                   </div>
-                  <div className="min-w-0"><p className="text-[9px] uppercase tracking-wider text-slate-500">Total earning</p><p className="mt-1 text-sm font-bold text-cyan-200">{money(current)}</p></div>
-                  <div className="min-w-0"><p className="text-[9px] uppercase tracking-wider text-slate-500">Invoice</p><p className="mt-1 text-sm font-bold text-violet-300">{money(invoiceTotal)}</p></div>
-                  <div className="min-w-0"><p className="text-[9px] uppercase tracking-wider text-slate-500">Total paid</p><p className="mt-1 text-sm font-bold text-emerald-300">{money(paidAmount)}</p></div>
-                  <div className="flex min-w-[120px] items-center gap-2 sm:justify-end">
-                    <span className={`text-[10px] font-semibold ${hasUnpaidInvoice ? "text-orange-300" : hasPaidInvoice ? "text-emerald-300" : "text-slate-400"}`}>{hasUnpaidInvoice ? "Unpaid" : hasPaidInvoice ? "Paid" : "Not Invoiced"}</span>
+                  <div className="grid grid-cols-3 gap-2 sm:contents">
+                    <div className="rounded-md border border-cyan-200/40 bg-cyan-50/60 p-2 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0"><p className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Earning</p><p className="mt-1 text-sm font-bold text-cyan-700 dark:text-cyan-200">{money(current)}</p></div>
+                    <div className="rounded-md border border-violet-200/50 bg-violet-50/60 p-2 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0"><p className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Invoice</p><p className="mt-1 text-sm font-bold text-violet-700 dark:text-violet-300">{money(invoiceTotal)}</p></div>
+                    <div className="rounded-md border border-emerald-200/60 bg-emerald-50/60 p-2 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0"><p className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Paid</p><p className="mt-1 text-sm font-bold text-emerald-700 dark:text-emerald-300">{money(paidAmount)}</p></div>
+                  </div>
+                  <div className="flex min-w-[120px] items-center gap-2 border-t border-slate-200 pt-3 sm:justify-end sm:border-0 sm:pt-0">
+                    <span className={`rounded-full border px-2 py-1 text-[10px] font-semibold ${hasUnpaidInvoice ? "border-orange-500/25 bg-orange-500/10 text-orange-700 dark:text-orange-300" : hasPaidInvoice ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "border-slate-300 bg-slate-100 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"}`}>{hasUnpaidInvoice ? "Unpaid" : hasPaidInvoice ? "Paid" : "Not invoiced"}</span>
                     {hasUnpaidInvoice && <button type="button" onClick={() => { setPaymentLink(link); setPaymentReference(""); }} disabled={payingLinkId === link.id} className="inline-flex shrink-0 items-center gap-1 rounded-md border border-emerald-300/25 bg-emerald-300/10 px-2 py-1.5 text-[10px] font-bold text-emerald-200 transition hover:bg-emerald-300/20 disabled:opacity-60" aria-label={`Mark invoice for ${link.accountName} as paid`}>
                       <CheckCircle className="h-3 w-3" />
                       {payingLinkId === link.id ? "Saving" : "Mark paid"}
