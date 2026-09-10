@@ -16,7 +16,7 @@
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
     "postinstall": "prisma generate && prisma generate --schema prisma/landing-schema.prisma",
-    "vercel-build": "prisma generate && prisma generate --schema prisma/landing-schema.prisma && next build"
+    "vercel-build": "prisma migrate deploy && prisma generate && prisma generate --schema prisma/landing-schema.prisma && next build"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

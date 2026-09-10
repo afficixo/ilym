@@ -28,7 +28,9 @@ export async function createUserSafe(initialData: Prisma.UserCreateInput) {
 
   while (true) {
     try {
-      if (!data.slugPrefix) {
+      const existing = await getExistingUserColumns()
+
+      if (!data.slugPrefix && (existing.size === 0 || existing.has('slugPrefix'))) {
         const users = await prisma.user.findMany({
           select: { slugPrefix: true },
         })
@@ -48,7 +50,6 @@ export async function createUserSafe(initialData: Prisma.UserCreateInput) {
       }
 
       // Ensure we only include columns that actually exist in the DB to avoid P2022 errors.
-      const existing = await getExistingUserColumns()
       const filtered = Object.fromEntries(
         Object.entries(data).filter(([k]) => existing.size === 0 ? true : existing.has(k))
       ) as Prisma.UserCreateInput
