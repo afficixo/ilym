@@ -16,6 +16,7 @@ import {
   Menu,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   BarChart3,
   ShieldCheck,
   Layers,
@@ -47,6 +48,7 @@ export default function Sidebar() {
   const [supportSending, setSupportSending] = useState(false)
   const [supportError, setSupportError] = useState('')
   const [supportUnread, setSupportUnread] = useState(false)
+  const [settingsExpanded, setSettingsExpanded] = useState(false)
   const supportOpenRef = useRef(supportOpen)
   const latestOwnerMessageIdRef = useRef<string | null>(null)
   const supportInitializedRef = useRef(false)
@@ -148,12 +150,6 @@ export default function Sidebar() {
     {
       label: 'Overview',
       items: [
-        ...(userRole === 'OWNER'
-          ? [{ href: '/owner/managers', label: 'Manage Publishers', icon: ShieldCheck }]
-          : []),
-        ...(userRole === 'OWNER'
-          ? [{ href: '/owner/admins', label: 'Manage Admins', icon: UsersRound }]
-          : []),
         { href: getDashboardPath(userRole), label: 'Dashboard', icon: LayoutDashboard },
       ],
     },
@@ -198,6 +194,12 @@ export default function Sidebar() {
       label: 'System',
       items: [
         { href: `${dashboardBasePath}/settings`, label: 'Settings', icon: Settings },
+        ...(userRole === 'OWNER'
+          ? [{ href: '/owner/managers', label: 'Manage Publishers', icon: ShieldCheck }]
+          : []),
+        ...(userRole === 'OWNER'
+          ? [{ href: '/owner/admins', label: 'Manage Admins', icon: UsersRound }]
+          : []),
         ...(userRole === 'OWNER'
           ? [{ href: '/owner/support', label: 'Support Inbox', icon: MessageCircle }]
           : []),
@@ -261,6 +263,7 @@ export default function Sidebar() {
         {menuGroups.map((group) => group.items.length > 0 && (
           <div key={group.label} className="space-y-1">
             {group.items.map((item) => {
+              const isOwnerAccessItem = item.label === 'Manage Publishers' || item.label === 'Manage Admins'
               const isActive = item.exact
                 ? pathname === item.href
                 : pathname === item.href || pathname?.startsWith(item.href + '/')
@@ -286,8 +289,11 @@ export default function Sidebar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={() => isMobile && setMobileOpen(false)}
-                  className={`group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} ${isMobile ? 'min-h-10 rounded-md px-2.5 py-1.5 border-0' : 'rounded-md px-2 py-1.5 border'} transition-colors duration-200 ${
+                  onClick={() => {
+                    if (item.label === 'Settings') setSettingsExpanded((expanded) => !expanded)
+                    if (isMobile) setMobileOpen(false)
+                  }}
+                  className={`${isOwnerAccessItem && !settingsExpanded ? 'hidden' : ''} group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} ${isMobile ? 'min-h-10 rounded-md px-2.5 py-1.5 border-0' : 'rounded-md px-2 py-1.5 border'} transition-colors duration-200 ${
                     isActive
                       ? isMobile 
                         ? 'border-0 bg-slate-700 font-medium text-white dark:bg-[#344047] dark:text-slate-100'
@@ -299,6 +305,7 @@ export default function Sidebar() {
                 >
                   <Icon className={`h-5 w-5 shrink-0 transition-colors duration-200 ${iconColor}`} />
                   {(!collapsed || isMobile) && <span className={`tracking-[0.01em] ${isMobile ? 'text-sm font-medium' : 'text-xs'}`}>{item.label}</span>}
+                  {item.label === 'Settings' && !collapsed && !isMobile && <ChevronDown className={`ml-auto h-4 w-4 transition-transform ${settingsExpanded ? 'rotate-180' : ''}`} />}
                   {isActive && !collapsed && !isMobile && (
                     <span className="ml-auto h-5 w-0.5 rounded-full bg-cyan-300" />
                   )}
