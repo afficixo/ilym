@@ -4,11 +4,38 @@ const maxAttempts = 3;
 const retryDelaysMs = [5000, 15000];
 const prismaCli = require.resolve('prisma/build/index.js');
 
+function getMigrationDatabaseUrl() {
+  if (process.env.DIRECT_DATABASE_URL) {
+    return process.env.DIRECT_DATABASE_URL;
+  }
+
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    return undefined;
+  }
+
+  try {
+    const url = new URL(databaseUrl);
+    if (url.hostname.includes('-pooler.')) {
+      url.hostname = url.hostname.replace('-pooler.', '.');
+      return url.toString();
+    }
+  } catch {
+    return databaseUrl;
+  }
+
+  return databaseUrl;
+}
+
 function runMigration() {
   return new Promise((resolve, reject) => {
+    const migrationDatabaseUrl = getMigrationDatabaseUrl();
     const child = spawn(process.execPath, [prismaCli, 'migrate', 'deploy'], {
       stdio: 'inherit',
-      env: process.env,
+      env: {
+        ...process.env,
+        ...(migrationDatabaseUrl ? { DATABASE_URL: migrationDatabaseUrl } : {}),
+      },
     });
 
     child.on('error', reject);
