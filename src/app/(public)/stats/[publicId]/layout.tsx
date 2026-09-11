@@ -5,16 +5,12 @@ export async function generateMetadata({
 }: {
   params: Promise<{ publicId: string }>
 }): Promise<Metadata> {
-  const { publicId } = await params
+  await params
 
   return {
     title: 'Afficixo Stats',
-    appleWebApp: {
-      capable: true,
-      statusBarStyle: 'black-translucent',
-      title: 'Afficixo Stats',
-    },
-    manifest: `/stats/${publicId}/manifest.webmanifest`,
+    appleWebApp: false,
+    manifest: null,
   }
 }
 
