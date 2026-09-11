@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     const rawUsername = body?.username
     const rawPassword = body?.password
     const username = typeof rawUsername === 'string' ? rawUsername.trim() : ''
-    const password = typeof rawPassword === 'string' ? rawPassword.trim() : ''
+    const password = typeof rawPassword === 'string' ? rawPassword : ''
 
     if (!username || !password) {
       return NextResponse.json(
