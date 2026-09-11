@@ -26,6 +26,7 @@ import {
   MessageCircle,
   Loader2,
   Send,
+  UsersRound,
 } from 'lucide-react'
 import { getDashboardBasePath, getDashboardPath } from '@/lib/auth/dashboard-path'
 
@@ -149,6 +150,9 @@ export default function Sidebar() {
       items: [
         ...(userRole === 'OWNER'
           ? [{ href: '/owner/managers', label: 'Manage Publishers', icon: ShieldCheck }]
+          : []),
+        ...(userRole === 'OWNER'
+          ? [{ href: '/owner/admins', label: 'Manage Admins', icon: UsersRound }]
           : []),
         { href: getDashboardPath(userRole), label: 'Dashboard', icon: LayoutDashboard },
       ],

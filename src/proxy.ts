@@ -46,6 +46,8 @@ export function proxy(request: NextRequest) {
     path === '/owner/dashboard' ||
     path === '/owner/managers' ||
     path.startsWith('/owner/managers/') ||
+    path === '/owner/admins' ||
+    path.startsWith('/owner/admins/') ||
     path === '/owner/support' ||
     path === '/publisher/dashboard' ||
     path === '/publisher/help'
