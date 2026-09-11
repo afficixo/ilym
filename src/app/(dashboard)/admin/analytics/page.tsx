@@ -351,27 +351,30 @@ export default function AnalyticsPage() {
         {/* ===== GEO BREAKDOWN ===== */}
         <div className="overflow-hidden px-4 sm:px-6 lg:px-8">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 mb-6 border-b border-white/5">
+          <div className="flex flex-col gap-4 border-b border-white/10 pb-5 mb-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-white">Account Performance</h2>
-              <p className="text-sm text-slate-400 mt-1">Clicks by account and country</p>
+              <h2 className="text-lg font-semibold tracking-tight text-white">Account performance</h2>
+              <p className="mt-1 text-sm text-slate-400">Clicks by account and country</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 transition-colors duration-200"
+                className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:border-white/20 hover:bg-white/[0.07] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+                aria-expanded={showFilters}
+                aria-controls="analytics-filters"
               >
                 <Filter className="w-4 h-4" />
                 <span className="hidden sm:inline">{showFilters ? "Hide" : "Show"} Filters</span>
                 <ChevronDown className={`w-3 h-3 transition-transform ${showFilters ? "rotate-180" : ""}`} />
               </button>
-              <div className="text-sm text-slate-400">
+              <div className="rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs font-medium text-slate-400">
                 {report?.datasets?.length ? `${reportRows.length} accounts` : "—"}
               </div>
               {reportRows.length > 0 && (
                 <button
                   onClick={exportCSV}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-white hover:border-white/30 transition-all duration-300 backdrop-blur-sm"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-xs font-medium text-slate-300 transition-colors hover:border-white/20 hover:bg-white/[0.07] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+                  aria-label="Export account performance as CSV"
                 >
                   <Download className="w-4 h-4" />
                   CSV
@@ -382,7 +385,7 @@ export default function AnalyticsPage() {
 
           {/* ===== FILTER BAR ===== */}
           {showFilters && (
-            <div className="border-b border-white/10 bg-slate-900/50 p-4 sm:p-6">
+            <div id="analytics-filters" className="border-b border-white/10 bg-slate-900/50 p-4 sm:p-6">
               {/* Quick presets */}
               <div className="flex flex-wrap items-center gap-2 mb-4">
                 <span className="text-xs font-medium text-slate-300 mr-1">Quick:</span>

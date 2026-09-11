@@ -174,43 +174,44 @@ export default function CreateLinkTurboPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-7xl">
         {/* Header */}
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-8 flex flex-col gap-4 border-b border-slate-800 pb-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={handleBack}
-              className="rounded-lg p-2 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
+              className="rounded-lg border border-slate-700 p-2 text-slate-400 transition-colors hover:border-slate-600 hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/60"
               aria-label="Go back"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-white">
-                Create Links <span className="text-indigo-400">Turbo</span>
+              <h1 className="text-2xl font-bold tracking-tight text-white">
+                Create links <span className="text-indigo-400">in bulk</span>
               </h1>
-              <p className="text-sm text-slate-400">Batch generation for powerful link campaigns</p>
+              <p className="text-sm text-slate-400">Generate a numbered set of link accounts from one configuration.</p>
             </div>
           </div>
           <Link
             href="/admin/links"
-            className="text-sm font-medium text-slate-400 hover:text-white transition-colors px-4 py-2 rounded-lg hover:bg-slate-800 self-start sm:self-center"
+            className="self-start rounded-lg px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/60 sm:self-center"
           >
             Cancel
           </Link>
         </div>
 
         {/* Main Grid */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_0.6fr] items-start">
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
           {/* Form Card */}
-          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6">
-            <div className="mb-5 flex items-center gap-2">
-              <div className="rounded-md bg-indigo-500/10 p-1.5">
+          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 shadow-sm sm:p-6">
+            <div className="mb-6 flex items-start gap-3 border-b border-slate-800 pb-4">
+              <div className="rounded-lg border border-indigo-500/20 bg-indigo-500/10 p-2">
                 <Rocket className="h-4 w-4 text-indigo-400" />
               </div>
-              <span className="text-xs font-medium uppercase tracking-wider text-indigo-400">
-                Batch Creation
-              </span>
+              <div>
+                <h2 className="text-base font-semibold text-white">Batch setup</h2>
+                <p className="mt-0.5 text-xs text-slate-500">Set the naming range and optional routing overrides.</p>
+              </div>
             </div>
 
             {error && (
@@ -284,7 +285,6 @@ export default function CreateLinkTurboPage() {
                     </option>
                   ))}
                 </select>
-                <p className="mt-1 text-xs text-slate-500">Only verified domains are eligible</p>
               </div>
 
               <div>
@@ -302,13 +302,12 @@ export default function CreateLinkTurboPage() {
                     </option>
                   ))}
                 </select>
-                <p className="mt-1 text-xs text-slate-500">Optional. Overrides default geo routing</p>
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-sm shadow-indigo-600/20 transition-colors hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? (
                   <>
@@ -327,13 +326,11 @@ export default function CreateLinkTurboPage() {
 
           {/* Sidebar / Results */}
           {createdLinks.length > 0 ? (
-            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5 sm:p-6">
+            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5 shadow-sm sm:p-6">
               <div className="flex items-center justify-between pb-4 border-b border-slate-800">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                  <span className="text-xs font-medium uppercase tracking-wider text-emerald-400">
-                    Batch Complete
-                  </span>
+                  <h2 className="text-sm font-semibold text-emerald-300">Batch complete</h2>
                 </div>
                 <CopyButton text={createdTemplate} onCopy={() => {}} />
               </div>
@@ -369,13 +366,13 @@ export default function CreateLinkTurboPage() {
               </div>
             </div>
           ) : (
-            <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-6 text-center">
+            <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/30 p-6 text-center">
               <div className="flex flex-col items-center justify-center py-8">
-                <div className="rounded-lg bg-slate-800 p-3 mb-3">
+                <div className="mb-3 rounded-lg border border-slate-700 bg-slate-800 p-3">
                   <Rocket className="h-6 w-6 text-slate-500" />
                 </div>
-                <p className="text-sm text-slate-400">No results yet</p>
-                <p className="mt-1 text-xs text-slate-500">Configure and create your batch above</p>
+                <p className="text-sm font-medium text-slate-300">Your batch will appear here</p>
+                <p className="mt-1 max-w-xs text-xs text-slate-500">Configure the setup and create your first set of links.</p>
               </div>
             </div>
           )}

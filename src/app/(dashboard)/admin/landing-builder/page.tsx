@@ -241,13 +241,15 @@ export default function LandingPageBuilder() {
     }
   }
 
-  const copyLandingPageLink = async (page: LandingPage) => {
-    const url = `https://${page.subdomain}.${landingPageDomain}`
-    let textToCopy = url
-
-    if (page.template?.customText) {
-      textToCopy = page.template.customText.replace(/\{link\}/gi, `${url}_`)
-    }
+  const copyLandingPageLink = async (
+    page: LandingPage,
+    domain = landingPageDomain,
+    includeProtocol = false,
+  ) => {
+    const url = `${includeProtocol ? 'https://' : ''}${page.subdomain}.${domain}`
+    const textToCopy = page.template?.customText
+      ? page.template.customText.replace(/\{link\}/gi, `${url}_`)
+      : url
 
     try {
       await navigator.clipboard.writeText(textToCopy)
@@ -405,21 +407,21 @@ export default function LandingPageBuilder() {
               </button>
             </div>
 
-            <div className="mb-6 grid gap-3 rounded-xl border border-slate-800 bg-slate-900/40 p-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mb-6 grid gap-3 rounded-xl border border-slate-700/80 bg-slate-900/40 p-4 shadow-sm sm:grid-cols-[minmax(0,1fr)_minmax(160px,1fr)_auto] lg:grid-cols-4">
               <input
                 type="search"
                 value={searchFilter}
                 onChange={(event) => setSearchFilter(event.target.value)}
                 placeholder="Search URL, destination, creator..."
                 aria-label="Search landing pages"
-                className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400"
+                className="h-10 min-w-0 rounded-lg border border-slate-700 bg-slate-950 px-3 text-sm font-medium text-white outline-none placeholder:font-normal placeholder:text-slate-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15"
               />
               {userRole === 'OWNER' && (
                 <select
                   aria-label="Filter by manager"
                   value={managerFilter}
                   onChange={(event) => setManagerFilter(event.target.value)}
-                  className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-cyan-400"
+                  className="h-10 min-w-0 rounded-lg border border-slate-700 bg-slate-950 px-3 text-sm font-medium text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15"
                 >
                   <option value="all">All managers</option>
                   {managerOptions.map((manager) => (
@@ -433,16 +435,16 @@ export default function LandingPageBuilder() {
                 type="button"
                 onClick={toggleAllVisiblePages}
                 disabled={visiblePageIds.length === 0}
-                className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-sm font-medium text-cyan-200 transition-colors hover:bg-cyan-500/20 disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-slate-200 disabled:text-slate-700 disabled:opacity-100 dark:disabled:border-slate-700 dark:disabled:bg-slate-800 dark:disabled:text-slate-300"
+                className="h-10 whitespace-nowrap rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-slate-200 disabled:text-slate-700 disabled:opacity-100 dark:text-emerald-300 dark:disabled:border-slate-700 dark:disabled:bg-slate-800 dark:disabled:text-slate-300"
               >
                 {allVisibleSelected ? 'Clear visible selection' : 'Select all visible'}
               </button>
-              <div className="text-xs text-slate-500 sm:col-span-2 lg:col-span-4">
+              <div className="text-xs text-slate-500 sm:col-span-3 lg:col-span-4">
                 Showing {filteredPages.length} of {landingPages.length} pages
                 {selectedPageIds.length > 0 && ` | ${selectedPageIds.length} selected`}
               </div>
               {selectedPageIds.length > 0 && (
-                <div className="flex flex-wrap gap-2 sm:col-span-2 lg:col-span-4">
+                <div className="flex flex-wrap gap-2 sm:col-span-3 lg:col-span-4">
                   <button
                     type="button"
                     onClick={copySelectedLinks}
@@ -518,67 +520,91 @@ export default function LandingPageBuilder() {
                       {pages.map((page) => (
                         <div
                           key={page.id}
-                          className="rounded-xl border border-slate-800 bg-slate-900/60 p-4"
+                          className="flex h-full flex-col rounded-lg border border-slate-800 bg-slate-900/60 p-4 shadow-sm transition-shadow hover:shadow-md"
                         >
-                    <label className="mb-3 flex items-center gap-2 text-xs text-slate-400">
-                      <input
-                        type="checkbox"
-                        checked={selectedPageIds.includes(page.id)}
-                        onChange={() => togglePageSelection(page.id)}
-                        className="h-4 w-4 accent-cyan-500"
-                        aria-label={`Select ${page.subdomain}`}
-                      />
-                      Select page
-                    </label>
                     {/* Subdomain & Copy URL */}
-                    <div className="mb-3 flex items-center justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="text-xs text-slate-500 mb-0.5">URL</p>
-                        <h3
-                          className="truncate font-mono text-sm text-indigo-400"
-                          title={`https://${page.subdomain}.${landingPageDomain}`}
-                        >
-                          {page.subdomain}.{landingPageDomain}
-                        </h3>
+                    <div className="mb-3 min-w-0">
+                      <div className="mb-1 flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <label className="flex cursor-pointer items-center">
+                            <input
+                              type="checkbox"
+                              checked={selectedPageIds.includes(page.id)}
+                              onChange={() => togglePageSelection(page.id)}
+                              className="h-4 w-4 accent-cyan-500"
+                              aria-label={`Select ${page.subdomain}`}
+                            />
+                          </label>
+                          <p className="text-xs font-medium text-slate-500">Landing URLs</p>
+                        </div>
+                        {(page.userId === userId || userRole === 'OWNER') && (
+                          <button
+                            type="button"
+                            onClick={() => requestDeleteLandingPage(page.id)}
+                            className="flex shrink-0 items-center justify-center rounded-md p-1.5 text-amber-600 transition-colors hover:bg-amber-500/10 hover:text-amber-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/60 dark:text-amber-300 dark:hover:text-amber-200"
+                            aria-label={`Delete ${page.subdomain}`}
+                            title="Delete landing page"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </div>
+                      <div className="divide-y divide-slate-800/80 border-y border-slate-800/80">
+                        <div className="flex min-h-9 min-w-0 items-center justify-between gap-2 py-1">
+                          <h3
+                            className="min-w-0 flex-1 truncate font-mono text-sm text-emerald-600 dark:text-emerald-400"
+                            title={`https://${page.subdomain}.${landingPageDomain}`}
+                          >
+                            {page.subdomain}.{landingPageDomain}
+                          </h3>
+                          <button
+                            type="button"
+                            onClick={() => copyLandingPageLink(page)}
+                            className="flex shrink-0 items-center justify-center gap-1 whitespace-nowrap rounded-md px-2 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/70"
+                            aria-label={`Copy URL for ${page.subdomain}`}
+                            title="Copy link"
+                          >
+                            <Copy className="h-3.5 w-3.5" />
+                            <span className="hidden sm:inline">Copy</span>
+                          </button>
+                        </div>
+                        <div className="flex min-h-9 min-w-0 items-center justify-between gap-2 py-1">
+                          <p
+                            className="min-w-0 flex-1 truncate font-mono text-sm text-green-800 dark:text-green-300"
+                            title={`https://${page.subdomain}.weebly.pro`}
+                          >
+                            {page.subdomain}.weebly.pro
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => copyLandingPageLink(page, 'weebly.pro', true)}
+                            className="flex shrink-0 items-center justify-center gap-1 whitespace-nowrap rounded-md px-2 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/70"
+                            aria-label={`Copy Weebly URL for ${page.subdomain}`}
+                            title="Copy Weebly URL"
+                          >
+                            <Copy className="h-3.5 w-3.5" />
+                            <span className="hidden sm:inline">Copy</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
 
                     {/* Tracking & Views */}
-                    <div className="mb-3 space-y-2 border-t border-slate-800 pt-3">
-                      <div>
+                    <div className="mb-3 flex-1 border-t border-slate-800 pt-3">
+                      <div className="grid grid-cols-[minmax(0,1fr)_72px] gap-3">
+                      <div className="min-w-0">
                         <p className="mb-0.5 text-xs text-slate-500">Redirects to</p>
                         <p className="truncate font-mono text-xs text-slate-300" title={page.trackingUrl}>
                           {page.trackingUrl}
                         </p>
                       </div>
-                      <div>
+                      <div className="border-l border-slate-800 pl-3 text-left">
                         <p className="mb-0.5 text-xs text-slate-500">Views</p>
                         <p className="text-sm font-semibold text-white">{page.totalClicks}</p>
                       </div>
+                      </div>
                     </div>
 
-                          {/* Actions */}
-                          <div className="flex gap-2 border-t border-slate-800 pt-3">
-                            {(page.userId === userId || userRole === 'OWNER') && (
-                              <button
-                                onClick={() => requestDeleteLandingPage(page.id)}
-                                className="flex flex-1 items-center justify-center gap-1 rounded-md px-2 py-2 text-xs font-medium text-amber-600 transition-colors hover:bg-amber-500/10 hover:text-amber-700 dark:text-amber-300 dark:hover:text-amber-200"
-                                title="Delete landing page"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                                <span className="hidden sm:inline">Delete</span>
-                              </button>
-                            )}
-                      <button
-                        type="button"
-                        onClick={() => copyLandingPageLink(page)}
-                        className="flex flex-1 items-center justify-center gap-1 rounded-md px-2 py-2 text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
-                        title="Copy link"
-                      >
-                        <Copy className="h-3.5 w-3.5" />
-                        <span className="hidden sm:inline">Copy</span>
-                      </button>
-                          </div>
                           {deleteConfirmation?.pageIds.length === 1 && deleteConfirmation.pageIds[0] === page.id && (
                             <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-500/20 dark:bg-amber-500/10">
                               <div className="flex items-start gap-2">
@@ -619,24 +645,47 @@ export default function LandingPageBuilder() {
         ) : (
           <>
             {/* Builder View */}
-            <div className="mb-6 flex items-center gap-3">
+            <div className="mb-8 flex flex-wrap items-start gap-4 border-b border-slate-800 pb-5">
               <button
                 onClick={() => setCurrentStep('list')}
-                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-400 transition-colors hover:border-slate-600 hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+                aria-label="Back to landing pages"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back
               </button>
-              <h1 className="text-2xl font-bold text-white">Create Landing Page</h1>
+              <div>
+                <h1 className="text-xl font-bold tracking-tight text-white sm:text-2xl">New landing page</h1>
+                <p className="mt-1 text-sm text-slate-400">Choose a URL, destination, and template for your page.</p>
+              </div>
             </div>
 
             <div className="mx-auto max-w-3xl">
               <form onSubmit={createLandingPage} className="flex flex-col space-y-6">
                 {/* Step 1 */}
                 <div className="order-2 rounded-xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6">
-                  <div className="mb-4 flex items-center gap-2">
-                    <Globe className="h-4 w-4 text-indigo-400" />
-                    <h3 className="text-lg font-semibold text-white">Basic Information</h3>
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <Globe className="h-4 w-4 shrink-0 text-indigo-400" />
+                      <h3 className="truncate text-lg font-semibold text-white">Basic Information</h3>
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={loading || !selectedTemplate}
+                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm shadow-emerald-600/25 transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {loading ? (
+                        <>
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                          Creating...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-4 w-4" />
+                          Create
+                        </>
+                      )}
+                    </button>
                   </div>
 
                   <div className="space-y-4">
@@ -650,7 +699,6 @@ export default function LandingPageBuilder() {
                           placeholder="your-campaign"
                           className="w-full bg-transparent text-sm text-white placeholder-slate-500 focus:outline-none"
                         />
-                        <span className="shrink-0 text-sm text-slate-500">.{landingPageDomain}</span>
                       </div>
                       {subdomainError && (
                         <p className="mt-1.5 flex items-center gap-1 text-xs text-red-400">
@@ -743,7 +791,10 @@ export default function LandingPageBuilder() {
                               <div className="min-w-0">
                                 <h4 className="break-words text-sm font-medium text-white">{template.name}</h4>
                                 {template.description && (
-                                  <p className="mt-2 break-words rounded-md border border-amber-400/30 bg-amber-400/10 px-2 py-1.5 text-xs font-medium leading-5 text-amber-200">
+                                  <p
+                                    onPointerDown={(event) => event.stopPropagation()}
+                                    className="mt-2 cursor-text select-text break-words rounded-md border border-amber-400/30 bg-amber-400/10 px-2 py-1.5 text-xs font-medium leading-5 text-amber-200"
+                                  >
                                     {template.description}
                                   </p>
                                 )}
@@ -756,26 +807,6 @@ export default function LandingPageBuilder() {
                   )}
                 </div>
 
-                {/* Submit */}
-                <div className="order-3 flex justify-end">
-                  <button
-                    type="submit"
-                    disabled={loading || !selectedTemplate}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm shadow-emerald-600/25 transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:min-w-36"
-                  >
-                    {loading ? (
-                      <>
-                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                        Creating...
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="h-4 w-4" />
-                        Create
-                      </>
-                    )}
-                  </button>
-                </div>
               </form>
             </div>
           </>
