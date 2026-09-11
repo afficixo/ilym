@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db/prisma'
 import { createUserSafe } from '@/lib/db/user'
+import { getOwnerUserId } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 import { checkRateLimit, getResetTime } from '@/lib/utils/rate-limiter'
 
@@ -98,6 +99,10 @@ export async function POST(request: Request) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10)
+    const ownerUserId = await getOwnerUserId()
+    const defaultClickRate = ownerUserId
+      ? Number((await prisma.user.findUnique({ where: { id: ownerUserId }, select: { clickRate: true } }))?.clickRate ?? 0) || 0
+      : 0
 
     let createData = {
       username,
@@ -105,6 +110,7 @@ export async function POST(request: Request) {
       password: hashedPassword,
       role: 'MANAGER',
       status: 'PENDING',
+      clickRate: defaultClickRate,
       ...(fullName ? { fullName } : {}),
       ...(contractNumber ? { contractNumber } : {}),
       ...(telegramUsername ? { telegramUsername } : {}),
