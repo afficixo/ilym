@@ -12,11 +12,11 @@
     "db:landing:push": "prisma db push --schema prisma/landing-schema.prisma",
     "db:landing:migrate": "tsx scripts/migrate-landing-data.ts",
     "db:push": "prisma db push",
-    "db:migrate:deploy": "prisma migrate deploy",
+    "db:migrate:deploy": "node scripts/migrate-deploy-retry.js",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
     "postinstall": "prisma generate && prisma generate --schema prisma/landing-schema.prisma",
-    "vercel-build": "node scripts/migrate-deploy-retry.js && prisma generate && prisma generate --schema prisma/landing-schema.prisma && next build"
+    "vercel-build": "prisma generate && prisma generate --schema prisma/landing-schema.prisma && next build"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
