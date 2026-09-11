@@ -60,11 +60,56 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     return NextResponse.json({ error: 'Admin user not found' }, { status: 404, headers: getCorsHeaders(origin) })
   }
 
-  await prisma.$transaction([
-    prisma.landingPage.deleteMany({ where: { userId: id } }),
-    prisma.landingPageTemplate.updateMany({ where: { createdBy: id }, data: { createdBy: owner.id } }),
-    prisma.user.delete({ where: { id } }),
-  ])
+  try {
+    const linkAccounts = await prisma.linkAccount.findMany({
+      where: { userId: id },
+      select: { id: true },
+    })
+    const linkAccountIds = linkAccounts.map((linkAccount) => linkAccount.id)
+    const postbacks = await prisma.postbackConfig.findMany({
+      where: { userId: id },
+      select: { id: true },
+    })
+    const postbackIds = postbacks.map((postback) => postback.id)
+    const conversations = await prisma.supportConversation.findMany({
+      where: { managerId: id },
+      select: { id: true },
+    })
+    const conversationIds = conversations.map((conversation) => conversation.id)
+
+    await prisma.$transaction([
+      prisma.supportMessage.deleteMany({ where: { senderId: id } }),
+      prisma.supportMessage.deleteMany({ where: { conversationId: { in: conversationIds } } }),
+      prisma.supportConversation.deleteMany({ where: { managerId: id } }),
+      prisma.conversionLead.deleteMany({ where: { userId: id } }),
+      prisma.conversionLead.deleteMany({ where: { postbackId: { in: postbackIds } } }),
+      prisma.postbackConfig.deleteMany({ where: { userId: id } }),
+      prisma.telegramNotification.deleteMany({ where: { userId: id } }),
+      prisma.landingPage.deleteMany({ where: { userId: id } }),
+      prisma.landingPageTemplate.updateMany({ where: { createdBy: id }, data: { createdBy: owner.id } }),
+      prisma.managerPayoutInvoice.deleteMany({ where: { invoice: { linkAccountId: { in: linkAccountIds } } } }),
+      prisma.invoice.deleteMany({ where: { linkAccountId: { in: linkAccountIds } } }),
+      prisma.click.deleteMany({ where: { linkAccountId: { in: linkAccountIds } } }),
+      prisma.geoStat.deleteMany({ where: { linkAccountId: { in: linkAccountIds } } }),
+      prisma.dailyAnalytics.deleteMany({ where: { linkAccountId: { in: linkAccountIds } } }),
+      prisma.hourlyAnalytics.deleteMany({ where: { linkAccountId: { in: linkAccountIds } } }),
+      prisma.browserStat.deleteMany({ where: { linkAccountId: { in: linkAccountIds } } }),
+      prisma.oSStat.deleteMany({ where: { linkAccountId: { in: linkAccountIds } } }),
+      prisma.deviceStat.deleteMany({ where: { linkAccountId: { in: linkAccountIds } } }),
+      prisma.referrerStat.deleteMany({ where: { linkAccountId: { in: linkAccountIds } } }),
+      prisma.publicDashboard.deleteMany({ where: { linkAccountId: { in: linkAccountIds } } }),
+      prisma.linkAccount.deleteMany({ where: { id: { in: linkAccountIds } } }),
+      prisma.customDomain.deleteMany({ where: { userId: id } }),
+      prisma.offerVault.deleteMany({ where: { userId: id } }),
+      prisma.user.delete({ where: { id } }),
+    ])
+  } catch (error) {
+    console.error('Failed to delete admin and owned data:', error)
+    return NextResponse.json(
+      { error: 'Unable to delete admin. Remove dependent records or contact support.' },
+      { status: 500, headers: getCorsHeaders(origin) },
+    )
+  }
 
   return NextResponse.json({ success: true, deletedAdminId: id }, { headers: getCorsHeaders(origin) })
 }
