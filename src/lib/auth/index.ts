@@ -293,7 +293,7 @@ export async function getUserFromToken(token: string): Promise<AuthUser | null> 
   // user so writes use a proper FK-backed id.
   if (decoded.userId && decoded.userId.startsWith('local-')) {
     const username = decoded.userId.replace(/^local-/, '')
-    let existing: { id: string; username: string; email: string | null; role: UserRole } | null = null
+    let existing: { id: string; username: string; email: string | null; role: UserRole; status: AccountStatus } | null = null
     try {
       existing = await prisma.user.findUnique({
         where: { username },
@@ -302,6 +302,7 @@ export async function getUserFromToken(token: string): Promise<AuthUser | null> 
           username: true,
           email: true,
           role: true,
+          status: true,
         },
       })
     } catch (error) {
@@ -309,6 +310,7 @@ export async function getUserFromToken(token: string): Promise<AuthUser | null> 
     }
 
     if (existing) {
+      if (existing.status === 'DISABLED') return null
       return existing as AuthUser
     }
 
@@ -317,7 +319,7 @@ export async function getUserFromToken(token: string): Promise<AuthUser | null> 
   }
 
   try {
-    return (await prisma.user.findUnique({
+    const user = (await prisma.user.findUnique({
       where: { id: decoded.userId },
       select: {
         id: true,
@@ -332,12 +334,13 @@ export async function getUserFromToken(token: string): Promise<AuthUser | null> 
         status: true,
       },
     })) as AuthUser | null
+    return user?.status === 'DISABLED' ? null : user
   } catch (error: any) {
     if (error?.code !== 'P2022' || !String(error?.meta?.column || '').includes('commissionRate')) {
       throw error
     }
 
-    return (await prisma.user.findUnique({
+    const user = (await prisma.user.findUnique({
       where: { id: decoded.userId },
       select: {
         id: true,
@@ -351,6 +354,7 @@ export async function getUserFromToken(token: string): Promise<AuthUser | null> 
         status: true,
       },
     })) as AuthUser | null
+    return user?.status === 'DISABLED' ? null : user
   }
 }
 

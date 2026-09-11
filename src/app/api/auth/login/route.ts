@@ -81,12 +81,14 @@ export async function POST(request: Request) {
       dbError = true
     }
 
-    if (user && user.role === 'MANAGER' && user.status !== 'ACTIVE') {
-      const message = user.status === 'PENDING'
-        ? 'Your manager account is pending owner approval.'
-        : user.status === 'REJECTED'
-          ? 'Your manager account was rejected by the owner.'
-          : 'Your manager account is disabled.'
+    if (user && user.status !== 'ACTIVE') {
+      const message = user.role === 'MANAGER'
+        ? user.status === 'PENDING'
+          ? 'Your manager account is pending owner approval.'
+          : user.status === 'REJECTED'
+            ? 'Your manager account was rejected by the owner.'
+            : 'Your manager account is disabled.'
+        : 'Your account is disabled.'
 
       return NextResponse.json(
         { error: message },
