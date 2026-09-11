@@ -62,7 +62,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
   await prisma.$transaction([
     prisma.landingPage.deleteMany({ where: { userId: id } }),
-    prisma.landingPageTemplate.deleteMany({ where: { createdBy: id } }),
+    prisma.landingPageTemplate.updateMany({ where: { createdBy: id }, data: { createdBy: owner.id } }),
     prisma.user.delete({ where: { id } }),
   ])
 
