@@ -553,13 +553,13 @@ export default function LandingPageBuilder() {
                         <div className="flex min-h-9 min-w-0 items-center justify-between gap-2 py-1">
                           <h3
                             className="min-w-0 flex-1 truncate font-mono text-sm text-emerald-600 dark:text-emerald-400"
-                            title={`https://${page.subdomain}.${landingPageDomain}`}
+                            title={`https://${page.subdomain}.afficix.com`}
                           >
-                            {page.subdomain}.{landingPageDomain}
+                            {page.subdomain}.afficix.com
                           </h3>
                           <button
                             type="button"
-                            onClick={() => copyLandingPageLink(page)}
+                            onClick={() => copyLandingPageLink(page, 'afficix.com')}
                             className="flex shrink-0 items-center justify-center gap-1 whitespace-nowrap rounded-md px-2 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/70"
                             aria-label={`Copy URL for ${page.subdomain}`}
                             title="Copy link"
