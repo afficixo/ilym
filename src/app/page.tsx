@@ -32,8 +32,8 @@ const structuredData = [
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "Afficixo",
-    url: "https://www.weebly.pro",
-    logo: "https://www.weebly.pro/afficixo-logo.png",
+    url: "https://afficix.com",
+    logo: "https://afficix.com/afficixo-logo.png",
     description:
       "Afficixo is a modern pay-per-click affiliate marketplace built for publishers who want to monetize traffic through CPC offers.",
   },
@@ -41,7 +41,7 @@ const structuredData = [
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "Afficixo",
-    url: "https://www.weebly.pro",
+    url: "https://afficix.com",
   },
 ];
 

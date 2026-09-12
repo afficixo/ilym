@@ -11,7 +11,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.weebly.pro'),
+  metadataBase: new URL('https://afficix.com'),
   title: 'Afficixo — Best CPC Affiliate Marketplace for Publishers',
   description:
     'Afficixo is the premier pay-per-click affiliate marketplace where publishers find high-paying CPC offers, promote campaigns, generate valid clicks, track traffic, and earn from quality visitors worldwide. Join 10,000+ publishers earning with our platform.',
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     'publisher platform',
     'affiliate offers',
   ],
-  authors: [{ name: 'Afficixo', url: 'https://www.weebly.pro' }],
+  authors: [{ name: 'Afficixo', url: 'https://afficix.com' }],
   creator: 'Afficixo',
   publisher: 'Afficixo',
   category: 'Business',
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     startupImage: '/web-app-manifest-512x512.png',
   },
   alternates: {
-    canonical: 'https://www.weebly.pro',
+    canonical: 'https://afficix.com',
   },
   robots: {
     index: true,
@@ -80,13 +80,13 @@ export const metadata: Metadata = {
     description:
       'Join Afficixo and discover CPC affiliate offers, promote campaigns, track your traffic, and earn from valid clicks.',
     type: 'website',
-    url: 'https://www.weebly.pro',
+    url: 'https://afficix.com',
     siteName: 'Afficixo',
     locale: 'en_US',
     images: [
       {
-        url: 'https://www.weebly.pro/og.png',
-        secureUrl: 'https://www.weebly.pro/og.png',
+        url: 'https://afficix.com/og.png',
+        secureUrl: 'https://afficix.com/og.png',
         width: 1200,
         height: 630,
         alt: 'Afficixo Pay Per Click Affiliate Marketplace',
@@ -99,7 +99,7 @@ export const metadata: Metadata = {
     title: 'Afficixo — CPC Affiliate Marketplace',
     description:
       'Discover CPC offers, promote campaigns, track valid clicks, and monetize your traffic with Afficixo.',
-    images: ['https://www.weebly.pro/og.png'],
+    images: ['https://afficix.com/og.png'],
     site: '@afficixo',
     creator: '@afficixo',
   },

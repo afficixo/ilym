@@ -3,7 +3,7 @@ import FAQClient from "./FAQClient";
 import PublicLayout from "@/components/layout/PublicLayout";
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.weebly.pro'),
+  metadataBase: new URL('https://afficix.com'),
   title: "FAQ — CPC Affiliate Questions & Answers | Afficixo",
   description:
     "Get answers to common questions about Afficixo's CPC affiliate marketplace. Learn how to join, earn money, track clicks, and maximize your affiliate revenue.",
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     "Afficixo help",
   ],
   alternates: {
-    canonical: "https://www.weebly.pro/faq",
+    canonical: "https://afficix.com/faq",
   },
   robots: {
     index: true,
@@ -29,13 +29,13 @@ export const metadata: Metadata = {
     description:
       "Get answers to common questions about Afficixo's CPC affiliate marketplace and how to start earning.",
     type: "website",
-    url: "https://www.weebly.pro/faq",
+    url: "https://afficix.com/faq",
     siteName: "Afficixo",
     locale: "en_US",
     images: [
       {
-        url: "https://www.weebly.pro/og.png",
-        secureUrl: "https://www.weebly.pro/og.png",
+        url: "https://afficix.com/og.png",
+        secureUrl: "https://afficix.com/og.png",
         width: 1200,
         height: 630,
         alt: "Afficixo FAQ",
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     title: "FAQ — CPC Affiliate Questions & Answers",
     description:
       "Find answers to common questions about Afficixo's CPC marketplace and affiliate program.",
-    images: ["https://www.weebly.pro/og.png"],
+    images: ["https://afficix.com/og.png"],
     creator: "@afficixo",
     site: "@afficixo",
   },

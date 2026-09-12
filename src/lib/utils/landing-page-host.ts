@@ -11,7 +11,7 @@ export function getLandingPageSubdomainFromHost(hostHeader?: string | null): str
     .toLowerCase()
 
   const configuredRootDomain = landingPageDomain.replace(/^www\./i, '')
-  const fallbackRootDomains = ['weebly.pro', 'www.weebly.pro', 'afficixo.com', 'www.afficixo.com']
+  const fallbackRootDomains = ['weebly.pro', 'www.weebly.pro', 'afficix.com', 'www.afficix.com']
   const candidateRootDomains = new Set([
     configuredRootDomain,
     `www.${configuredRootDomain}`,

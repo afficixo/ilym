@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import PublicLayout from '@/components/layout/PublicLayout'
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://afficix.com'),
   title: 'Contact Afficixo — Publisher Support',
   description:
     'Contact the Afficixo support team for help with your publisher account, affiliate offers, tracking, payments, and platform-related questions.',
@@ -13,19 +14,19 @@ export const metadata: Metadata = {
     'traffic monetization help',
   ],
   alternates: {
-    canonical: 'https://www.weebly.pro/contact',
+    canonical: 'https://afficix.com/contact',
   },
   openGraph: {
     title: 'Contact Afficixo — Publisher Support',
     description:
       'Contact the Afficixo support team for help with your publisher account, affiliate offers, tracking, payments, and platform-related questions.',
     type: 'website',
-    url: 'https://www.weebly.pro/contact',
+    url: 'https://afficix.com/contact',
     siteName: 'Afficixo',
     images: [
       {
-        url: 'https://www.weebly.pro/og-image.png',
-        secureUrl: 'https://www.weebly.pro/og-image.png',
+        url: 'https://afficix.com/og-image.png',
+        secureUrl: 'https://afficix.com/og-image.png',
         width: 1200,
         height: 630,
         alt: 'Afficixo Pay Per Click Affiliate Marketplace',
@@ -38,7 +39,7 @@ export const metadata: Metadata = {
     title: 'Contact Afficixo — Publisher Support',
     description:
       'Contact the Afficixo support team for help with your publisher account, affiliate offers, tracking, payments, and platform-related questions.',
-    images: ['https://www.weebly.pro/og-image.png'],
+    images: ['https://afficix.com/og-image.png'],
     creator: 'Afficixo',
   },
 }
@@ -60,7 +61,7 @@ export default function ContactPage() {
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold text-white">Support</h2>
               <p className="text-slate-300 leading-7">
-                For general support, email us at <a className="text-cyan-300 hover:text-cyan-200" href="mailto:support@weebly.pro">support@weebly.pro</a>.
+                For general support, email us at <a className="text-cyan-300 hover:text-cyan-200" href="mailto:support@afficix.com">support@afficix.com</a>.
               </p>
             </section>
 

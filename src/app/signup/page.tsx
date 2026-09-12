@@ -4,6 +4,7 @@ import SignupClient from "./SignupClient"
 import AfficixoLoading from "@/components/ui/AfficixoLoading"
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://afficix.com'),
   title: 'Join Afficixo — Become a CPC Affiliate Publisher',
   description:
     'Create your Afficixo publisher account and access CPC affiliate offers, tracking tools, campaign management, and traffic monetization features.',
@@ -15,19 +16,19 @@ export const metadata: Metadata = {
     'traffic monetization platform',
   ],
   alternates: {
-    canonical: 'https://www.weebly.pro/signup',
+    canonical: 'https://afficix.com/signup',
   },
   openGraph: {
     title: 'Join Afficixo — Become a CPC Affiliate Publisher',
     description:
       'Create your Afficixo publisher account and access CPC affiliate offers, tracking tools, campaign management, and traffic monetization features.',
     type: 'website',
-    url: 'https://www.weebly.pro/signup',
+    url: 'https://afficix.com/signup',
     siteName: 'Afficixo',
     images: [
       {
-        url: 'https://www.weebly.pro/og.png',
-        secureUrl: 'https://www.weebly.pro/og.png',
+        url: 'https://afficix.com/og.png',
+        secureUrl: 'https://afficix.com/og.png',
         width: 1200,
         height: 630,
         alt: 'Afficixo Pay Per Click Affiliate Marketplace',
@@ -40,7 +41,7 @@ export const metadata: Metadata = {
     title: 'Join Afficixo — Become a CPC Affiliate Publisher',
     description:
       'Create your Afficixo publisher account and access CPC affiliate offers, tracking tools, campaign management, and traffic monetization features.',
-    images: ['https://www.weebly.pro/og-image.png'],
+    images: ['https://afficix.com/og-image.png'],
     creator: 'Afficixo',
   },
 }

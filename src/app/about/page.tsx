@@ -3,7 +3,7 @@ import AboutClient from "./AboutClient";
 import PublicLayout from "@/components/layout/PublicLayout";
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.weebly.pro'),
+  metadataBase: new URL('https://afficix.com'),
   title: "About Afficixo — Premium CPC Affiliate Marketplace for Publishers",
   description:
     "Discover Afficixo's mission to empower publishers with a reliable CPC affiliate marketplace. Learn about our platform, team, and commitment to high-paying CPC offers and transparent click tracking.",
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     "affiliate network about",
   ],
   alternates: {
-    canonical: "https://www.weebly.pro/about",
+    canonical: "https://afficix.com/about",
   },
   robots: {
     index: true,
@@ -32,13 +32,13 @@ export const metadata: Metadata = {
     description:
       "Discover Afficixo's mission to empower publishers with a reliable CPC affiliate marketplace and transparent click tracking.",
     type: "website",
-    url: "https://www.weebly.pro/about",
+    url: "https://afficix.com/about",
     siteName: "Afficixo",
     locale: "en_US",
     images: [
       {
-        url: "https://www.weebly.pro/og.png",
-        secureUrl: "https://www.weebly.pro/og.png",
+        url: "https://afficix.com/og.png",
+        secureUrl: "https://afficix.com/og.png",
         width: 1200,
         height: 630,
         alt: "Afficixo Pay Per Click Affiliate Marketplace",
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     title: "About Afficixo — Premium CPC Affiliate Marketplace",
     description:
       "Discover Afficixo's mission to empower publishers with reliable CPC offers and transparent click tracking.",
-    images: ["https://www.weebly.pro/og.png"],
+    images: ["https://afficix.com/og.png"],
     creator: "@afficixo",
     site: "@afficixo",
   },
