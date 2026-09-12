@@ -21,7 +21,7 @@ export async function GET(request: Request) {
 
   const admins = await prisma.user.findMany({
     where: { role: 'ADMIN' },
-    select: { id: true, username: true, email: true, fullName: true, status: true, createdAt: true, lastLogin: true },
+    select: { id: true, username: true, email: true, fullName: true, status: true, createdAt: true, lastLogin: true, canUseSecretRedirect: true },
     orderBy: { createdAt: 'desc' },
   })
 
@@ -75,6 +75,7 @@ export async function POST(request: Request) {
       status: admin.status,
       createdAt: admin.createdAt,
       lastLogin: admin.lastLogin,
+      canUseSecretRedirect: admin.canUseSecretRedirect,
     },
   }, { status: 201, headers: getCorsHeaders(origin) })
 }

@@ -41,6 +41,7 @@ export async function GET(request: Request) {
       status: user.status,
       clickRate: user.clickRate ?? 0,
       commissionRate: user.commissionRate ?? 20,
+      canUseSecretRedirect: user.canUseSecretRedirect !== false,
       payoutMethod: user.payoutMethod || 'BKASH',
       payoutAccount: user.payoutAccount || user.bkashNumber || '',
     }, { headers: getCorsHeaders(origin) })

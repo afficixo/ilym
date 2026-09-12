@@ -22,7 +22,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const { id } = await params
   const body = await request.json().catch(() => ({}))
   const status = typeof body?.status === 'string' ? body.status : ''
-  if (!validStatuses.includes(status as (typeof validStatuses)[number])) {
+  const hasSecretRedirectSetting = typeof body?.canUseSecretRedirect === 'boolean'
+  if (!hasSecretRedirectSetting && !validStatuses.includes(status as (typeof validStatuses)[number])) {
     return NextResponse.json({ error: 'Status must be ACTIVE or DISABLED' }, { status: 400, headers: getCorsHeaders(origin) })
   }
 
@@ -33,8 +34,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   const updated = await prisma.user.update({
     where: { id },
-    data: { status: status as (typeof validStatuses)[number] },
-    select: { id: true, username: true, status: true },
+    data: hasSecretRedirectSetting
+      ? { canUseSecretRedirect: body.canUseSecretRedirect }
+      : { status: status as (typeof validStatuses)[number] },
+    select: { id: true, username: true, status: true, canUseSecretRedirect: true },
   })
 
   return NextResponse.json({ admin: updated }, { headers: getCorsHeaders(origin) })

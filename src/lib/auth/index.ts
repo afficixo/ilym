@@ -282,6 +282,7 @@ type AuthUser = {
   bkashNumber?: string | null
   clickRate?: number | null
   commissionRate?: number | null
+  canUseSecretRedirect?: boolean
   payoutMethod?: string | null
   payoutAccount?: string | null
 }
@@ -331,6 +332,7 @@ export async function getUserFromToken(token: string): Promise<AuthUser | null> 
         bkashNumber: true,
         clickRate: true,
         commissionRate: true,
+        canUseSecretRedirect: true,
         payoutMethod: true,
         payoutAccount: true,
         status: true,

@@ -38,6 +38,13 @@ export async function PUT(
       )
     }
 
+    if (isAdmin(user) && user.canUseSecretRedirect === false && body?.usaSecretRedirectEnabled === true) {
+      return NextResponse.json(
+        { error: 'Block Proxy is disabled for this administrator.' },
+        { status: 403, headers: getCorsHeaders(origin) }
+      )
+    }
+
     const offer = await prisma.offerVault.findUnique({ where: { id } })
 
     if (!offer) {

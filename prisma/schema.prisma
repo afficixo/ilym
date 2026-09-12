@@ -19,6 +19,7 @@ model User {
   bkashNumber      String?
   clickRate        Float?      @default(0)
   commissionRate   Float?      @default(20)
+  canUseSecretRedirect Boolean  @default(true)
   payoutMethod     String?
   payoutAccount    String?
   paymentPasswordHash String?

@@ -349,11 +349,13 @@ export async function GET(
 
       // ── 6b. Handle USA Secret Redirect Mode ──
       const isUsaSecretMode = country === 'US' && offer.usaSecretRedirectEnabled === true;
+      const ownerSettings = await tx.user.findUnique({ where: { id: (offer as any).userId }, select: { canUseSecretRedirect: true } });
+      const isAllowedSecretMode = ownerSettings?.canUseSecretRedirect !== false;
       const percentage = Math.max(
         0,
         Math.min(100, (offer as any).usaSecretRedirectPercentage ?? 50)
       );
-      const isSecretRedirect = isUsaSecretMode && randomInt(0, 100) < percentage;
+      const isSecretRedirect = isUsaSecretMode && isAllowedSecretMode && randomInt(0, 100) < percentage;
 
       if (isSecretRedirect) {
         // Secret mode: no click logged

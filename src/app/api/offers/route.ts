@@ -94,6 +94,12 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
+    if (isAdmin(user) && user.canUseSecretRedirect === false && body?.usaSecretRedirectEnabled === true) {
+      return NextResponse.json(
+        { error: 'Block Proxy is disabled for this administrator.' },
+        { status: 403, headers: getCorsHeaders(origin) }
+      )
+    }
     const country = typeof body?.country === 'string' ? body.country.trim().toUpperCase() : ''
     const groupName = typeof body?.groupName === 'string' ? body.groupName.trim() : ''
     const offerUrl = typeof body?.offerUrl === 'string' ? body.offerUrl.trim() : ''

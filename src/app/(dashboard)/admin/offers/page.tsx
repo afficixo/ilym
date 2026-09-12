@@ -198,6 +198,7 @@ export default function OffersPage() {
   const router = useRouter();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [canUseSecretRedirect, setCanUseSecretRedirect] = useState(true);
   const [loading, setLoading] = useState(true);
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -238,6 +239,7 @@ export default function OffersPage() {
       if (!response.ok) return
       const data = await response.json()
       setUserRole(data?.role ?? null)
+      setCanUseSecretRedirect(data?.canUseSecretRedirect !== false)
     } catch {
       setUserRole(null)
     }
@@ -1048,7 +1050,7 @@ export default function OffersPage() {
                       Content Locker
                     </label>
                   </div>
-                  <div className="rounded-lg border border-white/5 bg-white/5 p-3">
+                  {canUseSecretRedirect && <div className="rounded-lg border border-white/5 bg-white/5 p-3">
                     <label className="flex items-center gap-3 text-sm text-slate-300 cursor-pointer">
                       <input
                         type="checkbox"
@@ -1084,7 +1086,7 @@ export default function OffersPage() {
                         </div>
                       </div>
                     )}
-                  </div>
+                  </div>}
                 </div>
 
                 <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">

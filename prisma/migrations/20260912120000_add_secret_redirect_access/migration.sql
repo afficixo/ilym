@@ -1,0 +1,2 @@
+ALTER TABLE "users"
+ADD COLUMN "canUseSecretRedirect" BOOLEAN NOT NULL DEFAULT true;
