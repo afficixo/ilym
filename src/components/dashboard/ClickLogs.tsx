@@ -239,7 +239,7 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
       </div>
 
       <div className="block overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <table className={`${clicks.length > 0 ? 'min-w-[980px] table-auto' : 'w-full table-fixed'}`}>
+        <table className={`${clicks.length > 0 ? 'w-full min-w-[980px] table-auto' : 'w-full table-fixed'}`}>
           <thead className={`${clicks.length === 0 ? 'hidden lg:table-header-group' : ''} bg-slate-950/70`}>
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Campaign</th>
@@ -296,7 +296,7 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
                       </button>
                     </div>
                   </td>
-                  <td className="max-w-[260px] px-4 py-2 text-sm text-cyan-200">
+                  <td className="px-4 py-2 text-sm text-cyan-200">
                     {click.referrer ? (() => {
                       const referrerInfo = getReferrerInfo(click.referrer)
                       return (
