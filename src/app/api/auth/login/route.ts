@@ -91,7 +91,12 @@ export async function POST(request: Request) {
         : 'Your account is disabled.'
 
       return NextResponse.json(
-        { error: message },
+        {
+          error: message,
+          ...(user.role === 'MANAGER' && user.status === 'DISABLED'
+            ? { supportTelegram: 'Rayanveyron' }
+            : {}),
+        },
         { status: 403, headers: getCorsHeaders(origin) }
       )
     }

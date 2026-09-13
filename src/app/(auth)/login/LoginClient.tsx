@@ -22,6 +22,7 @@ export default function LoginClient() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [supportTelegram, setSupportTelegram] = useState("");
   const [approvalPendingNotice, setApprovalPendingNotice] = useState(false);
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -250,6 +251,7 @@ export default function LoginClient() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSupportTelegram("");
     setLoading(true);
 
     try {
@@ -263,7 +265,9 @@ export default function LoginClient() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Login failed");
+        const loginError = new Error(data.error || "Login failed") as Error & { supportTelegram?: string };
+        loginError.supportTelegram = data.supportTelegram;
+        throw loginError;
       }
 
       if (data?.user?.role === "MANAGER") {
@@ -277,6 +281,7 @@ export default function LoginClient() {
     } catch (err: any) {
       setSuccess("");
       setError(err.message || "We could not sign you in. Check your details and try again.");
+      setSupportTelegram(err.supportTelegram || "");
     } finally {
       setLoading(false);
     }
@@ -353,9 +358,31 @@ export default function LoginClient() {
             </div>
 
             {error && (
-              <div role="alert" className={`flex items-start gap-2 rounded-md border p-3 text-sm backdrop-blur ${approvalPendingNotice ? "border-amber-400/25 bg-amber-500/10 text-amber-100" : "border-red-400/25 bg-red-500/10 text-red-200"}`}>
-                {approvalPendingNotice ? <Clock3 className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-300" /> : <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />}
-                <span className="leading-6">{error}</span>
+              <div role="alert" className={`flex items-start gap-2 rounded-md border p-3 text-sm backdrop-blur ${approvalPendingNotice || supportTelegram ? "border-amber-400/25 bg-amber-500/10 text-amber-100" : "border-red-400/25 bg-red-500/10 text-red-200"}`}>
+                {approvalPendingNotice ? <Clock3 className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-300" /> : <AlertCircle className={`mt-0.5 h-4 w-4 flex-shrink-0 ${supportTelegram ? "text-amber-300" : ""}`} />}
+                <div className="min-w-0 flex-1">
+                  {supportTelegram ? (
+                    <>
+                      <p className="font-semibold text-amber-100">Account access is paused</p>
+                      <p className="mt-1 leading-6 text-amber-100/80">Please contact support to request reactivation.</p>
+                    </>
+                  ) : (
+                    <p className="leading-6">{error}</p>
+                  )}
+                  {supportTelegram && (
+                    <a
+                      href={`https://t.me/${supportTelegram}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-[#55b8ec]/40 bg-[#0088cc] px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm shadow-[#0088cc]/20 transition hover:-translate-y-0.5 hover:bg-[#0077b5] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#55b8ec]/70 focus:ring-offset-2 focus:ring-offset-slate-950"
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5 fill-current">
+                        <path d="M21.7 3.4 18.6 20c-.2 1.2-.9 1.5-1.8.9l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.1 9.3-8.4c.4-.4-.1-.6-.6-.2L6 13.6 1.1 12c-1.1-.3-1.1-1 .2-1.5L20.4 3c.9-.3 1.7.2 1.3.4Z" />
+                      </svg>
+                      Contact @{supportTelegram} on Telegram
+                    </a>
+                  )}
+                </div>
               </div>
             )}
 

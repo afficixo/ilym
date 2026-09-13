@@ -851,12 +851,11 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             <div className={`rounded-xl border p-4 ${
               isDark ? 'bg-white/5 backdrop-blur-sm border-white/10' : 'bg-white/80 backdrop-blur-sm border-gray-200'
             }`}>
-              <div className="flex items-center justify-between mb-3">
+              <div className="mb-3 flex items-center">
                 <div className="flex items-center gap-2">
                   <Globe2 className={`h-4 w-4 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`} strokeWidth={1.5} />
                   <span className={`text-sm font-medium ${isDark ? 'text-white/70' : 'text-gray-700'}`}>Top Countries</span>
                 </div>
-                <span className={`text-[10px] ${isDark ? 'text-white/30' : 'text-gray-400'}`}>% of total</span>
               </div>
               <div className="space-y-2.5 max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
                 {computedStats.geoSummary.slice(0, 5).map((country) => (
@@ -1184,26 +1183,30 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
       </div>
 
       {showPaymentMethodPrompt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4" role="dialog" aria-modal="true" aria-labelledby="payment-method-prompt-title" aria-describedby="payment-method-prompt-description" onClick={(event) => { if (event.target === event.currentTarget) setShowPaymentMethodPrompt(false) }}>
-          <div className={`w-full max-w-sm rounded-lg border border-t-2 p-5 shadow-lg ${isDark ? 'border-white/10 border-t-emerald-400/70 bg-slate-900 text-white' : 'border-slate-200 border-t-emerald-600 bg-white text-slate-900'}`}>
+        <div className="payment-reminder-overlay fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4" role="dialog" aria-modal="true" aria-labelledby="payment-method-prompt-title" aria-describedby="payment-method-prompt-description" onClick={(event) => { if (event.target === event.currentTarget) setShowPaymentMethodPrompt(false) }}>
+          <div className={`payment-reminder-panel w-full max-w-sm rounded-xl border border-t-2 p-5 shadow-lg ${isDark ? 'border-white/10 border-t-emerald-400/70 bg-slate-900 text-white' : 'border-slate-200 border-t-emerald-600 bg-white text-slate-900'}`}>
             <div className="flex items-start gap-4">
-              <div className="min-w-0 flex-1">
-                <h2 id="payment-method-prompt-title" className="text-base font-semibold">Payment details missing</h2>
+              <div className={`payment-reminder-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${isDark ? 'border border-emerald-400/20 bg-emerald-400/10 text-emerald-300' : 'border border-emerald-200 bg-emerald-50 text-emerald-600'}`}>
+                <CreditCard className="h-5 w-5" />
               </div>
-              <button type="button" onClick={() => setShowPaymentMethodPrompt(false)} className={`rounded p-1.5 ${isDark ? 'text-slate-400 hover:bg-white/10 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`} aria-label="Close payment method prompt">
+              <div className="min-w-0 flex-1">
+                <p className={`mb-1 text-[10px] font-bold uppercase tracking-[0.16em] ${isDark ? 'text-emerald-300/80' : 'text-emerald-700'}`}>Payout setup</p>
+                <h2 id="payment-method-prompt-title" className="text-base font-semibold">A quick payout reminder</h2>
+              </div>
+              <button type="button" onClick={() => setShowPaymentMethodPrompt(false)} className={`rounded p-1.5 ${isDark ? 'text-slate-400 hover:bg-white/10 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`} aria-label="Close payout reminder">
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <p id="payment-method-prompt-description" className={`mt-3 text-sm leading-6 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-              Add a payment method to receive your earnings.
+            <p id="payment-method-prompt-description" className={`mt-4 text-sm leading-6 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+              Add your payment details whenever you are ready, so your earnings know where to go.
             </p>
             <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-              <button type="button" onClick={() => setShowPaymentMethodPrompt(false)} className={`rounded px-3 py-2.5 text-xs font-semibold transition-colors ${isDark ? 'text-slate-300 hover:bg-white/10' : 'text-slate-600 hover:bg-slate-100'}`}>
-                Remind me later
+              <button type="button" onClick={() => setShowPaymentMethodPrompt(false)} className={`payment-reminder-secondary rounded-lg px-3 py-2.5 text-xs font-semibold transition-colors ${isDark ? 'text-slate-300 hover:bg-white/10' : 'text-slate-600 hover:bg-slate-100'}`}>
+                Maybe later
               </button>
-              <a href={`/payment/${publicId}`} className="inline-flex items-center justify-center gap-1.5 rounded bg-emerald-500 px-3 py-2.5 text-xs font-bold text-slate-950 transition hover:bg-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-300/70 focus:ring-offset-2 focus:ring-offset-slate-900">
-                Add payment method
-                <ArrowRight className="h-3.5 w-3.5" />
+              <a href={`/payment/${publicId}`} className="payment-reminder-action inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-emerald-300/70 focus:ring-offset-2 focus:ring-offset-slate-900">
+                Add payment details
+                <ArrowRight className="payment-reminder-arrow h-3.5 w-3.5" />
               </a>
             </div>
           </div>
