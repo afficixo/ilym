@@ -25,31 +25,26 @@ export function generateFixedPrefix() {
   return randomDistinctLetters(2)
 }
 
-export function generateRandomSlugCode(length = 5) {
-  const letters = shuffleArray([...SLUG_PREFIX_ALPHABET])
-  const digits = shuffleArray([...'23456789'])
-  const pattern = shuffleArray([
-    'letter',
-    'letter',
-    'letter',
-    'digit',
-    'digit',
-  ])
-
-  return pattern
-    .map((type) => {
-      if (type === 'letter') {
-        return letters.shift() || randomFromAlphabet(SLUG_PREFIX_ALPHABET)
-      }
-
-      return digits.shift() || randomFromAlphabet('23456789')
-    })
-    .join('')
-    .slice(0, length)
+export function buildPublisherSlug(prefix: string, number: number) {
+  return `${prefix}${String(number).padStart(2, '0')}`
 }
 
-export function buildPublisherSlug(prefix: string, codeLength = 5) {
-  return `${prefix}${generateRandomSlugCode(codeLength)}`
+export async function generateNextPublisherSlug(prismaClient: any, prefix: string, startFrom = 1) {
+  let nextNumber = startFrom
+
+  while (true) {
+    const candidate = buildPublisherSlug(prefix, nextNumber)
+    const existing = await prismaClient.linkAccount.findUnique({
+      where: { slug: candidate },
+      select: { slug: true },
+    })
+
+    if (!existing) {
+      return candidate
+    }
+
+    nextNumber += 1
+  }
 }
 
 export async function ensureUserSlugPrefix(prismaClient: any, userId: string) {
