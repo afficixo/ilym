@@ -16,7 +16,6 @@ import {
   Menu,
   ChevronLeft,
   ChevronRight,
-  ChevronDown,
   BarChart3,
   ShieldCheck,
   Layers,
@@ -28,6 +27,8 @@ import {
   Loader2,
   Send,
   UsersRound,
+  Sun,
+  Moon,
 } from 'lucide-react'
 import { getDashboardBasePath, getDashboardPath } from '@/lib/auth/dashboard-path'
 
@@ -40,6 +41,7 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false)
   const [isMobile, setIsMobile] = useState<boolean | null>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [isDark, setIsDark] = useState(false)
   const [userRole, setUserRole] = useState<string | null>(null)
   const [supportOpen, setSupportOpen] = useState(false)
   const [supportConversation, setSupportConversation] = useState<SupportConversation | null>(null)
@@ -48,7 +50,6 @@ export default function Sidebar() {
   const [supportSending, setSupportSending] = useState(false)
   const [supportError, setSupportError] = useState('')
   const [supportUnread, setSupportUnread] = useState(false)
-  const [settingsExpanded, setSettingsExpanded] = useState(false)
   const supportOpenRef = useRef(supportOpen)
   const latestOwnerMessageIdRef = useRef<string | null>(null)
   const supportInitializedRef = useRef(false)
@@ -76,6 +77,25 @@ export default function Sidebar() {
   useEffect(() => {
     setMobileOpen(false)
   }, [pathname])
+
+  useEffect(() => {
+    const readTheme = () => {
+      const storedTheme = window.localStorage.getItem('theme')
+      const shouldUseDark = storedTheme
+        ? storedTheme === 'dark'
+        : window.matchMedia('(prefers-color-scheme: dark)').matches
+      setIsDark(shouldUseDark)
+      document.documentElement.classList.toggle('dark', shouldUseDark)
+    }
+
+    readTheme()
+    window.addEventListener('storage', readTheme)
+    window.addEventListener('themechange', readTheme)
+    return () => {
+      window.removeEventListener('storage', readTheme)
+      window.removeEventListener('themechange', readTheme)
+    }
+  }, [])
 
   useEffect(() => {
     if (userRole !== 'MANAGER') return
@@ -194,12 +214,8 @@ export default function Sidebar() {
       label: 'System',
       items: [
         { href: `${dashboardBasePath}/settings`, label: 'Settings', icon: Settings },
-        ...(userRole === 'OWNER'
-          ? [{ href: '/owner/managers', label: 'Manage Publishers', icon: ShieldCheck }]
-          : []),
-        ...(userRole === 'OWNER'
-          ? [{ href: '/owner/admins', label: 'Manage Admins', icon: UsersRound }]
-          : []),
+        { href: '/owner/managers', label: 'Manage Publishers', icon: ShieldCheck },
+        { href: '/owner/admins', label: 'Manage Admins', icon: UsersRound },
         ...(userRole === 'OWNER'
           ? [{ href: '/owner/support', label: 'Support Inbox', icon: MessageCircle }]
           : []),
@@ -214,6 +230,14 @@ export default function Sidebar() {
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
     router.push('/login')
+  }
+
+  const toggleTheme = () => {
+    const nextIsDark = !isDark
+    setIsDark(nextIsDark)
+    document.documentElement.classList.toggle('dark', nextIsDark)
+    window.localStorage.setItem('theme', nextIsDark ? 'dark' : 'light')
+    window.dispatchEvent(new Event('themechange'))
   }
 
   const sendSupportMessage = async (event: FormEvent) => {
@@ -236,7 +260,7 @@ export default function Sidebar() {
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
-      <div className={`relative flex w-full flex-shrink-0 items-center gap-3 ${isMobile ? 'h-[4.5rem] border-b border-slate-200/80 dark:border-white/10 px-5' : 'h-10 justify-start p-0'}`}>
+      <div className={`relative flex w-full flex-shrink-0 items-center gap-3 ${isMobile ? 'h-[4.5rem] border-b border-slate-200/80 dark:border-white/10 px-5' : 'h-10 justify-start px-2'}`}>
           {(!collapsed || isMobile) && (
             <div className="relative h-9 w-28 overflow-hidden">
               <Image
@@ -263,7 +287,6 @@ export default function Sidebar() {
         {menuGroups.map((group) => group.items.length > 0 && (
           <div key={group.label} className="space-y-1">
             {group.items.map((item) => {
-              const isOwnerAccessItem = item.label === 'Manage Publishers' || item.label === 'Manage Admins'
               const isActive = item.exact
                 ? pathname === item.href
                 : pathname === item.href || pathname?.startsWith(item.href + '/')
@@ -290,13 +313,10 @@ export default function Sidebar() {
                   key={item.href}
                   href={item.href}
                   onClick={() => {
-                    if (item.label === 'Settings') {
-                      setSettingsExpanded((expanded) => !expanded)
-                      router.push(item.href)
-                    }
                     if (isMobile) setMobileOpen(false)
                   }}
-                  className={`${isOwnerAccessItem && !settingsExpanded ? 'hidden' : ''} group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} ${isMobile ? 'min-h-10 rounded-md px-2.5 py-1.5 border-0' : 'rounded-md px-2 py-1.5 border'} transition-colors duration-200 ${
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} ${isMobile ? 'min-h-10 rounded-md px-2.5 py-1.5 border-0' : 'rounded-md px-2 py-1.5 border'} transition-colors duration-200 ${
                     isActive
                       ? isMobile 
                         ? 'border-0 bg-slate-700 font-medium text-white dark:bg-[#344047] dark:text-slate-100'
@@ -306,9 +326,8 @@ export default function Sidebar() {
                         : 'border-transparent text-slate-600 hover:bg-slate-200/80 hover:text-slate-950 dark:text-[#b7bec2] dark:hover:bg-white/[0.06] dark:hover:text-white'
                   }`}
                 >
-                  <Icon className={`h-5 w-5 shrink-0 transition-colors duration-200 ${iconColor}`} />
+                  <Icon className={`h-5 w-5 shrink-0 transition-colors duration-200 ${isActive ? 'text-cyan-600 dark:text-cyan-300' : iconColor}`} />
                   {(!collapsed || isMobile) && <span className={`tracking-[0.01em] ${isMobile ? 'text-sm font-medium' : 'text-xs'}`}>{item.label}</span>}
-                  {item.label === 'Settings' && !collapsed && !isMobile && <ChevronDown className={`ml-auto h-4 w-4 transition-transform ${settingsExpanded ? 'rotate-180' : ''}`} />}
                   {isActive && !collapsed && !isMobile && (
                     <span className="ml-auto h-5 w-0.5 rounded-full bg-cyan-300" />
                   )}
@@ -320,6 +339,16 @@ export default function Sidebar() {
       </nav>
 
       <div className={`relative z-10 flex-shrink-0 border-t ${isMobile ? 'border-slate-200/80 dark:border-white/10 space-y-1 px-2 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-2' : 'border-slate-200/80 dark:border-white/10 space-y-0.5 px-2 py-2'}`}>
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className={`group flex w-full items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} rounded-md border border-transparent px-2 py-1.5 text-slate-600 transition-colors duration-200 hover:bg-slate-200/80 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-white/[0.06] dark:hover:text-white`}
+          aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
+          title={collapsed && !isMobile ? (isDark ? 'Light theme' : 'Dark theme') : undefined}
+        >
+          {isDark ? <Sun className="h-5 w-5 shrink-0 text-amber-500 dark:text-amber-300" /> : <Moon className="h-5 w-5 shrink-0 text-indigo-500 dark:text-indigo-300" />}
+          {(!collapsed || isMobile) && <span className="text-xs tracking-[0.01em]">{isDark ? 'Light theme' : 'Dark theme'}</span>}
+        </button>
         <button
           onClick={handleLogout}
           className={`w-full group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} ${isMobile ? 'rounded-md px-2.5 py-1.5 min-h-10 border-0' : 'rounded-md px-2 py-1.5 border border-transparent'} transition-colors duration-200 ${isMobile ? 'text-rose-600 hover:text-rose-950 hover:bg-rose-100 font-medium dark:text-[#d6a2a2] dark:hover:text-white dark:hover:bg-white/[0.06]' : 'text-red-600/80 hover:text-red-700 hover:bg-red-500/10 hover:border-red-400/20 dark:text-red-300/80 dark:hover:text-red-200'}`}

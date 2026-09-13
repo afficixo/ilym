@@ -4,8 +4,6 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import AfficixoLoading from "@/components/ui/AfficixoLoading";
 import {
-  Sun,
-  Moon,
   User,
   Key,
   LogOut,
@@ -37,7 +35,6 @@ interface ManagerOption {
 
 export default function SettingsPage() {
   const router = useRouter();
-  const [darkMode, setDarkMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userInfo, setUserInfo] = useState<{ username?: string; email?: string; role?: string } | null>(null);
   const [clickRate, setClickRate] = useState("0");
@@ -90,16 +87,6 @@ export default function SettingsPage() {
   }, [isManagerMenuOpen]);
 
   useEffect(() => {
-    const readTheme = () => {
-      const storedTheme = window.localStorage.getItem("theme");
-      const shouldUseDark = storedTheme
-        ? storedTheme === "dark"
-        : window.matchMedia("(prefers-color-scheme: dark)").matches;
-
-      setDarkMode(shouldUseDark);
-      document.documentElement.classList.toggle("dark", shouldUseDark);
-    };
-
     const fetchAccount = async () => {
       try {
         const response = await fetch("/api/auth/me", { credentials: "include" });
@@ -120,30 +107,13 @@ export default function SettingsPage() {
       }
     };
 
-    readTheme();
     fetchAccount();
     if (new URLSearchParams(window.location.search).get("google_reset") === "1") {
       setGoogleResetReady(true);
       setShowPasswordForm(true);
     }
 
-    const handleThemeChange = () => readTheme();
-    window.addEventListener("storage", handleThemeChange);
-    window.addEventListener("themechange", handleThemeChange);
-
-    return () => {
-      window.removeEventListener("storage", handleThemeChange);
-      window.removeEventListener("themechange", handleThemeChange);
-    };
   }, []);
-
-  const toggleTheme = () => {
-    const newDark = !darkMode;
-    setDarkMode(newDark);
-    document.documentElement.classList.toggle("dark", newDark);
-    window.localStorage.setItem("theme", newDark ? "dark" : "light");
-    window.dispatchEvent(new Event("themechange"));
-  };
 
   const handleClickRateSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -357,41 +327,8 @@ export default function SettingsPage() {
       )}
 
       {/* Main Grid */}
-      <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
-        {/* Left Column */}
-        <div className="space-y-6">
-          {/* Appearance */}
-          <div className="rounded-xl border border-slate-200 bg-white/90 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-none">
-            <div className="mb-4 flex items-center gap-2">
-              {darkMode ? (
-                <Moon className="h-4 w-4 text-indigo-500" />
-              ) : (
-                <Sun className="h-4 w-4 text-indigo-500" />
-              )}
-              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Appearance</h3>
-            </div>
-
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-900 dark:text-white">Dark mode</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Switch between dark and light themes.</p>
-              </div>
-              <button
-                onClick={toggleTheme}
-                className={`theme-toggle relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                  darkMode ? "bg-indigo-600" : "bg-slate-200"
-                }`}
-              >
-                <span
-                  className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-                    darkMode ? "translate-x-6" : "translate-x-1"
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-
-          {/* Account */}
+      <div className="space-y-6">
+        {/* Account */}
           <div className="rounded-xl border border-slate-200 bg-white/90 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-none">
             <div className="mb-4 flex items-center gap-2">
               <User className="h-4 w-4 text-indigo-500" />
@@ -708,44 +645,34 @@ export default function SettingsPage() {
               )}
             </div>
           </div>
-        </div>
 
-        {/* Right Column */}
-        <div className="space-y-6">
-          {/* Danger Zone */}
-          {showDangerZone && userInfo?.role !== "MANAGER" && (
-            <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-5">
-              <div className="mb-4 flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-red-400" />
-                <h3 className="text-sm font-semibold text-red-300">Danger zone</h3>
-              </div>
-
-              <p className="mb-4 text-sm text-slate-400">
-                These actions are irreversible. Please review them before proceeding.
-              </p>
-
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={() => handleDangerAction("delete-data")}
-                  disabled={isSubmitting}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-2 text-xs font-medium text-white hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                  Delete all data
-                </button>
-                <button
-                  onClick={() => handleDangerAction("reset-analytics")}
-                  disabled={isSubmitting}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-400 hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  <RefreshCw className="h-3.5 w-3.5" />
-                  Reset analytics
-                </button>
-              </div>
+        {showDangerZone && userInfo?.role !== "MANAGER" && (
+          <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-5">
+            <div className="mb-4 flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-red-400" />
+              <h3 className="text-sm font-semibold text-red-300">Danger zone</h3>
             </div>
-          )}
-
-        </div>
+            <p className="mb-4 text-sm text-slate-400">These actions are irreversible. Please review them before proceeding.</p>
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={() => handleDangerAction("delete-data")}
+                disabled={isSubmitting}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-2 text-xs font-medium text-white hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete all data
+              </button>
+              <button
+                onClick={() => handleDangerAction("reset-analytics")}
+                disabled={isSubmitting}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-400 hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                Reset analytics
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
