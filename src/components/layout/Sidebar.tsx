@@ -290,7 +290,10 @@ export default function Sidebar() {
                   key={item.href}
                   href={item.href}
                   onClick={() => {
-                    if (item.label === 'Settings') setSettingsExpanded((expanded) => !expanded)
+                    if (item.label === 'Settings') {
+                      setSettingsExpanded((expanded) => !expanded)
+                      router.push(item.href)
+                    }
                     if (isMobile) setMobileOpen(false)
                   }}
                   className={`${isOwnerAccessItem && !settingsExpanded ? 'hidden' : ''} group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} ${isMobile ? 'min-h-10 rounded-md px-2.5 py-1.5 border-0' : 'rounded-md px-2 py-1.5 border'} transition-colors duration-200 ${
@@ -409,14 +412,14 @@ export default function Sidebar() {
       <button
         type="button"
         onClick={() => setCollapsed(!collapsed)}
-        className="edge-toggle fixed right-0 top-0 z-[60] hidden h-11 w-11 items-center justify-center rounded-none border-0 bg-transparent p-0 text-slate-100/80 shadow-none ring-0 lg:flex"
+        className={`edge-toggle fixed top-0 z-[60] hidden h-11 w-11 items-center justify-center rounded-none border-0 bg-transparent p-0 text-slate-100/80 shadow-none ring-0 transition-[left] duration-300 lg:flex ${collapsed ? 'left-5' : 'left-[164px]'}`}
         aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
         <Menu className="w-4 h-4" />
       </button>
 
       <aside
-        className={`panel-bleed sticky top-0 order-last z-[50] hidden h-screen shrink-0 flex-col ${collapsed ? 'w-16' : 'w-52'} overflow-hidden rounded-none border-0 bg-[var(--surface-bg)] ring-0 transition-[width,box-shadow] duration-300 ease-out lg:flex`}
+        className={`panel-bleed sticky top-0 z-[50] hidden h-screen shrink-0 flex-col ${collapsed ? 'w-16' : 'w-52'} overflow-hidden rounded-none border-0 bg-[var(--surface-bg)] ring-0 transition-[width,box-shadow] duration-300 ease-out lg:flex`}
       >
         {sidebarContent}
       </aside>

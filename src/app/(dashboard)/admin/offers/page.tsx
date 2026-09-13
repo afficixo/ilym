@@ -1167,7 +1167,7 @@ export default function OffersPage() {
                     value={quickGroupName}
                     onChange={(e) => setQuickGroupName(e.target.value)}
                     placeholder="Enter a new group name"
-                    className="flex-1 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-1 focus:ring-indigo-400/30 transition min-h-[44px]"
+                    className="flex-1 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white caret-indigo-600 placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-1 focus:ring-indigo-400/30 transition min-h-[44px] dark:caret-indigo-300"
                   />
                   <div className="flex gap-2">
                     <button
