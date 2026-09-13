@@ -64,7 +64,7 @@ export async function POST(request: Request) {
 
     if (!username || !password) {
       return NextResponse.json(
-        { error: 'Username and password required' },
+        { error: 'Username or email and password required' },
         { status: 400, headers: getCorsHeaders(origin) }
       )
     }

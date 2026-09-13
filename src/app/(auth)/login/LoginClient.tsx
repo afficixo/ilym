@@ -395,7 +395,7 @@ export default function LoginClient() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Username</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1.5">Username or email</label>
                 <div className="relative group">
                   <User strokeWidth={2.2} className="auth-field-icon pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transition-colors" />
                   <input
@@ -403,7 +403,7 @@ export default function LoginClient() {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     className="auth-input w-full rounded-md border border-white/10 bg-white/5 px-4 py-3 pl-10 text-white placeholder-slate-500 backdrop-blur-sm focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
-                    placeholder="Enter your username"
+                    placeholder="Enter your username or email"
                     required
                     disabled={loading}
                   />

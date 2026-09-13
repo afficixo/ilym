@@ -233,7 +233,10 @@ export async function getOfferSelectionUserIds(userId: string): Promise<string[]
 export async function verifyCredentials(username: string, password: string) {
   const user = await prisma.user.findFirst({
     where: {
-      OR: [{ username }, { email: username }],
+      OR: [
+        { username: { equals: username, mode: 'insensitive' } },
+        { email: { equals: username, mode: 'insensitive' } },
+      ],
     },
     select: {
       id: true,
