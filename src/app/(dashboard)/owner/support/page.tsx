@@ -7,6 +7,7 @@ import MessageBody from '@/components/support/MessageBody'
 type Message = { id: string; body: string; sender: { username: string; role: string } }
 type User = { id: string; username: string; fullName: string | null; email: string; status: string }
 type Conversation = { id: string; status: 'OPEN' | 'RESOLVED'; manager: { id: string; username: string; fullName: string | null; email: string }; messages: Message[] }
+type SupportFilter = 'ALL' | 'NEW' | 'OPEN' | 'RESOLVED'
 
 export default function OwnerSupportPage() {
   const [conversations, setConversations] = useState<Conversation[]>([])
@@ -14,6 +15,7 @@ export default function OwnerSupportPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [body, setBody] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
+  const [supportFilter, setSupportFilter] = useState<SupportFilter>('ALL')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState('')
@@ -21,7 +23,13 @@ export default function OwnerSupportPage() {
   const selectedConversation = conversations.find((item) => item.manager.id === selectedId)
   const selectedUser = users.find((item) => item.id === selectedId)
   const normalizedSearchQuery = searchQuery.trim().toLowerCase()
-  const filteredUsers = users.filter((user) => [user.fullName, user.username, user.email].filter(Boolean).some((value) => value!.toLowerCase().includes(normalizedSearchQuery)))
+  const filteredUsers = users.filter((user) => {
+    const conversation = conversations.find((item) => item.manager.id === user.id)
+    const status = conversation?.status || 'NEW'
+    const matchesFilter = supportFilter === 'ALL' || status === supportFilter
+    const matchesSearch = [user.fullName, user.username, user.email].filter(Boolean).some((value) => value!.toLowerCase().includes(normalizedSearchQuery))
+    return matchesFilter && matchesSearch
+  })
 
   useEffect(() => {
     let active = true
@@ -106,8 +114,16 @@ export default function OwnerSupportPage() {
         <div className="min-h-0 max-h-[30vh] overflow-y-auto rounded-2xl border border-slate-200/80 bg-white/70 p-2 shadow-sm lg:max-h-none dark:border-white/10 dark:bg-slate-900/50 dark:shadow-none">
           {loading && <div className="p-4 text-sm text-slate-500"><Loader2 className="mr-2 inline h-4 w-4 animate-spin" />Loading...</div>}
           {!loading && users.length === 0 && <p className="p-4 text-sm text-slate-500">No users yet.</p>}
-          {!loading && users.length > 0 && <label className="relative mb-2 block"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search publishers..." aria-label="Search publishers" className="w-full rounded-xl border border-slate-200/80 bg-white/70 py-2 pl-9 pr-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-cyan-400/50 focus:ring-4 focus:ring-cyan-400/10 dark:border-white/10 dark:bg-slate-950/40 dark:text-white" /></label>}
-          {!loading && users.length > 0 && filteredUsers.length === 0 && <p className="px-3 py-4 text-center text-sm text-slate-500">No publishers match your search.</p>}
+          {!loading && users.length > 0 && <>
+            <label className="relative mb-2 block"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search publishers..." aria-label="Search publishers" className="w-full rounded-xl border border-slate-200/80 bg-white/70 py-2 pl-9 pr-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-cyan-400/50 focus:ring-4 focus:ring-cyan-400/10 dark:border-white/10 dark:bg-slate-950/40 dark:text-white" /></label>
+            <div className="mb-2 grid grid-cols-4 gap-1 rounded-xl bg-slate-100/80 p-1 dark:bg-white/5" aria-label="Filter conversations" role="group">
+              {(['ALL', 'NEW', 'OPEN', 'RESOLVED'] as const).map((filter) => {
+                const label = filter === 'ALL' ? 'All' : filter[0] + filter.slice(1).toLowerCase()
+                return <button key={filter} type="button" aria-pressed={supportFilter === filter} onClick={() => setSupportFilter(filter)} className={`rounded-lg px-1.5 py-1.5 text-[10px] font-medium transition-colors ${supportFilter === filter ? 'bg-white text-slate-800 shadow-sm dark:bg-slate-700 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}>{label}</button>
+              })}
+            </div>
+          </>}
+          {!loading && users.length > 0 && filteredUsers.length === 0 && <p className="px-3 py-4 text-center text-sm text-slate-500">No publishers match your search or filter.</p>}
           <div className="space-y-1">{filteredUsers.map((user) => { const conversation = conversations.find((item) => item.manager.id === user.id); return <button key={user.id} type="button" onClick={() => setSelectedId(user.id)} className={`w-full rounded-xl border p-3 text-left transition-colors ${selectedUser?.id === user.id ? 'border-cyan-400/20 bg-cyan-400/10 shadow-sm dark:border-cyan-300/15' : 'border-transparent hover:bg-slate-100/70 dark:hover:bg-white/5'}`}><div className="flex items-center justify-between gap-2 text-sm font-medium text-slate-800 dark:text-slate-100"><span className="truncate">{user.fullName || 'Name not provided'}</span><span className={`shrink-0 text-[10px] uppercase ${conversation?.status === 'OPEN' ? 'text-amber-500' : conversation ? 'text-emerald-500' : 'text-slate-400'}`}>{conversation?.status || 'NEW'}</span></div><p className="mt-0.5 truncate text-xs text-slate-500">@{user.username}</p><p className="mt-1 truncate text-xs text-slate-400">{conversation?.messages.at(-1)?.body || 'Start a conversation'}</p></button> })}</div>
         </div>
         {selectedUser ? <div className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white/70 shadow-sm dark:border-white/10 dark:bg-slate-900/50 dark:shadow-none">
