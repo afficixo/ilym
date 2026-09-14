@@ -215,30 +215,30 @@ export default function MediaSourcePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--page-bg)] px-3 py-4 text-[var(--text-primary)] sm:px-5 lg:px-6">
-      <div className="mx-auto max-w-3xl">
-        <div className="mb-4 flex items-center justify-between gap-3">
+    <div className="min-h-screen bg-[var(--page-bg)] px-2 py-2 text-[var(--text-primary)] sm:px-3 lg:px-4">
+      <div className="mx-auto w-full max-w-none">
+        <div className="mb-2 flex items-center justify-between gap-3">
           <button
             onClick={() => window.history.back()}
-            className="inline-flex items-center gap-2 rounded-xl border border-[var(--surface-border)] bg-[var(--surface-card)] px-3 py-2 text-sm font-medium text-[var(--text-primary)] transition hover:border-[rgba(148,163,184,0.4)] hover:bg-[rgba(15,23,42,0.08)]"
+            className="inline-flex items-center gap-2 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-card)] px-2.5 py-1.5 text-sm font-medium text-[var(--text-primary)] transition hover:border-[rgba(148,163,184,0.4)] hover:bg-[rgba(15,23,42,0.08)]"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
           </button>
         </div>
 
-        <div className="overflow-hidden rounded-[18px] border border-[var(--surface-border)] bg-[var(--surface-card)] shadow-[0_8px_22px_rgba(15,23,42,0.08)] backdrop-blur-sm">
-          <div className="border-b border-[var(--surface-border)] bg-[var(--surface-bg)] px-4 py-3 sm:px-5">
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface-card)] p-1.5 text-[var(--text-secondary)]">
-                <ImageIcon className="h-4 w-4" />
+        <div className="overflow-hidden rounded-[14px] border border-[var(--surface-border)] bg-[var(--surface-card)] shadow-[0_4px_12px_rgba(15,23,42,0.06)] backdrop-blur-sm">
+          <div className="border-b border-[var(--surface-border)] bg-[var(--surface-bg)] px-3 py-2 sm:px-3">
+            <div className="flex items-center gap-2">
+              <div className="rounded-md border border-[var(--surface-border)] bg-[var(--surface-card)] p-1 text-[var(--text-secondary)]">
+                <ImageIcon className="h-3.5 w-3.5" />
               </div>
 
-              <h1 className="text-base font-semibold text-[var(--text-primary)] sm:text-lg">Media library</h1>
+              <h1 className="text-sm font-semibold text-[var(--text-primary)]">Media library</h1>
             </div>
           </div>
 
-          <div className="space-y-2.5 p-2.5 sm:p-4">
+          <div className="space-y-1.5 p-1.5 sm:p-2">
             {error && (
               <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-100">
                 {error}
@@ -252,9 +252,9 @@ export default function MediaSourcePage() {
               </div>
             )}
 
-            <div className="rounded-[22px] border border-[var(--surface-border)] bg-[var(--surface-bg)] p-3 sm:p-4">
-              <div className="mb-3 border-b border-[var(--surface-border)] pb-2.5">
-                <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-secondary)]">Upload</h2>
+            <div className="rounded-[12px] border border-[var(--surface-border)] bg-[var(--surface-bg)] p-1.5 sm:p-2">
+              <div className="mb-1.5 border-b border-[var(--surface-border)] pb-1">
+                <h2 className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--text-secondary)]">Upload</h2>
               </div>
 
               {(preview || pendingImage) && (
@@ -270,7 +270,7 @@ export default function MediaSourcePage() {
                 </div>
               )}
 
-              <label className="group flex min-h-[160px] cursor-pointer flex-col items-center justify-center gap-3 rounded-[18px] border border-dashed border-slate-400/25 bg-[var(--surface-card)] p-3 text-center transition duration-200 hover:border-slate-500/40">
+              <label className="group flex min-h-[110px] cursor-pointer flex-col items-center justify-center gap-1.5 rounded-[12px] border border-dashed border-slate-400/25 bg-[var(--surface-card)] p-1.5 text-center transition duration-200 hover:border-slate-500/40">
                 {pendingImage ? (
                   <>
                     <div className="w-full overflow-hidden rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-bg)] p-2">
@@ -321,12 +321,12 @@ export default function MediaSourcePage() {
                   </>
                 ) : (
                   <>
-                    <div className="rounded-xl border border-[var(--surface-border)] bg-[var(--surface-bg)] p-3 text-[var(--text-secondary)]">
-                      <Upload className="h-7 w-7" />
+                    <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface-bg)] p-2 text-[var(--text-secondary)]">
+                      <Upload className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="text-lg font-semibold text-[var(--text-primary)]">Upload image</p>
-                      <p className="mt-1 text-xs text-[var(--text-secondary)]">PNG, JPG, or GIF up to 5MB</p>
+                      <p className="text-base font-semibold text-[var(--text-primary)]">Upload image</p>
+                      <p className="mt-0.5 text-[10px] text-[var(--text-secondary)]">PNG, JPG, or GIF up to 5MB</p>
                     </div>
                   </>
                 )}
@@ -335,20 +335,20 @@ export default function MediaSourcePage() {
               </label>
             </div>
 
-            <div className="rounded-[22px] border border-[var(--surface-border)] bg-[var(--surface-bg)] p-3 sm:p-4">
+            <div className="rounded-[12px] border border-[var(--surface-border)] bg-[var(--surface-bg)] p-1.5 sm:p-2">
               {media.length > 0 ? (
                 <>
-                  <div className="mb-3 flex items-center justify-between gap-3 border-b border-[var(--surface-border)] pb-2.5">
-                    <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-secondary)]">Saved images</h2>
-                    <span className="rounded-full border border-[var(--surface-border)] bg-white/5 px-2 py-1 text-[9px] font-medium uppercase tracking-[0.14em] text-[var(--text-secondary)]">
+                  <div className="mb-1.5 flex items-center justify-between gap-3 border-b border-[var(--surface-border)] pb-1">
+                    <h2 className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--text-secondary)]">Saved images</h2>
+                    <span className="rounded-full border border-[var(--surface-border)] bg-white/5 px-2 py-0.5 text-[7px] font-medium uppercase tracking-[0.14em] text-[var(--text-secondary)]">
                       {media.length} total
                     </span>
                   </div>
 
-                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                  <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
                     {media.map((item) => (
-                      <div key={item.id} className="rounded-[18px] border border-[var(--surface-border)] bg-[var(--surface-card)] p-2.5 transition hover:border-slate-400/30 hover:bg-white/[0.02]">
-                        <button type="button" onClick={() => setExpandedImage(item)} className="block w-full overflow-hidden rounded-[14px] border border-[var(--surface-border)] bg-[var(--surface-bg)]">
+                      <div key={item.id} className="rounded-[16px] border border-[var(--surface-border)] bg-[var(--surface-card)] p-2 transition hover:border-slate-400/30 hover:bg-white/[0.02]">
+                        <button type="button" onClick={() => setExpandedImage(item)} className="block w-full overflow-hidden rounded-[12px] border border-[var(--surface-border)] bg-[var(--surface-bg)]">
                           <Image src={item.source} alt={item.name} width={400} height={200} className="h-24 w-full object-contain transition hover:scale-[1.02]" />
                         </button>
 
@@ -432,13 +432,13 @@ export default function MediaSourcePage() {
                   </div>
                 </>
               ) : (
-                <div className="flex min-h-[130px] flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--surface-border)] bg-[var(--surface-bg)] px-5 py-6 text-center">
-                  <div className="mb-3 rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-3 text-[var(--text-secondary)]">
-                    <ImageIcon className="h-6 w-6" />
+                <div className="flex min-h-[150px] flex-col items-center justify-center rounded-[12px] border border-dashed border-[var(--surface-border)] bg-[var(--surface-bg)] px-4 py-6 text-center">
+                  <div className="mb-2 rounded-xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-2 text-[var(--text-secondary)]">
+                    <ImageIcon className="h-5 w-5" />
                   </div>
-                  <p className="text-lg font-semibold text-[var(--text-primary)]">No uploads yet</p>
-                  <p className="mt-2 max-w-md text-sm text-[var(--text-secondary)]">
-                    Add your first image and it will appear here as a reusable saved asset for your landing pages.
+                  <p className="text-base font-semibold text-[var(--text-primary)]">No uploads yet</p>
+                  <p className="mt-1 max-w-md text-[11px] leading-relaxed text-[var(--text-secondary)]">
+                    Upload an image to create a reusable asset for your landing pages.
                   </p>
                 </div>
               )}
