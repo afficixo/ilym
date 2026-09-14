@@ -1,7 +1,8 @@
 'use client'
 
+import Link from 'next/link'
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, Trash2, Edit2, X, ArrowLeft } from 'lucide-react'
+import { Plus, Trash2, Edit2, X, ArrowLeft, Image as ImageIcon } from 'lucide-react'
 import AfficixoLoading from '@/components/ui/AfficixoLoading'
 
 interface Template {
@@ -235,15 +236,24 @@ export default function TemplateManager() {
             <h1 className="text-2xl font-bold text-white">Templates</h1>
             <p className="mt-1 text-sm text-slate-400">Manage landing page templates</p>
           </div>
-          {!showForm && (
-            <button
-              onClick={() => setShowForm(true)}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 transition-colors"
+          <div className="flex items-center gap-2">
+            <Link
+              href="/owner/media"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-700"
             >
-              <Plus className="h-4 w-4" />
-              New Template
-            </button>
-          )}
+              <ImageIcon className="h-4 w-4" />
+              Media Source
+            </Link>
+            {!showForm && (
+              <button
+                onClick={() => setShowForm(true)}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                New Template
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Form */}
