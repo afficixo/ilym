@@ -31,6 +31,7 @@ interface ManagerOption {
   fullName: string | null;
   clickRate: number;
   commissionRate: number;
+  status?: "PENDING" | "ACTIVE" | "DISABLED" | "REJECTED";
 }
 
 export default function SettingsPage() {
@@ -62,6 +63,7 @@ export default function SettingsPage() {
   const selectedManager = managers.find((manager) => manager.id === selectedManagerId);
   const normalizedManagerSearch = managerSearch.trim().toLowerCase();
   const filteredManagers = managers.filter((manager) => {
+    if (manager.status && manager.status !== "ACTIVE") return false;
     if (!normalizedManagerSearch) return true;
     return `${manager.fullName || ""} ${manager.username}`.toLowerCase().includes(normalizedManagerSearch);
   });
@@ -145,18 +147,25 @@ export default function SettingsPage() {
       const response = await fetch("/api/owner/managers", { credentials: "include" });
       if (!response.ok) return;
       const data = await response.json();
-      const managerOptions = Array.isArray(data.managers) ? data.managers.map((manager: ManagerOption) => ({
-        id: manager.id,
-        username: manager.username,
-        fullName: manager.fullName || null,
-        clickRate: Number(manager.clickRate ?? 0),
-        commissionRate: Number(manager.commissionRate ?? 20),
-      })) : [];
+      const managerOptions = Array.isArray(data.managers)
+        ? data.managers
+            .filter((manager: ManagerOption) => manager.status === "ACTIVE" || !manager.status)
+            .map((manager: ManagerOption) => ({
+              id: manager.id,
+              username: manager.username,
+              fullName: manager.fullName || null,
+              clickRate: Number(manager.clickRate ?? 0),
+              commissionRate: Number(manager.commissionRate ?? 20),
+              status: manager.status || "ACTIVE",
+            }))
+        : [];
       setManagers(managerOptions);
       if (managerOptions.length > 0) {
         const firstManager = managerOptions[0];
         setSelectedManagerId((current) => current || firstManager.id);
         setManagerCommissionRate(String(firstManager.commissionRate));
+      } else {
+        setSelectedManagerId("");
       }
     };
 
