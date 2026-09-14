@@ -319,11 +319,15 @@ export default function PaymentsPage() {
       nextUnpaidInvoice,
     };
   });
+  const activeManagerPaymentRows = useMemo(
+    () => managerPaymentRows.filter(({ manager }) => manager.status === "ACTIVE"),
+    [managerPaymentRows],
+  );
   const pendingSummary = userRole === "OWNER"
-    ? managerPaymentRows.reduce((sum, row) => sum + row.pending, 0)
+    ? activeManagerPaymentRows.reduce((sum, row) => sum + row.pending, 0)
     : totals.invoices;
   const paidOutSummary = userRole === "OWNER"
-    ? managerPaymentRows.reduce((sum, row) => sum + row.paid, 0)
+    ? activeManagerPaymentRows.reduce((sum, row) => sum + row.paid, 0)
     : totals.paid;
   const managerCommissionRates = [...new Set(paymentRows.map((row) => Number(row.link.commissionRate ?? 20)).filter((rate) => Number.isFinite(rate)))];
   const displayedCommissionRates = managerCommissionRates.length > 0 ? managerCommissionRates : [20];
@@ -396,7 +400,7 @@ export default function PaymentsPage() {
             <span className="min-w-0">
               <span className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
                 Manager payments
-                <span className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-cyan-700 dark:text-cyan-300">{managerPaymentRows.length}</span>
+                <span className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-cyan-700 dark:text-cyan-300">{activeManagerPaymentRows.length}</span>
               </span>
               <span className="mt-1 block max-w-2xl text-xs leading-5 text-slate-500">Track pending commission and permanently recorded manager payouts.</span>
             </span>
@@ -404,11 +408,11 @@ export default function PaymentsPage() {
           </button>
           {showManagerPayments && managerPaymentsError ? (
             <p className="border-t border-slate-200 p-6 text-sm text-rose-600 dark:border-white/10 dark:text-rose-300">{managerPaymentsError}</p>
-          ) : showManagerPayments && (managerPaymentRows.length === 0 ? (
-            <p className="border-t border-slate-200 p-6 text-sm text-slate-500 dark:border-white/10">No manager accounts found.</p>
+          ) : showManagerPayments && (activeManagerPaymentRows.length === 0 ? (
+            <p className="border-t border-slate-200 p-6 text-sm text-slate-500 dark:border-white/10">No active manager accounts found.</p>
           ) : (
             <div className="divide-y divide-slate-200 border-t border-slate-200 dark:divide-white/10 dark:border-white/10">
-              {managerPaymentRows.map(({ manager, invoiceCount, paid, pending, total, commissionRate, payoutMethod, payoutAccount, nextUnpaidInvoice }) => (
+              {activeManagerPaymentRows.map(({ manager, invoiceCount, paid, pending, total, commissionRate, payoutMethod, payoutAccount, nextUnpaidInvoice }) => (
                 <div key={manager.id} className="grid gap-3 rounded-lg border border-slate-200/90 bg-white/80 p-3 transition hover:border-cyan-300/70 hover:bg-white sm:rounded-none sm:border-0 sm:border-b sm:border-white/5 sm:bg-transparent sm:p-4 sm:hover:border-white/5 sm:hover:bg-white/[0.025] dark:border-white/10 dark:bg-slate-900/35 dark:hover:border-cyan-400/25 dark:hover:bg-white/[0.04] sm:grid-cols-[1.3fr_repeat(3,0.7fr)_1.4fr] sm:items-center">
                   <div className="min-w-0">
                     <p className="mb-0.5 text-[9px] font-bold uppercase tracking-[0.16em] text-slate-500 sm:hidden">Manager account</p>
