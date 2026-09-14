@@ -302,7 +302,7 @@ export default function SignupClient() {
 
       if (data?.requiresApproval) {
         setSuccess(
-          "Account created. Your manager account is awaiting owner approval. You can sign in after it has been approved."
+          "Account created. Your manager account is pending contract approval. You can sign in after it has been approved."
         )
         window.setTimeout(() => {
           router.push("/login?approval_pending=1")

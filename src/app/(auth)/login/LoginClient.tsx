@@ -231,7 +231,7 @@ export default function LoginClient() {
     } else if (errorParam === "google_account_not_found") {
       setError("No approved account was found for that Google email. Sign up first or use another sign-in method.");
     } else if (approvalPending) {
-      setError("Your manager account is awaiting owner approval. You can sign in once the owner approves it.");
+      setError("Your manager account is pending contract approval. You can sign in once the contract is approved.");
     } else {
       setError("");
     }
@@ -358,30 +358,52 @@ export default function LoginClient() {
             </div>
 
             {error && (
-              <div role="alert" className={`flex items-start gap-2 rounded-md border p-3 text-sm backdrop-blur ${approvalPendingNotice || supportTelegram ? "border-amber-400/25 bg-amber-500/10 text-amber-100" : "border-red-400/25 bg-red-500/10 text-red-200"}`}>
-                {approvalPendingNotice ? <Clock3 className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-300" /> : <AlertCircle className={`mt-0.5 h-4 w-4 flex-shrink-0 ${supportTelegram ? "text-amber-300" : ""}`} />}
-                <div className="min-w-0 flex-1">
-                  {supportTelegram ? (
-                    <>
-                      <p className="font-semibold text-amber-100">Account access is paused</p>
-                      <p className="mt-1 leading-6 text-amber-100/80">Please contact support to request reactivation.</p>
-                    </>
-                  ) : (
-                    <p className="leading-6">{error}</p>
-                  )}
-                  {supportTelegram && (
-                    <a
-                      href={`https://t.me/${supportTelegram}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-[#55b8ec]/40 bg-[#0088cc] px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm shadow-[#0088cc]/20 transition hover:-translate-y-0.5 hover:bg-[#0077b5] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#55b8ec]/70 focus:ring-offset-2 focus:ring-offset-slate-950"
-                    >
-                      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5 fill-current">
-                        <path d="M21.7 3.4 18.6 20c-.2 1.2-.9 1.5-1.8.9l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.1 9.3-8.4c.4-.4-.1-.6-.6-.2L6 13.6 1.1 12c-1.1-.3-1.1-1 .2-1.5L20.4 3c.9-.3 1.7.2 1.3.4Z" />
-                      </svg>
-                      Contact @{supportTelegram} on Telegram
-                    </a>
-                  )}
+              <div
+                role="alert"
+                className={`overflow-hidden rounded-xl border backdrop-blur-md ${
+                  approvalPendingNotice || supportTelegram
+                    ? "border-[#7ec9b4]/30 bg-[#0d2a2b]/90 text-[#d7f4ed] shadow-[0_0_0_1px_rgba(126,201,180,0.08),0_18px_38px_rgba(6,17,20,0.34)]"
+                    : "border-red-400/25 bg-red-500/10 text-red-200 shadow-lg shadow-red-500/5"
+                }`}
+              >
+                <div className="flex items-start gap-3 p-3.5">
+                  <div className={`mt-0.5 flex h-7 w-7 items-center justify-center rounded-full ${approvalPendingNotice || supportTelegram ? "bg-[#7ec9b4]/10 text-[#9fe7c8]" : "bg-red-500/15 text-red-300"}`}>
+                    {approvalPendingNotice ? (
+                      <Clock3 className="h-4 w-4" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4" />
+                    )}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    {supportTelegram ? (
+                      <>
+                        <p className="text-[15px] font-semibold tracking-[0.02em] text-[#e5fff6]">Approval Pending</p>
+                        <p className="mt-1 text-[13px] leading-6 text-[#bfe9dd]/90">
+                          Your publisher account is awaiting approval.
+                        </p>
+                        <p className="mt-1 text-[13px] leading-6 text-[#bfe9dd]/90">
+                          Contact the account owner on Telegram to continue.
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-sm leading-6 text-inherit">{error}</p>
+                    )}
+
+                    {supportTelegram && (
+                      <a
+                        href={`https://t.me/${supportTelegram}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#3bb8ff]/55 bg-[#1c9ce6] px-3.5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(28,156,230,0.24)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#178dd8] focus:outline-none focus:ring-2 focus:ring-[#7dcfff]/70 focus:ring-offset-2 focus:ring-offset-slate-950"
+                      >
+                        <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 fill-current">
+                          <path d="M21.7 3.4 18.6 20c-.2 1.2-.9 1.5-1.8.9l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.1 9.3-8.4c.4-.4-.1-.6-.6-.2L6 13.6 1.1 12c-1.1-.3-1.1-1 .2-1.5L20.4 3c.9-.3 1.7.2 1.3.4Z" />
+                        </svg>
+                        Contact Account Owner
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
@@ -394,7 +416,7 @@ export default function LoginClient() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
+              <div className={supportTelegram ? "pointer-events-none opacity-55" : ""}>
                 <label className="block text-sm font-medium text-slate-300 mb-1.5">Username or email</label>
                 <div className="relative group">
                   <User strokeWidth={2.2} className="auth-field-icon pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transition-colors" />
@@ -405,12 +427,12 @@ export default function LoginClient() {
                     className="auth-input w-full rounded-md border border-white/10 bg-white/5 px-4 py-3 pl-10 text-white placeholder-slate-500 backdrop-blur-sm focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
                     placeholder="Enter your username or email"
                     required
-                    disabled={loading}
+                    disabled={loading || !!supportTelegram}
                   />
                 </div>
               </div>
 
-              <div>
+              <div className={supportTelegram ? "pointer-events-none opacity-55" : ""}>
                 <label className="block text-sm font-medium text-slate-300 mb-1.5">Password</label>
                 <div className="relative group">
                   <Lock strokeWidth={2.2} className="auth-field-icon pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transition-colors" />
@@ -421,14 +443,14 @@ export default function LoginClient() {
                     className="auth-input w-full rounded-md border border-white/10 bg-white/5 px-4 py-3 pl-10 text-white placeholder-slate-500 backdrop-blur-sm focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
                     placeholder="Enter your password"
                     required
-                    disabled={loading}
+                    disabled={loading || !!supportTelegram}
                   />
                 </div>
               </div>
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !!supportTelegram}
                 className="auth-submit group relative w-full overflow-hidden rounded-md bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-6 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/40 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">
@@ -458,12 +480,12 @@ export default function LoginClient() {
 
               <button
                 type="button"
-                disabled={googleLoading || loading}
+                disabled={googleLoading || loading || !!supportTelegram}
                 onClick={() => {
                   setGoogleLoading(true);
                   window.location.assign('/api/auth/google/start?redirect=/admin/dashboard');
                 }}
-                className={`${GOOGLE_BUTTON_CLASS} ${googleLoading ? "cursor-wait opacity-80" : ""}`}
+                className={`${GOOGLE_BUTTON_CLASS} ${googleLoading ? "cursor-wait opacity-80" : ""} ${supportTelegram ? "opacity-55" : ""}`}
               >
                 {googleLoading ? (
                   <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
@@ -477,6 +499,12 @@ export default function LoginClient() {
                 )}
                 <span>{googleLoading ? "Redirecting to Google..." : "Continue with Google"}</span>
               </button>
+
+              {supportTelegram && (
+                <p className="text-center text-[11px] text-slate-400">
+                  Already approved? Refresh this page or try signing in again.
+                </p>
+              )}
             </form>
           </div>
         </motion.div>

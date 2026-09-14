@@ -84,7 +84,7 @@ export async function POST(request: Request) {
     if (user && user.status !== 'ACTIVE') {
       const message = user.role === 'MANAGER'
         ? user.status === 'PENDING'
-          ? 'Your manager account is pending owner approval.'
+          ? 'Your publisher account is currently awaiting approval. Please contact the account owner via Telegram to complete the approval process.'
           : user.status === 'REJECTED'
             ? 'Your manager account was rejected by the owner.'
             : 'Your manager account is disabled.'
@@ -93,7 +93,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: message,
-          ...(user.role === 'MANAGER' && user.status === 'DISABLED'
+          ...(user.role === 'MANAGER' && (user.status === 'PENDING' || user.status === 'DISABLED')
             ? { supportTelegram: 'Rayanveyron' }
             : {}),
         },
