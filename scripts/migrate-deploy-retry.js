@@ -1,7 +1,7 @@
 const { spawn } = require('node:child_process');
 
-const maxAttempts = 3;
-const retryDelaysMs = [5000, 15000];
+const maxAttempts = 6;
+const retryDelaysMs = [10000, 20000, 40000, 60000, 90000];
 const prismaCli = require.resolve('prisma/build/index.js');
 
 function getMigrationDatabaseUrl() {
