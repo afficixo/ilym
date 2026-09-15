@@ -45,8 +45,14 @@ export async function POST(
       return NextResponse.json({ error: 'No unpaid manager invoices found' }, { status: 404, headers: getCorsHeaders(origin) })
     }
 
-    const payoutMethod = manager.payoutMethod || invoices.find((invoice) => invoice.payoutMethod)?.payoutMethod || (manager.bkashNumber ? 'BKASH' : null)
-    const payoutAccount = manager.payoutAccount || invoices.find((invoice) => invoice.payoutAccount)?.payoutAccount || manager.bkashNumber || null
+    const payoutMethod = manager.payoutMethod || (manager.bkashNumber ? 'BKASH' : null)
+    const payoutAccount = manager.payoutAccount || manager.bkashNumber || null
+    if (!payoutMethod || !payoutAccount) {
+      return NextResponse.json(
+        { error: 'Manager payment details are not configured. Update the manager account before recording this payout.' },
+        { status: 400, headers: getCorsHeaders(origin) },
+      )
+    }
     const commissionRate = Number(manager.commissionRate ?? 20) || 0
     const totalEarning = calculatePendingAmount(invoices, commissionRate)
     const payoutNumber = `MP-${new Date().toISOString().replace(/\D/g, '').slice(0, 14)}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`
