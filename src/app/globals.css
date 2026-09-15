@@ -1143,6 +1143,39 @@ html:not(.dark) .public-site .public-page button[class*="bg-gradient"] {
 html:not(.dark) .public-site .public-page div.absolute.inset-0[class*="bg-gradient"] {
   display: none !important;
 }
+
+/* Keep the bulk-link workspace dark even when the global light theme is active. */
+html:not(.dark) .bulk-link-page {
+  background-color: #071014 !important;
+  color: #f1f5f3 !important;
+}
+
+html:not(.dark) .bulk-link-page [class*="bg-white/"],
+html:not(.dark) .bulk-link-page [class*="bg-black/"],
+html:not(.dark) .bulk-link-page [class*="bg-slate-"] {
+  background-color: rgba(255, 255, 255, 0.045) !important;
+  background-image: none !important;
+}
+
+html:not(.dark) .bulk-link-page [class*="border-white"],
+html:not(.dark) .bulk-link-page [class*="border-slate-"] {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+html:not(.dark) .bulk-link-page [class~="text-white"],
+html:not(.dark) .bulk-link-page [class*="text-slate-50"],
+html:not(.dark) .bulk-link-page [class*="text-slate-100"],
+html:not(.dark) .bulk-link-page [class*="text-slate-200"] {
+  color: #f1f5f3 !important;
+}
+
+html:not(.dark) .bulk-link-page [class*="text-slate-300"] {
+  color: #cbd5d1 !important;
+}
+
+html:not(.dark) .bulk-link-page [class*="text-slate-400"] {
+  color: #94a3a0 !important;
+}
 /* Campaign builder: a quiet, form-first surface that works in either dashboard theme. */
 .campaign-builder-page {
   background: var(--page-bg);

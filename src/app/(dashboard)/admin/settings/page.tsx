@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import AfficixoLoading from "@/components/ui/AfficixoLoading";
 import {
@@ -15,9 +15,7 @@ import {
   ShieldCheck,
   Mail,
   CircleDollarSign,
-  Check,
-  ChevronDown,
-  Search,
+  Save,
 } from "lucide-react";
 
 interface FeedbackState {
@@ -40,12 +38,7 @@ export default function SettingsPage() {
   const [userInfo, setUserInfo] = useState<{ username?: string; email?: string; role?: string } | null>(null);
   const [clickRate, setClickRate] = useState("0");
   const [managers, setManagers] = useState<ManagerOption[]>([]);
-  const [selectedManagerId, setSelectedManagerId] = useState("");
-  const [isManagerMenuOpen, setIsManagerMenuOpen] = useState(false);
-  const [managerSearch, setManagerSearch] = useState("");
-  const managerPickerRef = useRef<HTMLDivElement | null>(null);
-  const [managerClickRate, setManagerClickRate] = useState("0");
-  const [managerCommissionRate, setManagerCommissionRate] = useState("20");
+  const [managerDrafts, setManagerDrafts] = useState<Record<string, { clickRate: string; commissionRate: string }>>({});
   const [showClickRateForm, setShowClickRateForm] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [googleResetReady, setGoogleResetReady] = useState(false);
@@ -59,34 +52,6 @@ export default function SettingsPage() {
     newPassword: "",
     confirmPassword: "",
   });
-
-  const selectedManager = managers.find((manager) => manager.id === selectedManagerId);
-  const normalizedManagerSearch = managerSearch.trim().toLowerCase();
-  const filteredManagers = managers.filter((manager) => {
-    if (manager.status && manager.status !== "ACTIVE") return false;
-    if (!normalizedManagerSearch) return true;
-    return `${manager.fullName || ""} ${manager.username}`.toLowerCase().includes(normalizedManagerSearch);
-  });
-
-  useEffect(() => {
-    if (!isManagerMenuOpen) return;
-
-    const handlePointerDown = (event: PointerEvent) => {
-      if (!managerPickerRef.current?.contains(event.target as Node)) {
-        setIsManagerMenuOpen(false);
-      }
-    };
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setIsManagerMenuOpen(false);
-    };
-
-    document.addEventListener("pointerdown", handlePointerDown);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", handlePointerDown);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isManagerMenuOpen]);
 
   useEffect(() => {
     const fetchAccount = async () => {
@@ -160,29 +125,26 @@ export default function SettingsPage() {
             }))
         : [];
       setManagers(managerOptions);
-      if (managerOptions.length > 0) {
-        const firstManager = managerOptions[0];
-        setSelectedManagerId((current) => current || firstManager.id);
-        setManagerCommissionRate(String(firstManager.commissionRate));
-      } else {
-        setSelectedManagerId("");
-      }
+      setManagerDrafts(Object.fromEntries(managerOptions.map((manager: ManagerOption) => [manager.id, {
+        clickRate: String(manager.clickRate),
+        commissionRate: String(manager.commissionRate),
+      }])));
     };
 
     void fetchManagers();
   }, [userInfo?.role]);
 
-  useEffect(() => {
-    const manager = managers.find((item) => item.id === selectedManagerId);
-    if (!manager) return;
+  const updateManagerDraft = (managerId: string, field: "clickRate" | "commissionRate", value: string) => {
+    setManagerDrafts((current) => ({
+      ...current,
+      [managerId]: { ...current[managerId], [field]: value },
+    }));
+  };
 
-    const resolvedManagerClickRate = manager.clickRate > 0 ? manager.clickRate : Number(clickRate || 0);
-    setManagerClickRate(String(resolvedManagerClickRate));
-    setManagerCommissionRate(String(manager.commissionRate));
-  }, [managers, selectedManagerId]);
-
-  const handleManagerClickRateSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleManagerClickRateSubmit = async (event: FormEvent<HTMLFormElement>, managerId: string) => {
     event.preventDefault();
+    const draft = managerDrafts[managerId];
+    if (!draft) return;
     setIsSubmitting(true);
     setFeedback(null);
     try {
@@ -190,11 +152,12 @@ export default function SettingsPage() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "update-manager-click-rate", managerId: selectedManagerId, clickRate: Number(managerClickRate) }),
+        body: JSON.stringify({ action: "update-manager-click-rate", managerId, clickRate: Number(draft.clickRate) }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || "Unable to update manager click rate");
-      setManagers((current) => current.map((manager) => manager.id === selectedManagerId ? { ...manager, clickRate: Number(data.clickRate) } : manager));
+      setManagers((current) => current.map((manager) => manager.id === managerId ? { ...manager, clickRate: Number(data.clickRate) } : manager));
+      updateManagerDraft(managerId, "clickRate", String(data.clickRate));
       setFeedback({ type: "success", message: data.message || "Manager click rate updated successfully." });
     } catch (error) {
       setFeedback({ type: "error", message: error instanceof Error ? error.message : "Unable to update manager click rate" });
@@ -203,8 +166,10 @@ export default function SettingsPage() {
     }
   };
 
-  const handleManagerCommissionSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleManagerCommissionSubmit = async (event: FormEvent<HTMLFormElement>, managerId: string) => {
     event.preventDefault();
+    const draft = managerDrafts[managerId];
+    if (!draft) return;
     setIsSubmitting(true);
     setFeedback(null);
     try {
@@ -212,11 +177,12 @@ export default function SettingsPage() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "update-manager-commission-rate", managerId: selectedManagerId, commissionRate: Number(managerCommissionRate) }),
+        body: JSON.stringify({ action: "update-manager-commission-rate", managerId, commissionRate: Number(draft.commissionRate) }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || "Unable to update manager commission rate");
-      setManagers((current) => current.map((manager) => manager.id === selectedManagerId ? { ...manager, commissionRate: Number(data.commissionRate) } : manager));
+      setManagers((current) => current.map((manager) => manager.id === managerId ? { ...manager, commissionRate: Number(data.commissionRate) } : manager));
+      updateManagerDraft(managerId, "commissionRate", String(data.commissionRate));
       setFeedback({ type: "success", message: data.message || "Manager commission rate updated successfully." });
     } catch (error) {
       setFeedback({ type: "error", message: error instanceof Error ? error.message : "Unable to update manager commission rate" });
@@ -426,88 +392,58 @@ export default function SettingsPage() {
                 </form>
                 {userInfo.role === "OWNER" && (
                   <div className="space-y-3 rounded-lg border border-cyan-500/20 bg-cyan-500/5 p-4">
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-400">Select manager</label>
-                      <div ref={managerPickerRef} className="relative">
-                        <button
-                          type="button"
-                          aria-haspopup="listbox"
-                          aria-expanded={isManagerMenuOpen}
-                          onClick={() => {
-                            setManagerSearch("");
-                            setIsManagerMenuOpen((open) => !open);
-                          }}
-                          className="flex w-full items-center justify-between gap-3 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-left text-sm text-slate-900 shadow-sm transition hover:border-cyan-400 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:border-cyan-500"
-                        >
-                          <span className="flex min-w-0 items-center gap-2">
-                            <User className="h-4 w-4 shrink-0 text-cyan-600 dark:text-cyan-300" />
-                            <span className="truncate">
-                              {selectedManager ? `${selectedManager.fullName || selectedManager.username} (@${selectedManager.username})` : "Select a manager"}
-                            </span>
-                          </span>
-                          <ChevronDown className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${isManagerMenuOpen ? "rotate-180" : ""}`} />
-                        </button>
-
-                        {isManagerMenuOpen && (
-                          <div className="manager-picker-menu absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-700 dark:bg-slate-900">
-                            <div className="relative">
-                              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                              <input
-                                type="search"
-                                value={managerSearch}
-                                onChange={(event) => setManagerSearch(event.target.value)}
-                                placeholder="Search managers..."
-                                aria-label="Search managers"
-                                autoFocus
-                                className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                              />
-                            </div>
-                            <div className="mt-2 max-h-52 overflow-y-auto" role="listbox" aria-label="Managers">
-                              {filteredManagers.length > 0 ? filteredManagers.map((manager) => {
-                                const isSelected = manager.id === selectedManagerId;
-                                return (
-                                  <button
-                                    key={manager.id}
-                                    type="button"
-                                    role="option"
-                                    aria-selected={isSelected}
-                                    onClick={() => {
-                                      setSelectedManagerId(manager.id);
-                                      setIsManagerMenuOpen(false);
-                                    }}
-                                    className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-slate-700 transition hover:bg-cyan-50 dark:text-slate-200 dark:hover:bg-cyan-500/10"
-                                  >
-                                    <span className="min-w-0">
-                                      <span className="block truncate font-medium">{manager.fullName || manager.username}</span>
-                                      <span className="block truncate text-xs text-slate-500 dark:text-slate-400">@{manager.username}</span>
-                                    </span>
-                                    {isSelected && <Check className="h-4 w-4 shrink-0 text-cyan-600 dark:text-cyan-300" />}
-                                  </button>
-                                );
-                              }) : (
-                                <p className="px-3 py-4 text-center text-xs text-slate-500 dark:text-slate-400">No managers found</p>
-                              )}
-                            </div>
-                          </div>
-                        )}
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <h3 className="text-sm font-semibold text-white">Manager controls</h3>
+                        <p className="mt-0.5 text-xs text-slate-400">Set account-level click rates and commission shares.</p>
                       </div>
+                      <span className="text-[11px] text-slate-500">{managers.length} active account{managers.length === 1 ? "" : "s"}</span>
                     </div>
 
-                    <form onSubmit={handleManagerClickRateSubmit} className="space-y-3">
-                      <div>
-                        <label className="mb-1 block text-xs font-medium text-slate-400">Manager override click rate per unique referrer click</label>
-                        <input type="number" min="0" step="0.001" value={managerClickRate} onChange={(event) => setManagerClickRate(event.target.value)} required className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500" />
+                    {managers.length > 0 ? (
+                      <div className="overflow-x-auto rounded-lg border border-slate-700 shadow-inner shadow-black/10">
+                        <div className="min-w-[760px]">
+                          <div className="grid grid-cols-[minmax(220px,1fr)_220px_220px] gap-3 border-b border-slate-700 bg-slate-800/80 px-3 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                            <span>Account</span>
+                            <span>Click rate per unique referrer</span>
+                            <span>Commission share</span>
+                          </div>
+                          {managers.map((manager) => {
+                            const draft = managerDrafts[manager.id] || { clickRate: String(manager.clickRate), commissionRate: String(manager.commissionRate) };
+                            return (
+                              <div key={manager.id} className="grid grid-cols-[minmax(220px,1fr)_220px_220px] items-center gap-3 border-b border-slate-700/80 px-3 py-3.5 last:border-b-0 hover:bg-cyan-500/[0.04]">
+                                <div className="flex min-w-0 items-center gap-2.5">
+                                  <User className="h-4 w-4 shrink-0 text-cyan-300" />
+                                  <div className="min-w-0">
+                                    <p className="truncate text-sm font-medium text-white">{manager.fullName || manager.username}</p>
+                                    <p className="truncate text-xs text-slate-400">@{manager.username} · current ${manager.clickRate.toFixed(3)} / {manager.commissionRate}% share</p>
+                                  </div>
+                                </div>
+                                <form onSubmit={(event) => void handleManagerClickRateSubmit(event, manager.id)} className="flex items-end gap-2">
+                                  <label className="min-w-0 flex-1 text-[10px] font-medium text-slate-500">
+                                    USD per click
+                                    <input aria-label={`Click rate for ${manager.username}`} type="number" min="0" step="0.001" value={draft.clickRate} onChange={(event) => updateManagerDraft(manager.id, "clickRate", event.target.value)} required className="mt-1 w-full rounded-md border border-slate-700 bg-slate-800 px-2 py-1.5 text-xs tabular-nums text-white focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500" />
+                                  </label>
+                                  <button type="submit" disabled={isSubmitting} aria-label={`Save click rate for ${manager.username}`} title="Save click rate" className="inline-flex items-center gap-1 rounded-md bg-cyan-600 px-2.5 py-1.5 text-[10px] font-medium text-white hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-60"><Save className="h-3 w-3" />Save rate</button>
+                                </form>
+                                <form onSubmit={(event) => void handleManagerCommissionSubmit(event, manager.id)} className="flex items-end gap-2">
+                                  <label className="min-w-0 flex-1 text-[10px] font-medium text-slate-500">
+                                    Share (%)
+                                    <input aria-label={`Commission rate for ${manager.username}`} type="number" min="0" max="100" step="0.01" value={draft.commissionRate} onChange={(event) => updateManagerDraft(manager.id, "commissionRate", event.target.value)} required className="mt-1 w-full rounded-md border border-slate-700 bg-slate-800 px-2 py-1.5 text-xs tabular-nums text-white focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500" />
+                                  </label>
+                                  <button type="submit" disabled={isSubmitting} aria-label={`Save commission for ${manager.username}`} title="Save commission share" className="inline-flex items-center gap-1 rounded-md bg-cyan-600 px-2.5 py-1.5 text-[10px] font-medium text-white hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-60"><Save className="h-3 w-3" />Save share</button>
+                                </form>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                      <button type="submit" disabled={isSubmitting || !selectedManagerId || managers.length === 0} className="rounded-lg bg-cyan-600 px-4 py-2 text-xs font-medium text-white hover:bg-cyan-500 disabled:opacity-60">{isSubmitting ? "Saving..." : "Save manager override"}</button>
-                    </form>
-
-                    <form onSubmit={handleManagerCommissionSubmit} className="space-y-3">
-                      <div>
-                        <label className="mb-1 block text-xs font-medium text-slate-400">Manager commission percentage</label>
-                        <input type="number" min="0" max="100" step="0.01" value={managerCommissionRate} onChange={(event) => setManagerCommissionRate(event.target.value)} required className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500" />
+                    ) : (
+                      <div className="rounded-lg border border-dashed border-slate-700 px-4 py-5 text-center">
+                        <p className="text-xs font-medium text-slate-400">No active manager accounts</p>
+                        <p className="mt-1 text-[11px] text-slate-500">Approved manager accounts will appear here when they are available.</p>
                       </div>
-                      <button type="submit" disabled={isSubmitting || !selectedManagerId || managers.length === 0} className="rounded-lg bg-cyan-600 px-4 py-2 text-xs font-medium text-white hover:bg-cyan-500 disabled:opacity-60">{isSubmitting ? "Saving..." : "Save commission percentage"}</button>
-                    </form>
+                    )}
                   </div>
                 )}
                 </div>

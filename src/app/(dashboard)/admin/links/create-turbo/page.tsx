@@ -186,28 +186,28 @@ export default function CreateLinkTurboPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 sm:px-6 lg:px-8">
+    <div className="bulk-link-page min-h-screen bg-[#071014] px-4 py-6 text-slate-100 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
-        <div className="mb-8 flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-8 flex flex-col gap-4 border-b border-white/10 pb-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={handleBack}
-              className="rounded-lg border border-slate-200 bg-white p-2 text-slate-500 transition-colors hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/60"
+              className="rounded-lg border border-white/10 bg-white/5 p-2 text-slate-400 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60"
               aria-label="Go back"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-                Create links <span className="text-indigo-600">in bulk</span>
+              <h1 className="text-2xl font-bold tracking-tight text-white">
+                Create links <span className="text-indigo-300">in bulk</span>
               </h1>
-              <p className="text-sm text-slate-600">Generate a numbered set of link accounts from one configuration.</p>
+              <p className="text-sm text-slate-400">Generate a numbered set of link accounts from one configuration.</p>
             </div>
           </div>
           <Link
             href="/admin/links"
-            className="self-start rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/60 sm:self-center"
+            className="self-start rounded-lg px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 sm:self-center"
           >
             Cancel
           </Link>
@@ -216,25 +216,25 @@ export default function CreateLinkTurboPage() {
         {/* Main Grid */}
         <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
           {/* Form Card */}
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-            <div className="mb-6 flex items-start gap-3 border-b border-slate-200 pb-4">
-              <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-2">
-                <Rocket className="h-4 w-4 text-indigo-600" />
+          <div className="rounded-xl border border-white/10 bg-white/[0.045] p-5 shadow-2xl shadow-black/20 backdrop-blur-sm sm:p-6">
+            <div className="mb-6 flex items-start gap-3 border-b border-white/10 pb-4">
+              <div className="rounded-lg border border-indigo-400/25 bg-indigo-400/10 p-2">
+                <Rocket className="h-4 w-4 text-indigo-300" />
               </div>
               <div>
-                <h2 className="text-base font-semibold text-slate-900">Batch setup</h2>
-                <p className="mt-0.5 text-xs text-slate-600">Set the naming range and optional routing overrides.</p>
+                <h2 className="text-base font-semibold text-white">Batch setup</h2>
+                <p className="mt-0.5 text-xs text-slate-400">Set the naming range and optional routing overrides.</p>
               </div>
             </div>
 
             {error && (
-              <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="mb-4 rounded-lg border border-red-400/25 bg-red-500/10 px-4 py-3 text-sm text-red-200">
                 {error}
               </div>
             )}
 
             {success && (
-              <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              <div className="mb-4 rounded-lg border border-emerald-400/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
                   <span>{success}</span>
@@ -244,7 +244,7 @@ export default function CreateLinkTurboPage() {
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-slate-700">Account Name Base</label>
+                <label className="mb-1.5 block text-xs font-medium text-slate-300">Account Name Base</label>
                 <input
                   type="text"
                   value={baseName}
@@ -252,13 +252,13 @@ export default function CreateLinkTurboPage() {
                   placeholder="e.g., MR"
                   required
                   disabled={loading}
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1.5 block text-xs font-medium text-slate-700">Start</label>
+                  <label className="mb-1.5 block text-xs font-medium text-slate-300">Start</label>
                   <input
                     type="number"
                     value={startNumber}
@@ -266,11 +266,11 @@ export default function CreateLinkTurboPage() {
                     placeholder="1"
                     required
                     disabled={loading}
-                    className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
                   />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs font-medium text-slate-700">End</label>
+                  <label className="mb-1.5 block text-xs font-medium text-slate-300">End</label>
                   <input
                     type="number"
                     value={endNumber}
@@ -278,18 +278,18 @@ export default function CreateLinkTurboPage() {
                     placeholder="10"
                     required
                     disabled={loading}
-                    className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-slate-700">Custom Domain</label>
+                <label className="mb-1.5 block text-xs font-medium text-slate-300">Custom Domain</label>
                 <select
                   value={customDomainId}
                   onChange={(e) => setCustomDomainId(e.target.value)}
                   disabled={loading || selectableDomains.length === 0}
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-60"
+                  className="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2.5 text-sm text-white focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 disabled:opacity-60"
                 >
                   <option value="">Select a domain</option>
                   {selectableDomains.map((d) => (
@@ -301,12 +301,12 @@ export default function CreateLinkTurboPage() {
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-slate-700">Active offers</label>
+                <label className="mb-1.5 block text-xs font-medium text-slate-300">Active offers</label>
                 <select
                   value={offerGroupName}
                   onChange={(e) => setOfferGroupName(e.target.value)}
                   disabled={loading}
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2.5 text-sm font-medium text-white focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
                 >
                   <option value="">Select an offer</option>
                   {offerGroups.map((g) => (
@@ -320,7 +320,7 @@ export default function CreateLinkTurboPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-600/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-950/40 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-950/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300/70 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? (
                   <>
@@ -339,21 +339,21 @@ export default function CreateLinkTurboPage() {
 
           {/* Sidebar / Results */}
           {createdLinks.length > 0 ? (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm sm:p-6">
-              <div className="flex items-start justify-between gap-3 border-b border-emerald-200 pb-4">
+            <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/[0.06] p-5 shadow-2xl shadow-black/20 backdrop-blur-sm sm:p-6">
+              <div className="flex items-start justify-between gap-3 border-b border-emerald-400/20 pb-4">
                 <div className="flex items-start gap-2.5">
-                  <div className="mt-0.5 rounded-lg border border-emerald-200 bg-white p-1.5">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                  <div className="mt-0.5 rounded-lg border border-emerald-400/25 bg-emerald-400/10 p-1.5">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-300" />
                   </div>
                   <div>
-                    <h2 className="text-sm font-semibold text-emerald-700">Batch complete</h2>
-                    <p className="mt-0.5 text-xs text-slate-600">{createdLinks.length} link accounts are ready to use.</p>
+                    <h2 className="text-sm font-semibold text-emerald-300">Batch complete</h2>
+                    <p className="mt-0.5 text-xs text-slate-400">{createdLinks.length} link accounts are ready to use.</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => void handleCopyAll()}
-                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-emerald-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-400/30"
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-emerald-400/25 bg-emerald-400/10 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-200 transition hover:border-emerald-300/50 hover:bg-emerald-400/20 focus:outline-none focus:ring-2 focus:ring-emerald-400/30"
                   aria-label="Copy all created links"
                 >
                   <Copy className="h-3.5 w-3.5" />
@@ -365,19 +365,19 @@ export default function CreateLinkTurboPage() {
                 {createdLinks.map((link, index) => (
                   <div
                     key={`${link.accountName}-${index}`}
-                    className="rounded-lg border border-slate-200 bg-white p-3 transition-colors hover:border-emerald-200 hover:bg-emerald-50"
+                    className="rounded-lg border border-white/10 bg-black/20 p-3 transition-colors hover:border-emerald-400/30 hover:bg-emerald-400/[0.06]"
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <div className="text-sm font-semibold text-slate-900">{link.accountName}</div>
+                      <div className="text-sm font-semibold text-white">{link.accountName}</div>
                     </div>
                     <div className="mt-2 space-y-2 text-xs">
                       <div>
-                        <div className="mb-1 flex items-center justify-between gap-2 text-slate-600"><span>Tracking URL</span><button type="button" onClick={() => void handleCopyValue(link.trackingUrl, `tracking-${link.accountName}`)} className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-1 text-[10px] font-semibold transition-all duration-200 active:scale-95 ${copiedValue === `tracking-${link.accountName}` ? "border-emerald-300 bg-emerald-600 text-white shadow-sm" : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-emerald-300 hover:bg-emerald-100"}`} aria-label={`Copy tracking URL for ${link.accountName}`} title="Copy tracking URL">{copiedValue === `tracking-${link.accountName}` ? "Copied" : "Copy"}</button></div>
-                        <a href={link.trackingUrl} target="_blank" rel="noreferrer" className="block rounded-md bg-slate-100 px-2 py-1.5 font-mono text-[11px] leading-4 text-slate-700 break-all transition hover:bg-slate-200 hover:text-slate-900">{link.trackingUrl}</a>
+                        <div className="mb-1 flex items-center justify-between gap-2 text-slate-400"><span>Tracking URL</span><button type="button" onClick={() => void handleCopyValue(link.trackingUrl, `tracking-${link.accountName}`)} className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-1 text-[10px] font-semibold transition-all duration-200 active:scale-95 ${copiedValue === `tracking-${link.accountName}` ? "border-emerald-300 bg-emerald-600 text-white shadow-sm" : "border-emerald-400/25 bg-emerald-400/10 text-emerald-200 hover:border-emerald-300/50 hover:bg-emerald-400/20"}`} aria-label={`Copy tracking URL for ${link.accountName}`} title="Copy tracking URL">{copiedValue === `tracking-${link.accountName}` ? "Copied" : "Copy"}</button></div>
+                        <a href={link.trackingUrl} target="_blank" rel="noreferrer" className="block rounded-md bg-black/25 px-2 py-1.5 font-mono text-[11px] leading-4 text-slate-300 break-all transition hover:bg-black/40 hover:text-white">{link.trackingUrl}</a>
                       </div>
                       <div>
-                        <div className="mb-1 flex items-center justify-between gap-2 text-slate-600"><span>Public Stats</span><button type="button" onClick={() => void handleCopyValue(link.publicStatsUrl, `stats-${link.accountName}`)} className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-1 text-[10px] font-semibold transition-all duration-200 active:scale-95 ${copiedValue === `stats-${link.accountName}` ? "border-indigo-300 bg-indigo-600 text-white shadow-sm" : "border-indigo-200 bg-indigo-50 text-indigo-700 hover:border-indigo-300 hover:bg-indigo-100"}`} aria-label={`Copy public stats for ${link.accountName}`} title="Copy public stats URL">{copiedValue === `stats-${link.accountName}` ? "Copied" : "Copy"}</button></div>
-                        <a href={link.publicStatsUrl} target="_blank" rel="noreferrer" className="block rounded-md bg-slate-100 px-2 py-1.5 font-mono text-[11px] leading-4 text-slate-700 break-all transition hover:bg-slate-200 hover:text-slate-900">{link.publicStatsUrl}</a>
+                        <div className="mb-1 flex items-center justify-between gap-2 text-slate-400"><span>Public Stats</span><button type="button" onClick={() => void handleCopyValue(link.publicStatsUrl, `stats-${link.accountName}`)} className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-1 text-[10px] font-semibold transition-all duration-200 active:scale-95 ${copiedValue === `stats-${link.accountName}` ? "border-indigo-300 bg-indigo-600 text-white shadow-sm" : "border-indigo-400/25 bg-indigo-400/10 text-indigo-200 hover:border-indigo-300/50 hover:bg-indigo-400/20"}`} aria-label={`Copy public stats for ${link.accountName}`} title="Copy public stats URL">{copiedValue === `stats-${link.accountName}` ? "Copied" : "Copy"}</button></div>
+                        <a href={link.publicStatsUrl} target="_blank" rel="noreferrer" className="block rounded-md bg-black/25 px-2 py-1.5 font-mono text-[11px] leading-4 text-slate-300 break-all transition hover:bg-black/40 hover:text-white">{link.publicStatsUrl}</a>
                       </div>
                     </div>
                   </div>
@@ -385,12 +385,12 @@ export default function CreateLinkTurboPage() {
               </div>
             </div>
           ) : (
-            <div className="rounded-xl border border-dashed border-slate-200 bg-white p-6 text-center">
+            <div className="rounded-xl border border-dashed border-white/15 bg-white/[0.025] p-6 text-center">
               <div className="flex flex-col items-center justify-center py-8">
-                <div className="mb-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
-                  <Rocket className="h-6 w-6 text-slate-500" />
+                <div className="mb-3 rounded-lg border border-white/10 bg-white/5 p-3">
+                  <Rocket className="h-6 w-6 text-slate-400" />
                 </div>
-                <p className="text-sm font-medium text-slate-700">Your batch will appear here</p>
+                <p className="text-sm font-medium text-slate-200">Your batch will appear here</p>
                 <p className="mt-1 max-w-xs text-xs text-slate-500">Configure the setup and create your first set of links.</p>
               </div>
             </div>
