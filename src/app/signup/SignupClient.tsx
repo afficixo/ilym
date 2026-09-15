@@ -8,9 +8,11 @@ import { getDashboardPath } from "@/lib/auth/dashboard-path"
 import {
   ArrowLeft,
   ArrowRight,
+  Clock3,
   Lock,
   User,
   Mail,
+  MapPin,
   PhoneCall,
   Send,
   Rocket,
@@ -27,6 +29,7 @@ export default function SignupClient() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animationRef = useRef<number>()
   const [fullName, setFullName] = useState("")
+  const [address, setAddress] = useState("")
   const [contractNumber, setContractNumber] = useState("")
   const [telegramUsername, setTelegramUsername] = useState("")
   const [username, setUsername] = useState("")
@@ -40,6 +43,7 @@ export default function SignupClient() {
   const [captchaError, setCaptchaError] = useState("")
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
+  const [approvalPendingSuccess, setApprovalPendingSuccess] = useState(false)
   const [contractError, setContractError] = useState("")
   const [isMobile, setIsMobile] = useState(false)
 
@@ -247,6 +251,7 @@ export default function SignupClient() {
   useEffect(() => {
     setError("")
     setSuccess("")
+    setApprovalPendingSuccess(false)
     setContractError("")
   }, [router])
 
@@ -284,6 +289,7 @@ export default function SignupClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fullName,
+          address,
           contractNumber,
           telegramUsername,
           username,
@@ -301,6 +307,7 @@ export default function SignupClient() {
       }
 
       if (data?.requiresApproval) {
+        setApprovalPendingSuccess(true)
         setSuccess(
           "Account created. Your manager account is pending contract approval. You can sign in after it has been approved."
         )
@@ -404,9 +411,30 @@ export default function SignupClient() {
 
             {/* Success message */}
             {success && (
-              <div role="status" aria-live="polite" className="flex items-start gap-2 rounded-md border border-emerald-400/25 bg-emerald-500/10 p-3 text-sm text-emerald-200 backdrop-blur">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0" />
-                <span className="leading-6">{success}</span>
+              <div
+                role="status"
+                aria-live="polite"
+                className={approvalPendingSuccess
+                  ? "overflow-hidden rounded-xl border border-[#7ec9b4]/30 bg-[#0d2a2b]/90 text-[#d7f4ed] shadow-[0_0_0_1px_rgba(126,201,180,0.08),0_18px_38px_rgba(6,17,20,0.34)]"
+                  : "flex items-start gap-2 rounded-md border border-emerald-400/25 bg-emerald-500/10 p-3 text-sm text-emerald-200 backdrop-blur"}
+              >
+                {approvalPendingSuccess ? (
+                  <div className="flex items-start gap-3 p-3.5">
+                    <div className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-[#7ec9b4]/10 text-[#9fe7c8]">
+                      <Clock3 className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[15px] font-semibold tracking-[0.02em] text-[#e5fff6]">Approval Pending</p>
+                      <p className="mt-1 text-[13px] leading-6 text-[#bfe9dd]/90">Your manager account is awaiting approval.</p>
+                      <p className="mt-1 text-[13px] leading-6 text-[#bfe9dd]/90">You can sign in once your contract has been approved.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                    <span className="leading-6">{success}</span>
+                  </>
+                )}
               </div>
             )}
 
@@ -426,6 +454,25 @@ export default function SignupClient() {
                     onChange={(e) => setFullName(e.target.value)}
                     className="auth-input w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 pl-10 text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
                     placeholder="Full name"
+                    required
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              {/* Address */}
+              <div>
+                <label className="sr-only" htmlFor="address">Address</label>
+                <div className="relative group">
+                  <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    id="address"
+                    type="text"
+                    autoComplete="street-address"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 pl-10 text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
+                    placeholder="Address"
                     required
                     disabled={loading}
                   />

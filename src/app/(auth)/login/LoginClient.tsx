@@ -11,6 +11,7 @@ import { User, Lock, ArrowLeft, AlertCircle, Rocket, ArrowRight, CheckCircle2, C
 
 // Mobile‑optimised particle count (lower on small screens)
 const BALL_NUM = typeof window !== 'undefined' && window.innerWidth < 768 ? 20 : 35;
+const APPROVAL_SUPPORT_TELEGRAM = "Rayanveyron";
 
 const GOOGLE_BUTTON_CLASS = "group flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition-all duration-300 hover:border-indigo-400/40 hover:bg-white/10 hover:shadow-lg hover:shadow-indigo-500/20";
 
@@ -287,6 +288,8 @@ export default function LoginClient() {
     }
   };
 
+  const contactTelegram = supportTelegram || (approvalPendingNotice ? APPROVAL_SUPPORT_TELEGRAM : "");
+
   return (
     <div className="auth-site relative min-h-screen w-full bg-[#071014] text-white overflow-hidden">
       {/* ─── CANVAS BACKGROUND ─── */}
@@ -376,23 +379,29 @@ export default function LoginClient() {
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    {supportTelegram ? (
+                    {approvalPendingNotice || supportTelegram ? (
                       <>
                         <p className="text-[15px] font-semibold tracking-[0.02em] text-[#e5fff6]">Approval Pending</p>
                         <p className="mt-1 text-[13px] leading-6 text-[#bfe9dd]/90">
-                          Your publisher account is awaiting approval.
+                          Your manager account is awaiting approval.
                         </p>
-                        <p className="mt-1 text-[13px] leading-6 text-[#bfe9dd]/90">
-                          Contact the account owner on Telegram to continue.
-                        </p>
+                        {contactTelegram ? (
+                          <p className="mt-1 text-[13px] leading-6 text-[#bfe9dd]/90">
+                            Contact the account owner on Telegram to continue.
+                          </p>
+                        ) : (
+                          <p className="mt-1 text-[13px] leading-6 text-[#bfe9dd]/90">
+                            You can sign in once your contract has been approved.
+                          </p>
+                        )}
                       </>
                     ) : (
                       <p className="text-sm leading-6 text-inherit">{error}</p>
                     )}
 
-                    {supportTelegram && (
+                    {contactTelegram && (
                       <a
-                        href={`https://t.me/${supportTelegram}`}
+                        href={`https://t.me/${contactTelegram}`}
                         target="_blank"
                         rel="noreferrer"
                         className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#3bb8ff]/55 bg-[#1c9ce6] px-3.5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(28,156,230,0.24)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#178dd8] focus:outline-none focus:ring-2 focus:ring-[#7dcfff]/70 focus:ring-offset-2 focus:ring-offset-slate-950"

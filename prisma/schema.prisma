@@ -13,6 +13,7 @@ model User {
   slugPrefix      String?     @unique
   email            String      @unique
   fullName         String?
+  address           String?
   source           String?
   contractNumber   String?
   telegramUsername String?

@@ -21,6 +21,7 @@ type ManagerUser = {
   id: string
   username: string
   fullName: string | null
+  address: string | null
   email: string
   source: string | null
   contractNumber: string | null
@@ -95,13 +96,13 @@ function ActionButtons({
     : 'rounded-lg px-2.5 py-1.5 text-xs'
 
   return (
-    <div className={`flex flex-wrap gap-2 ${mobile ? 'sm:grid sm:grid-cols-2' : 'justify-end'}`}>
+    <div className="ml-auto grid w-full max-w-[190px] grid-cols-2 gap-2">
       {manager.status !== 'ACTIVE' && (
         <button
           type="button"
           disabled={isActionLoading}
           onClick={() => updateStatus(manager.id, 'ACTIVE')}
-          className={`inline-flex flex-1 items-center justify-center gap-1.5 border border-cyan-400/25 bg-cyan-400/10 font-medium text-cyan-300 transition hover:border-cyan-300/40 hover:bg-cyan-400/15 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
+          className={`inline-flex min-w-0 w-full items-center justify-center gap-1.5 border border-cyan-400/25 bg-cyan-400/10 font-medium text-cyan-300 transition hover:border-cyan-300/40 hover:bg-cyan-400/15 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
         >
           {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
           Approve
@@ -113,7 +114,7 @@ function ActionButtons({
           type="button"
           disabled={isActionLoading}
           onClick={() => updateStatus(manager.id, 'DISABLED')}
-          className={`inline-flex flex-1 items-center justify-center gap-1.5 border border-slate-600 bg-slate-800/70 font-medium text-slate-300 transition hover:border-slate-500 hover:bg-slate-700 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
+          className={`inline-flex min-w-0 w-full items-center justify-center gap-1.5 border border-slate-600 bg-slate-800/70 font-medium text-slate-300 transition hover:border-slate-500 hover:bg-slate-700 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
         >
           {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UserX className="h-3.5 w-3.5" />}
           Disable
@@ -125,7 +126,7 @@ function ActionButtons({
           type="button"
           disabled={isActionLoading}
           onClick={() => updateStatus(manager.id, 'PENDING')}
-          className={`inline-flex flex-1 items-center justify-center gap-1.5 border border-amber-400/25 bg-amber-400/10 font-medium text-amber-300 transition hover:border-amber-300/40 hover:bg-amber-400/15 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
+          className={`inline-flex min-w-0 w-full items-center justify-center gap-1.5 border border-amber-400/25 bg-amber-400/10 font-medium text-amber-300 transition hover:border-amber-300/40 hover:bg-amber-400/15 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
         >
           {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5" />}
           Pending
@@ -137,7 +138,7 @@ function ActionButtons({
           type="button"
           disabled={isActionLoading}
           onClick={() => updateStatus(manager.id, 'REJECTED')}
-          className={`inline-flex flex-1 items-center justify-center gap-1.5 border border-rose-400/25 bg-rose-400/10 font-medium text-rose-300 transition hover:border-rose-300/40 hover:bg-rose-400/15 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
+          className={`inline-flex min-w-0 w-full items-center justify-center gap-1.5 border border-rose-400/25 bg-rose-400/10 font-medium text-rose-300 transition hover:border-rose-300/40 hover:bg-rose-400/15 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
         >
           {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5" />}
           Reject
@@ -148,7 +149,7 @@ function ActionButtons({
         type="button"
         disabled={isActionLoading}
         onClick={() => openDeleteConfirm(manager)}
-        className={`inline-flex flex-1 items-center justify-center gap-1.5 border border-slate-700 bg-slate-800/40 font-medium text-slate-400 transition hover:border-rose-400/30 hover:bg-rose-400/10 hover:text-rose-300 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
+        className={`inline-flex min-w-0 w-full items-center justify-center gap-1.5 border border-slate-700 bg-slate-800/40 font-medium text-slate-400 transition hover:border-rose-400/30 hover:bg-rose-400/10 hover:text-rose-300 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
       >
         {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
         Delete
@@ -503,21 +504,20 @@ export default function OwnerManagersPage() {
         {/* Desktop Table */}
         <div className="hidden overflow-hidden rounded-xl bg-slate-900 ring-1 ring-slate-800 md:block">
           <div className="overflow-x-auto max-h-[70vh]">
-            <table className="min-w-[1000px] w-full text-left text-sm">
+            <table className="w-full table-fixed text-left text-sm">
               <thead className="bg-slate-800/50 text-xs font-medium uppercase tracking-wider text-slate-400">
                 <tr>
                   <th className="px-4 py-3">Manager</th>
                   <th className="px-4 py-3">Email</th>
                   <th className="px-4 py-3">Details</th>
-                  <th className="px-4 py-3">Payment</th>
                   <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
+                  <th className="w-[190px] px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredManagers.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-12 text-center">
+                    <td colSpan={5} className="px-4 py-12 text-center">
                       <div className="flex flex-col items-center">
                         <Inbox className="h-8 w-8 text-slate-600" />
                         <p className="mt-2 text-sm font-medium text-slate-300">No managers found</p>
@@ -532,7 +532,7 @@ export default function OwnerManagersPage() {
                     const isActionLoading = actionLoadingId === manager.id
                     return (
                       <tr key={manager.id} className="border-t border-slate-800 hover:bg-slate-800/30">
-                        <td className="px-4 py-3">
+                        <td className="w-[190px] px-4 py-3 align-top">
                           <div className="flex items-center gap-3">
                             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/10 text-xs font-bold text-indigo-400">
                               {manager.username.slice(0, 1).toUpperCase()}
@@ -545,7 +545,6 @@ export default function OwnerManagersPage() {
                         </td>
                         <td className="max-w-[200px] px-4 py-3">
                           <div className="truncate text-slate-300">{manager.email}</div>
-                          <div className="text-xs text-slate-500">{manager.source ?? 'Unknown'}</div>
                         </td>
                         <td className="px-4 py-3">
                           <div className="space-y-0.5 text-xs">
@@ -554,10 +553,8 @@ export default function OwnerManagersPage() {
                               <span className="text-slate-500">Telegram:</span>{' '}
                               <span className="text-slate-300">{manager.telegramUsername ? `@${manager.telegramUsername.replace(/^@/, '')}` : '-'}</span>
                             </div>
+                            <div><span className="text-slate-500">Address:</span> <span className="text-slate-300">{manager.address ?? '-'}</span></div>
                           </div>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-300">
-                          {manager.bkashNumber ?? '—'}
                         </td>
                         <td className="px-4 py-3">
                           <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyles[manager.status]}`}>
@@ -613,13 +610,13 @@ export default function OwnerManagersPage() {
 
                   <div className="mt-3 grid grid-cols-2 gap-2">
                     <InfoItem label="Full name" value={manager.fullName ?? '—'} />
+                    <InfoItem label="Address" value={manager.address ?? '—'} />
                     <InfoItem label="Source" value={manager.source ?? '—'} />
                     <InfoItem label="Contract" value={manager.contractNumber ?? '—'} />
                     <InfoItem
                       label="Telegram"
                       value={manager.telegramUsername ? `@${manager.telegramUsername.replace(/^@/, '')}` : '—'}
                     />
-                    <InfoItem label="bKash" value={manager.bkashNumber ?? '—'} />
                     <InfoItem label="Created" value={new Date(manager.createdAt).toLocaleDateString()} />
                   </div>
 

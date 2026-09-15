@@ -43,6 +43,7 @@ export async function POST(request: Request) {
 
     const body = await request.json()
     const fullName = typeof body?.fullName === 'string' ? body.fullName.trim() : ''
+    const address = typeof body?.address === 'string' ? body.address.trim() : ''
     const contractNumber = typeof body?.contractNumber === 'string' ? body.contractNumber.trim() : ''
     const telegramUsername = typeof body?.telegramUsername === 'string' ? body.telegramUsername.trim() : ''
     const username = typeof body?.username === 'string' ? body.username.trim() : ''
@@ -51,7 +52,7 @@ export async function POST(request: Request) {
     const captchaPrompt = typeof body?.captchaPrompt === 'string' ? body.captchaPrompt.trim() : ''
     const captchaAnswer = typeof body?.captchaAnswer === 'number' ? body.captchaAnswer : Number(body?.captchaAnswer)
 
-    if (!fullName || !contractNumber || !telegramUsername || !username || !email || !password) {
+    if (!fullName || !address || !contractNumber || !telegramUsername || !username || !email || !password) {
       return NextResponse.json(
         { error: 'All fields are required for manager signup' },
         { status: 400, headers: getCorsHeaders(origin) }
@@ -112,6 +113,7 @@ export async function POST(request: Request) {
       status: 'PENDING',
       clickRate: defaultClickRate,
       ...(fullName ? { fullName } : {}),
+      ...(address ? { address } : {}),
       ...(contractNumber ? { contractNumber } : {}),
       ...(telegramUsername ? { telegramUsername } : {}),
     } as Prisma.UserCreateInput

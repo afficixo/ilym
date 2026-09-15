@@ -29,6 +29,7 @@ export async function GET(request: Request) {
       username: true,
       email: true,
       fullName: true,
+      address: true,
       source: true,
       contractNumber: true,
       telegramUsername: true,

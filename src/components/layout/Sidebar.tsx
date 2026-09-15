@@ -450,7 +450,7 @@ export default function Sidebar() {
       </button>
 
       <aside
-        className={`panel-bleed sticky top-0 z-[50] hidden h-screen shrink-0 flex-col ${collapsed ? 'w-16' : 'w-52'} overflow-hidden rounded-none border-0 bg-[var(--surface-bg)] ring-0 transition-[width,box-shadow] duration-300 ease-out lg:flex`}
+        className={`panel-bleed sticky top-0 z-[50] hidden h-[100dvh] shrink-0 flex-col ${collapsed ? 'w-16' : 'w-52'} overflow-hidden rounded-none border-0 bg-[var(--surface-bg)] ring-0 transition-[width,box-shadow] duration-300 ease-out lg:flex`}
       >
         {sidebarContent}
       </aside>
