@@ -45,7 +45,7 @@ export function StatsCard({
       initial={{ opacity: 0, y: 16, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.45, delay: delay / 1000 }}
-      className={`min-w-0 rounded-lg bg-slate-800/30 border border-slate-700/30 p-4 hover:bg-slate-800/40 transition-colors duration-200 ${className}`}
+      className={`h-full min-h-[94px] min-w-0 rounded-lg border border-slate-700/30 bg-slate-800/30 p-4 transition-colors duration-200 hover:bg-slate-800/40 ${className}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">

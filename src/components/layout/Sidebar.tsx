@@ -279,7 +279,9 @@ export default function Sidebar() {
       {!isMobile && (
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="relative z-10 hidden lg:flex items-center justify-center p-1 mx-2 mt-1 rounded-md border border-slate-300/70 bg-slate-900/[0.04] text-slate-500 transition-colors duration-200 hover:border-cyan-400/30 hover:bg-cyan-400/10 hover:text-cyan-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400 dark:hover:text-cyan-200 flex-shrink-0"
+          className="relative z-10 mt-1 mr-2 flex h-7 w-8 shrink-0 self-end items-center justify-center rounded-md border border-slate-300/70 bg-slate-900/[0.04] p-1 text-slate-500 transition-colors duration-200 hover:border-cyan-400/30 hover:bg-cyan-400/10 hover:text-cyan-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400 dark:hover:text-cyan-200 lg:flex"
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
@@ -418,7 +420,7 @@ export default function Sidebar() {
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
           type="button"
-          className="edge-toggle fixed right-2 top-1 z-[60] flex h-10 w-10 items-center justify-center rounded-none !border-0 bg-transparent p-0 text-slate-700 !shadow-none outline-none backdrop-blur-none dark:bg-transparent dark:text-slate-100 lg:hidden"
+          className="edge-toggle fixed right-0 top-0 z-[60] flex h-10 w-10 items-center justify-center rounded-none !border-0 bg-transparent p-0 text-slate-700 !shadow-none outline-none backdrop-blur-none dark:bg-transparent dark:text-slate-100 lg:hidden"
           aria-label={mobileOpen ? 'Close sidebar' : 'Open sidebar'}
           title={mobileOpen ? 'Close sidebar' : 'Open sidebar'}
         >

@@ -40,7 +40,7 @@ function BreakdownSection({
   const maxValue = Math.max(...filteredItems.map(item => item.clicks), 1)
 
   return (
-    <div className="rounded-lg !border-0 !bg-slate-950/70 p-2 sm:p-3">
+    <div className="rounded-lg bg-transparent p-2 sm:p-3">
       <div className="mb-2 flex items-center gap-2">
         <Icon className={`h-3 w-3 ${iconColor ?? 'text-slate-400'}`} />
         <h4 className={`text-xs font-semibold ${titleColor ?? 'text-white'}`}>{title}</h4>
@@ -83,10 +83,7 @@ export function TrafficBreakdown({
   countryBreakdown = [],
 }: TrafficBreakdownProps) {
   return (
-    <div className="rounded-lg !border-0 !bg-slate-900/80 p-3 shadow-sm sm:p-4">
-      
-
-      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <BreakdownSection
           title="Top Referrers"
           icon={Globe2}
@@ -123,7 +120,6 @@ export function TrafficBreakdown({
           iconColor="text-emerald-400"
           valueColor="text-slate-300"
         />
-      </div>
     </div>
   )
 }

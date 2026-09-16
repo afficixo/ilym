@@ -89,7 +89,7 @@ export default function StatsCards({
             initial={{ opacity: 0, y: 16, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.45, delay: 0.3 }}
-            className="min-w-0 w-full rounded-lg border border-slate-200 bg-white p-3 text-left shadow-sm transition-colors duration-200 hover:bg-slate-50 sm:p-4 dark:border-slate-700/30 dark:bg-slate-800/30 dark:hover:bg-slate-800/40"
+            className="h-full min-h-[94px] min-w-0 w-full rounded-lg border border-slate-200 bg-white p-3 text-left shadow-sm transition-colors duration-200 hover:bg-slate-50 sm:p-4 dark:border-slate-700/30 dark:bg-slate-800/30 dark:hover:bg-slate-800/40"
             onClick={() => setShowCredit((current) => !current)}
             aria-label={`Toggle balance view. Current value: ${activeLabel}`}
           >

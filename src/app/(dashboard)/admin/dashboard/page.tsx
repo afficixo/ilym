@@ -302,9 +302,9 @@ export default function DashboardPage() {
   return (
     // ─── Main container with overflow protection ───
     <div className="min-h-screen bg-[#07090e] text-slate-100 selection:bg-indigo-500 selection:text-white pb-20 overflow-x-hidden w-full max-w-full">
-      <div className="relative z-10 mx-auto w-full max-w-[1280px] px-2 pt-4 sm:px-3 sm:pt-6 lg:px-3">
+      <div className="relative z-10 mx-auto w-full max-w-[1280px] px-2 pt-4 sm:px-3 sm:pt-0 lg:px-3">
         {/* ─── Header ─── */}
-        <header className="dashboard-gold-header relative flex flex-col sm:flex-row sm:items-center justify-between gap-4 overflow-hidden rounded-2xl border border-amber-300/60 bg-cyan-50/80 p-4 shadow-[0_10px_30px_rgba(6,182,212,0.14)] backdrop-blur-md mb-4 sm:mb-6 sm:p-5 dark:border-amber-400/35 dark:bg-slate-900/95 dark:shadow-[0_10px_30px_rgba(34,211,238,0.1)]">
+        <header className="relative flex flex-col sm:hidden sm:flex-row sm:items-center justify-between gap-4 overflow-hidden rounded-2xl border border-amber-300/60 bg-amber-50/80 p-4 shadow-[0_8px_24px_rgba(245,158,11,0.12)] backdrop-blur-md mb-4 sm:mb-6 sm:p-5 dark:border-amber-400/35 dark:bg-slate-900/95 dark:shadow-[0_8px_24px_rgba(245,158,11,0.12)]">
           <div className="flex items-center gap-3">
             <div className="flex-shrink-0">
               <Image
@@ -344,7 +344,7 @@ export default function DashboardPage() {
         </header>
 
         {/* ─── Stats & Charts ─── */}
-        <section className="mb-4 sm:mb-6 relative">
+        <section className="relative mb-4 sm:-mt-4 sm:mb-6">
           <StatsCards
             stats={stats}
             chartData={chartData}

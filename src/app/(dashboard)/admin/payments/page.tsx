@@ -82,7 +82,7 @@ const AnimatedNoticeText = ({ text, className = "" }: { text: string; className?
         animate={{ opacity: 1 }}
         transition={{ duration: 0, delay: index * 0.02 }}
       >
-        {character === " " ? "\u00A0" : character}
+        {character}
       </motion.span>
     ))}
   </span>
@@ -387,7 +387,7 @@ export default function PaymentsPage() {
             <AnimatedNoticeText text={PAYMENT_NOTICE_BODY} />
           </p>
         </div>
-        <div className="flex items-center gap-2 self-start sm:ml-auto sm:self-end">
+        <div className="order-first flex items-center gap-2 self-start sm:order-none sm:ml-auto sm:self-end">
           <span className="hidden text-[10px] font-medium text-slate-500 sm:inline">1 USD = 118 BDT</span>
           <div className="flex rounded-lg border border-white/10 bg-black/20 p-0.5" aria-label="Display currency">
             {(["USD", "BDT"] as const).map((option) => (
@@ -408,10 +408,10 @@ export default function PaymentsPage() {
       {bindingMessage && <p className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-300">{bindingMessage}</p>}
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         {[
-          { label: "Total Earned", value: totals.current, icon: WalletCards, tone: "text-sky-300", accent: "border-sky-400/20 bg-sky-400/[0.07]" },
-          { label: "Commission", value: commission, icon: CircleDollarSign, tone: "text-violet-300", accent: "border-violet-400/20 bg-violet-400/[0.07]" },
-          { label: "Pending", value: pendingSummary, icon: CreditCard, tone: "text-amber-300", accent: "border-amber-400/25 bg-amber-400/[0.08]" },
-          { label: "Paid out", value: paidOutSummary, icon: CircleDollarSign, tone: "text-emerald-300", accent: "border-emerald-400/20 bg-emerald-400/[0.07]" },
+          { label: "Total Earned", value: totals.current, icon: WalletCards, tone: "text-sky-700 dark:text-sky-300", accent: "border-sky-300 bg-sky-50 dark:border-sky-400/20 dark:bg-sky-400/[0.07]" },
+          { label: "Commission", value: commission, icon: CircleDollarSign, tone: "text-violet-700 dark:text-violet-300", accent: "border-violet-300 bg-violet-50 dark:border-violet-400/20 dark:bg-violet-400/[0.07]" },
+          { label: "Pending", value: pendingSummary, icon: CreditCard, tone: "text-amber-700 dark:text-amber-300", accent: "border-amber-300 bg-amber-50 dark:border-amber-400/25 dark:bg-amber-400/[0.08]" },
+          { label: "Paid out", value: paidOutSummary, icon: CircleDollarSign, tone: "text-emerald-700 dark:text-emerald-300", accent: "border-emerald-300 bg-emerald-50 dark:border-emerald-400/20 dark:bg-emerald-400/[0.07]" },
         ].map((card, index) => (
           <motion.div
             key={card.label}
@@ -433,11 +433,11 @@ export default function PaymentsPage() {
             <div className="flex items-center justify-between gap-2">
               <span className={`min-w-0 truncate text-[10px] font-bold uppercase tracking-[0.16em] ${card.tone} opacity-80`}>{card.label}</span>
               {card.label === "Commission" && userRole === "MANAGER" && (
-                <span className="shrink-0 rounded-full border border-violet-300/30 bg-violet-300/10 px-1.5 py-0.5 text-[9px] font-semibold tabular-nums text-violet-200">
+                <span className="shrink-0 rounded-full border border-violet-500/25 bg-violet-500/10 px-1.5 py-0.5 text-[9px] font-semibold tabular-nums text-violet-700 dark:border-violet-300/30 dark:bg-violet-300/10 dark:text-violet-200">
                   {displayedCommissionRates.map((rate) => `${rate.toFixed(2)}%`).join(", ")}
                 </span>
               )}
-              <span className={`flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-black/10 ${card.tone}`}>
+              <span className={`flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-slate-900/5 dark:border-white/10 dark:bg-black/10 ${card.tone}`}>
                 <card.icon className="h-4 w-4" />
               </span>
             </div>
@@ -463,7 +463,7 @@ export default function PaymentsPage() {
               </span>
               <ChevronDown className={`h-4 w-4 shrink-0 text-slate-500 transition-transform ${showManagerPayments ? "rotate-180" : ""}`} />
             </button>
-            <div className="flex shrink-0 rounded-lg border border-white/10 bg-black/20 p-0.5" aria-label="Filter manager payments">
+            <div className="flex w-fit shrink-0 self-start rounded-lg border border-white/10 bg-black/20 p-0.5 sm:self-auto" aria-label="Filter manager payments">
               {(["all", "unpaid"] as const).map((option) => (
                 <button
                   key={option}
@@ -644,12 +644,12 @@ export default function PaymentsPage() {
         </div>
       )}
 
-      <section className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.03]">
-        <div className="flex flex-col gap-3 border-b border-white/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+      <section className="overflow-hidden rounded-lg border border-slate-200 bg-[var(--surface-card)] shadow-sm dark:border-white/10">
+        <div className="flex flex-col gap-3 border-b border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-white/10">
           <div>
             <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-md border border-sky-400/20 bg-sky-400/10 text-sky-300"><WalletCards className="h-3.5 w-3.5" /></span>
-              <h2 className="text-sm font-bold text-white">Active link earnings</h2>
+              <span className="flex h-7 w-7 items-center justify-center rounded-md border border-sky-300 bg-sky-50 text-sky-700 dark:border-sky-400/20 dark:bg-sky-400/10 dark:text-sky-300"><WalletCards className="h-3.5 w-3.5" /></span>
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white">Active link earnings</h2>
             </div>
             <p className="mt-0.5 text-xs text-slate-500">{rows.length === activeLinks.length ? `${activeLinks.length} active ${activeLinks.length === 1 ? "link" : "links"}` : `Showing ${rows.length} of ${activeLinks.length} active links`}</p>
               <div className="mt-3 flex max-w-2xl gap-2.5 border-l-2 border-indigo-500/30 bg-indigo-500/5 px-3 py-2.5 text-[11px] leading-5 text-slate-600 dark:border-indigo-400/30 dark:bg-indigo-400/5 dark:text-slate-300">
@@ -660,12 +660,12 @@ export default function PaymentsPage() {
           <div className="flex items-center gap-2">
             <label className="relative block min-w-0 flex-1" htmlFor="payment-link-search">
               <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
-              <input id="payment-link-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search account or slug" aria-label="Search links by account name or slug" autoComplete="off" className="h-9 w-full rounded-lg border border-white/10 bg-black/20 pl-8 pr-8 text-xs text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/40 sm:w-56" />
-              {query && <button type="button" onClick={() => setQuery("")} className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-1 text-slate-500 transition hover:bg-white/10 hover:text-white" aria-label="Clear link search" title="Clear search"><X className="h-3.5 w-3.5" /></button>}
+              <input id="payment-link-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search account or slug" aria-label="Search links by account name or slug" autoComplete="off" className="h-9 w-full rounded-lg border border-slate-200 bg-white/80 pl-8 pr-8 text-xs text-slate-900 outline-none placeholder:text-slate-500 focus:border-cyan-500/60 dark:border-white/10 dark:bg-black/20 dark:text-white dark:focus:border-cyan-300/40 sm:w-56" />
+              {query && <button type="button" onClick={() => setQuery("")} className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-1 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-white/10 dark:hover:text-white" aria-label="Clear link search" title="Clear search"><X className="h-3.5 w-3.5" /></button>}
             </label>
-            <div className="flex shrink-0 rounded-lg border border-white/10 bg-black/20 p-0.5">
+            <div className="flex shrink-0 rounded-lg border border-slate-200 bg-slate-100 p-0.5 dark:border-white/10 dark:bg-black/20">
               {(["all", "unpaid"] as const).map((option) => (
-                <button key={option} type="button" onClick={() => setFilter(option)} className={`rounded-md px-2.5 py-1.5 text-[10px] font-semibold capitalize transition ${filter === option ? "bg-cyan-300 text-slate-950" : "text-slate-400 hover:text-white"}`}>
+                <button key={option} type="button" onClick={() => setFilter(option)} className={`rounded-md px-2.5 py-1.5 text-[10px] font-semibold capitalize transition ${filter === option ? "bg-cyan-300 text-slate-950" : "text-slate-600 hover:bg-white hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"}`}>
                   {option}
                 </button>
               ))}
@@ -673,8 +673,8 @@ export default function PaymentsPage() {
           </div>
         </div>
 
-        {error ? <div className="p-6 text-center text-sm text-rose-300">{error}</div> : loading ? <div className="p-10 text-center text-sm text-slate-400">Loading payments...</div> : rows.length === 0 ? <div className="p-10 text-center"><WalletCards className="mx-auto h-8 w-8 text-slate-600" /><p className="mt-3 text-sm font-semibold text-slate-300">{activeLinks.length === 0 ? "No active links yet" : "No matching active links"}</p><p className="mt-1 text-xs text-slate-500">{activeLinks.length === 0 ? "Activate a link to start tracking earnings and payouts." : "Try clearing your search or changing the payment filter."}</p></div> : (
-          <div className="divide-y divide-white/5">
+        {error ? <div className="p-6 text-center text-sm text-rose-600 dark:text-rose-300">{error}</div> : loading ? <div className="p-10 text-center text-sm text-slate-600 dark:text-slate-400">Loading payments...</div> : rows.length === 0 ? <div className="p-10 text-center"><WalletCards className="mx-auto h-8 w-8 text-slate-500 dark:text-slate-600" /><p className="mt-3 text-sm font-semibold text-slate-700 dark:text-slate-300">{activeLinks.length === 0 ? "No active links yet" : "No matching active links"}</p><p className="mt-1 text-xs text-slate-500">{activeLinks.length === 0 ? "Activate a link to start tracking earnings and payouts." : "Try clearing your search or changing the payment filter."}</p></div> : (
+          <div className="divide-y divide-slate-200 dark:divide-white/5">
             {rows.map(({ link, invoices, current, invoiceTotal, paidAmount }) => {
               const hasUnpaidInvoice = invoices.some((invoice) => !invoice.isPaid);
               const hasPaidInvoice = paidAmount > 0;
@@ -683,21 +683,21 @@ export default function PaymentsPage() {
                   <div className="min-w-0">
                     <p className="mb-0.5 text-[9px] font-bold uppercase tracking-[0.16em] text-slate-500 sm:hidden">Account name</p>
                     <div className="flex items-center gap-1.5">
-                      <span className="truncate text-sm font-bold text-white sm:text-sm sm:font-semibold">{link.accountName}</span>
-                      <span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-300">Active</span>
+                      <span className="truncate text-sm font-bold text-slate-900 dark:text-white sm:text-sm sm:font-semibold">{link.accountName}</span>
+                      <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-700 dark:border-emerald-300/20 dark:bg-emerald-300/10 dark:text-emerald-300">Active</span>
                     </div>
-                    <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-slate-400 sm:mt-1 sm:gap-x-3 sm:gap-y-1 sm:text-[11px] sm:text-slate-500">
+                    <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-slate-600 sm:mt-1 sm:gap-x-3 sm:gap-y-1 sm:text-[11px] sm:text-slate-500 dark:text-slate-400">
                       <span>/{link.slug}</span>
                       <span>{link.qualifiedClicks.toLocaleString()} qualified clicks</span>
                     </div>
                   </div>
-                  <div className="min-w-0 text-xs text-slate-400">
+                  <div className="min-w-0 text-xs text-slate-600 dark:text-slate-400">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Payment method</p>
                     <div className="mt-0.5 flex min-w-0 items-center gap-1.5">
                       {link.payoutMethod ? (
-                        <p className="break-all text-sm font-medium text-slate-200 sm:truncate sm:text-xs">{`${link.payoutMethod === "BKASH" ? "bKash" : link.payoutMethod} · ${link.payoutAccount || "Account not set"}`}</p>
+                        <p className="break-all text-sm font-medium text-slate-700 dark:text-slate-200 sm:truncate sm:text-xs">{`${link.payoutMethod === "BKASH" ? "bKash" : link.payoutMethod} · ${link.payoutAccount || "Account not set"}`}</p>
                       ) : (
-                        <span className="inline-flex items-center rounded-full border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-[10px] font-semibold text-amber-300">Not set</span>
+                        <span className="inline-flex items-center rounded-full border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-[10px] font-semibold text-amber-700 dark:text-amber-300">Not set</span>
                       )}
                       {link.payoutAccount && <button type="button" onClick={() => void copyPaymentAccount(link.id, link.payoutAccount!)} className="shrink-0 rounded p-1 text-slate-500 transition hover:bg-white/10 hover:text-cyan-300" aria-label={`Copy payment account for ${link.accountName}`} title="Copy payment account">
                         {copiedPaymentAccount === link.id ? <Check className="h-3.5 w-3.5 text-emerald-300" /> : <Copy className="h-3.5 w-3.5" />}
