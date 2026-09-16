@@ -91,6 +91,10 @@ export async function PATCH(request: Request) {
   const user = await getAuthenticatedUser(request)
   if (!user || !isOwner(user)) return NextResponse.json({ error: 'Owner access required' }, { status: 403 })
   const payload = await request.json().catch(() => null)
+  if (payload?.action === 'RESOLVE_ALL') {
+    await prisma.supportConversation.updateMany({ data: { status: 'RESOLVED' } })
+    return NextResponse.json({ action: 'RESOLVE_ALL' })
+  }
   if (typeof payload?.conversationId !== 'string') return NextResponse.json({ error: 'Conversation is required.' }, { status: 400 })
   const conversation = await prisma.supportConversation.update({ where: { id: payload.conversationId }, data: { status: payload.status === 'RESOLVED' ? 'RESOLVED' : 'OPEN' }, include: messageInclude })
   return NextResponse.json({ conversation })
@@ -101,6 +105,10 @@ export async function DELETE(request: Request) {
   if (!user || !isOwner(user)) return NextResponse.json({ error: 'Owner access required' }, { status: 403 })
 
   const payload = await request.json().catch(() => null)
+  if (payload?.action === 'DELETE_ALL') {
+    const result = await prisma.supportConversation.deleteMany()
+    return NextResponse.json({ action: 'DELETE_ALL', deletedCount: result.count })
+  }
   if (typeof payload?.conversationId !== 'string') return NextResponse.json({ error: 'Conversation is required.' }, { status: 400 })
 
   const conversation = await prisma.supportConversation.findUnique({ where: { id: payload.conversationId }, select: { id: true } })

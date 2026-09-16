@@ -262,7 +262,7 @@ export default function Sidebar() {
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
-      <div className={`relative flex w-full flex-shrink-0 items-center gap-3 ${isMobile ? 'h-[4.5rem] border-b border-slate-200/80 dark:border-white/10 px-5' : 'h-10 justify-start px-2'}`}>
+      <div className={`relative flex w-full flex-shrink-0 items-center gap-3 ${isMobile ? 'h-[4.5rem] border-b border-slate-200/80 dark:border-white/10 px-5' : 'h-10 justify-between px-2'}`}>
           {(!collapsed || isMobile) && (
             <div className="relative h-9 w-28 overflow-hidden">
               <Image
@@ -274,20 +274,19 @@ export default function Sidebar() {
               />
             </div>
           )}
+          {!isMobile && (
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="relative z-10 flex h-7 w-8 shrink-0 items-center justify-center rounded-md border border-slate-300/70 bg-slate-900/[0.04] p-1 text-slate-500 transition-colors duration-200 hover:border-cyan-400/30 hover:bg-cyan-400/10 hover:text-cyan-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400 dark:hover:text-cyan-200 lg:flex"
+              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            </button>
+          )}
       </div>
 
-      {!isMobile && (
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="relative z-10 mt-1 mr-2 flex h-7 w-8 shrink-0 self-end items-center justify-center rounded-md border border-slate-300/70 bg-slate-900/[0.04] p-1 text-slate-500 transition-colors duration-200 hover:border-cyan-400/30 hover:bg-cyan-400/10 hover:text-cyan-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400 dark:hover:text-cyan-200 lg:flex"
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-        </button>
-      )}
-
-      <nav className={`relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain ${isMobile ? 'space-y-1 px-2 py-2' : 'space-y-1 px-2 py-2'}`}>
+      <nav className="relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain space-y-2 px-2 py-2">
         {menuGroups.map((group) => group.items.length > 0 && (
           <div key={group.label} className="space-y-1">
             {group.items.map((item) => {
@@ -320,7 +319,7 @@ export default function Sidebar() {
                     if (isMobile) setMobileOpen(false)
                   }}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} ${isMobile ? 'min-h-10 rounded-md px-2.5 py-1.5 border-0' : 'rounded-md px-2 py-1.5 border'} transition-colors duration-200 ${
+                  className={`group flex min-h-9 w-full items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} ${isMobile ? 'min-h-10 rounded-md px-2.5 py-1.5 border-0' : 'rounded-md px-2 py-1.5 border'} transition-colors duration-200 ${
                     isActive
                       ? isMobile 
                         ? 'border-0 bg-slate-700 font-medium text-white dark:bg-[#344047] dark:text-slate-100'
@@ -442,15 +441,6 @@ export default function Sidebar() {
     <>
       {supportPopup}
       {supportShortcut}
-      <button
-        type="button"
-        onClick={() => setCollapsed(!collapsed)}
-        className={`edge-toggle fixed top-0 z-[60] hidden h-11 w-11 items-center justify-center rounded-none border-0 bg-transparent p-0 text-slate-100/80 shadow-none ring-0 transition-[left] duration-300 lg:flex ${collapsed ? 'left-5' : 'left-[164px]'}`}
-        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-      >
-        <Menu className="w-4 h-4" />
-      </button>
-
       <aside
         className={`panel-bleed sticky top-0 z-[50] hidden h-[100dvh] shrink-0 flex-col ${collapsed ? 'w-16' : 'w-52'} overflow-hidden rounded-none border-0 bg-[var(--surface-bg)] ring-0 transition-[width,box-shadow] duration-300 ease-out lg:flex`}
       >

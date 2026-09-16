@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 import {
   AlertTriangle,
   Clock3,
@@ -13,7 +12,6 @@ import {
   Trash2,
   Loader2,
   X,
-  RefreshCw,
   Inbox,
 } from 'lucide-react'
 
@@ -331,10 +329,6 @@ export default function OwnerManagersPage() {
     })
   }
 
-  const handleRefresh = () => {
-    void loadManagers(true)
-  }
-
   const statCards = [
     {
       label: 'Total managers',
@@ -385,45 +379,6 @@ export default function OwnerManagersPage() {
   return (
     <div className="min-h-screen bg-slate-950 px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl space-y-6">
-        {/* Header controls */}
-        <div className="flex flex-col gap-4 border-b border-slate-800 pb-5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-4">
-            <Image
-              src="/afficixo-logo.png"
-              alt="Afficixo"
-              width={120}
-              height={40}
-              className="h-auto w-[100px] object-contain sm:w-[120px]"
-            />
-            <div>
-              <h1 className="text-lg font-semibold text-white sm:text-xl">Manager approvals</h1>
-              <p className="mt-0.5 text-xs text-slate-500">Review access, payment details, and account status.</p>
-            </div>
-          </div>
-          <div className="flex items-center justify-between gap-3 sm:justify-end">
-            <div
-              className={`rounded-lg px-4 py-2 text-sm font-medium ${
-                summary.pending > 0 ? 'bg-amber-500/10 text-amber-400' : 'bg-slate-800 text-slate-400'
-              }`}
-            >
-              {summary.pending > 0 ? `⚠ ${summary.pending} pending` : '✓ All clear'}
-            </div>
-            <button
-              type="button"
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-slate-300 ring-1 ring-slate-800 transition hover:bg-slate-800 disabled:cursor-wait disabled:opacity-60"
-            >
-              {refreshing ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <RefreshCw className="h-4 w-4" />
-              )}
-              Refresh
-            </button>
-          </div>
-        </div>
-
         {/* Stats */}
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {statCards.map((item) => {

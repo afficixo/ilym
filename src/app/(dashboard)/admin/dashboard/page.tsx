@@ -344,7 +344,7 @@ export default function DashboardPage() {
         </header>
 
         {/* ─── Stats & Charts ─── */}
-        <section className="relative mb-4 sm:-mt-4 sm:mb-6">
+        <section className="relative mb-4 sm:mb-6">
           <StatsCards
             stats={stats}
             chartData={chartData}
