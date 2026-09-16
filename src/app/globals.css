@@ -1144,37 +1144,46 @@ html:not(.dark) .public-site .public-page div.absolute.inset-0[class*="bg-gradie
   display: none !important;
 }
 
-/* Keep the bulk-link workspace dark even when the global light theme is active. */
+/* Keep the bulk-link workspace aligned with the active dashboard theme. */
 html:not(.dark) .bulk-link-page {
-  background-color: #071014 !important;
-  color: #f1f5f3 !important;
+  background-color: var(--page-bg) !important;
+  color: var(--text-primary) !important;
+  background-image: linear-gradient(135deg, rgba(16, 185, 129, 0.04), transparent 34%), linear-gradient(315deg, rgba(34, 211, 238, 0.04), transparent 34%) !important;
 }
 
 html:not(.dark) .bulk-link-page [class*="bg-white/"],
-html:not(.dark) .bulk-link-page [class*="bg-black/"],
 html:not(.dark) .bulk-link-page [class*="bg-slate-"] {
-  background-color: rgba(255, 255, 255, 0.045) !important;
+  background-color: rgba(255, 255, 255, 0.82) !important;
+  background-image: none !important;
+}
+
+html:not(.dark) .bulk-link-page [class*="bg-black/"] {
+  background-color: rgba(15, 23, 42, 0.04) !important;
   background-image: none !important;
 }
 
 html:not(.dark) .bulk-link-page [class*="border-white"],
 html:not(.dark) .bulk-link-page [class*="border-slate-"] {
-  border-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
 }
 
 html:not(.dark) .bulk-link-page [class~="text-white"],
 html:not(.dark) .bulk-link-page [class*="text-slate-50"],
 html:not(.dark) .bulk-link-page [class*="text-slate-100"],
 html:not(.dark) .bulk-link-page [class*="text-slate-200"] {
-  color: #f1f5f3 !important;
+  color: #0f172a !important;
 }
 
 html:not(.dark) .bulk-link-page [class*="text-slate-300"] {
-  color: #cbd5d1 !important;
+  color: #334155 !important;
 }
 
 html:not(.dark) .bulk-link-page [class*="text-slate-400"] {
-  color: #94a3a0 !important;
+  color: #475569 !important;
+}
+
+html:not(.dark) .bulk-link-page [class*="text-slate-500"] {
+  color: #64748b !important;
 }
 /* Campaign builder: a quiet, form-first surface that works in either dashboard theme. */
 .campaign-builder-page {
