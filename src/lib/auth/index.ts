@@ -112,7 +112,7 @@ export async function resolveUserIdForRecord(
 }
 
 async function createOwnerUser(): Promise<string | null> {
-  if (!OWNER_USERNAME || !OWNER_PASSWORD) {
+  if (process.env.NODE_ENV === 'production' || !OWNER_USERNAME || !OWNER_PASSWORD) {
     return null
   }
 

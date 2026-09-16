@@ -133,40 +133,6 @@ export async function POST(request: Request) {
             )
           }
         }
-      } else if (
-        OWNER_ENV_USERNAME && OWNER_ENV_PASSWORD &&
-        username === OWNER_ENV_USERNAME && password === OWNER_ENV_PASSWORD
-      ) {
-        if (dbError) {
-          console.warn('DB unavailable; issuing in-memory token for owner', username)
-          user = { id: `local-${OWNER_ENV_USERNAME}`, username: OWNER_ENV_USERNAME, role: 'OWNER' } as any
-        } else {
-          const existingOwner = await prisma.user.findUnique({
-            where: { username: OWNER_ENV_USERNAME },
-          })
-
-          if (!existingOwner) {
-            try {
-              const hashed = await bcrypt.hash(OWNER_ENV_PASSWORD, 10)
-              user = await createUserSafe({
-                username: OWNER_ENV_USERNAME,
-                email: `${OWNER_ENV_USERNAME}@example.com`,
-                password: hashed,
-                role: 'OWNER',
-                status: 'ACTIVE',
-              } as any)
-            } catch (err) {
-              console.error('Error creating owner user for login:', username, err)
-              console.warn('Falling back to local bootstrap token for owner', username)
-              user = { id: `local-${OWNER_ENV_USERNAME}`, username: OWNER_ENV_USERNAME, role: 'OWNER' } as any
-            }
-          } else {
-            return NextResponse.json(
-              { error: 'Invalid credentials' },
-              { status: 401, headers: getCorsHeaders(origin) }
-            )
-          }
-        }
       } else {
         console.error('Invalid credentials attempt for user=', username)
         return NextResponse.json(
