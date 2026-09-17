@@ -26,14 +26,16 @@ export function generateFixedPrefix() {
 }
 
 export function buildPublisherSlug(prefix: string, number: number) {
-  return `${prefix}${String(number).padStart(2, '0')}`
+  const normalizedPrefix = String(prefix || '').trim().toLowerCase()
+  return `${normalizedPrefix}${String(number).padStart(2, '0')}`
 }
 
 export async function generateNextPublisherSlug(prismaClient: any, prefix: string, startFrom = 1) {
+  const normalizedPrefix = String(prefix || '').trim().toLowerCase()
   let nextNumber = startFrom
 
   while (true) {
-    const candidate = buildPublisherSlug(prefix, nextNumber)
+    const candidate = buildPublisherSlug(normalizedPrefix, nextNumber)
     const existing = await prismaClient.linkAccount.findUnique({
       where: { slug: candidate },
       select: { slug: true },

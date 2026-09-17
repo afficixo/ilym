@@ -230,6 +230,7 @@ export async function POST(request: Request) {
       const prefix = await ensureUserSlugPrefix(prisma, finalUserId)
       finalSlug = await generateNextPublisherSlug(prisma, prefix, 1)
     } else {
+      finalSlug = finalSlug.toLowerCase()
       const existingSlug = await prisma.linkAccount.findUnique({
         where: { slug: finalSlug },
         select: { slug: true },
