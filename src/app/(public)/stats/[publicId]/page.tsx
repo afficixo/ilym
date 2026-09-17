@@ -316,8 +316,17 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const paymentPromptShown = useRef(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  // Keep the public dashboard showing all traffic by default unless the user intentionally filters.
-  // No auto-selected country, unique mode, referrer mode, or time range should be applied.
+  // Keep the public dashboard focused on US unique traffic by default while still counting
+  // direct and desktop/Windows clicks as valid, unless the user intentionally changes the filter.
+  useEffect(() => {
+    setFilterCountry('US')
+    setFilterUnique('unique')
+    setFilterReferrer('all')
+  }, [])
+
+  useEffect(() => {
+    setTimeRange('30d')
+  }, [])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
