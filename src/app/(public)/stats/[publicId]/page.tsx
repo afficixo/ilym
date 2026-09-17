@@ -316,10 +316,11 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const paymentPromptShown = useRef(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  // Auto-select USA and Unique filters on page load
+  // Keep the public dashboard showing all clicks by default unless the user intentionally filters.
   useEffect(() => {
-    setFilterCountry('US')
-    setFilterUnique('unique')
+    setFilterCountry('')
+    setFilterUnique('all')
+    setFilterReferrer('all')
   }, [])
 
   // Auto-select 30-day time range on page load
