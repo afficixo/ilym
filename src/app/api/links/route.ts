@@ -74,17 +74,15 @@ export async function GET(request: Request) {
     const qualifiedClicks = await prisma.click.findMany({
       where: {
         linkAccountId: { in: links.map((link) => link.id) },
-        country: 'US',
         isUnique: true,
         isBot: false,
-        referrer: { not: null },
       },
-      select: { linkAccountId: true, referrer: true, deviceType: true },
+      select: { linkAccountId: true, country: true },
     })
     const qualifiedClickMap = new Map<string, number>()
     for (const click of qualifiedClicks) {
-      if (!click.referrer?.trim()) continue
-      if (isDesktopDeviceType(click.deviceType)) continue
+      const isUsClick = (click.country || '').trim().toUpperCase() === 'US'
+      if (!isUsClick) continue
       qualifiedClickMap.set(click.linkAccountId, (qualifiedClickMap.get(click.linkAccountId) || 0) + 1)
     }
 

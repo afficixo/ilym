@@ -417,26 +417,9 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     return Array.from(map.values())
   }, [stats?.clicks])
 
-  // Filter logic:
-  // - USA: Exclude direct clicks (no referrer) AND desktop clicks
-  // - All other countries: Include ALL clicks (including direct and desktop)
+  // Keep the public dashboard aligned with actual click logs: all non-bot clicks are visible.
   const filteredClicks = useMemo(() => {
-    return dedupedClicks.filter(click => {
-      const country = click.country || ''
-      const isUSA = country === 'US'
-      
-      // If it's USA, apply strict filtering
-      if (isUSA) {
-        // Exclude direct clicks (no referrer)
-        if (!click.referrer || click.referrer.trim() === '') return false
-        // Exclude desktop-like devices including laptop/macbook/computer variants
-        if (isDesktopDeviceType(click.deviceType)) return false
-        return true
-      }
-      
-      // For all other countries: Include ALL clicks
-      return true
-    })
+    return dedupedClicks.filter(click => !click.isBot)
   }, [dedupedClicks])
 
   const downloadCsv = useCallback(() => {
@@ -574,11 +557,8 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const uniqueClicks = computedStats.uniqueClicks
   const botClicks = computedStats.botClicks
   const clickRate = Number(stats?.clickRate ?? 0) || 0
-  const usaUniqueReferrerClicks = filteredClicks.filter((click) => {
-    if (click.country !== 'US' || !click.isUnique || !click.referrer?.trim()) return false
-    return !isDesktopDeviceType(click.deviceType)
-  }).length
-  const earning = usaUniqueReferrerClicks * clickRate
+  const usaUniqueClicks = filteredClicks.filter((click) => click.country === 'US' && click.isUnique).length
+  const earning = usaUniqueClicks * clickRate
   const uniqueRate = totalClicks ? ((uniqueClicks / totalClicks) * 100) : 0
   const botRate = totalClicks ? ((botClicks / totalClicks) * 100) : 0
   const maxCountryClicks = computedStats.geoSummary.length
@@ -801,7 +781,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                   ))}
                 </div>
               )}
-              subtitle={`🇺🇸 ${formatNumber(usaUniqueReferrerClicks)} clicks · ${formatCurrency(clickRate)} CPC`}
+              subtitle={`🇺🇸 ${formatNumber(usaUniqueClicks)} clicks · ${formatCurrency(clickRate)} CPC`}
               isDark={isDark}
             />
           </div>
@@ -945,7 +925,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                     }`}
                   >
                     <span className="text-base">{flag}</span>
-                    <span>{usaUniqueReferrerClicks}</span>
+                    <span>{usaUniqueClicks}</span>
                   </button>
                 )
               })()}

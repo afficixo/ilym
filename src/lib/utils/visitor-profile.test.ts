@@ -1,6 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
+import { isUsNormalClick } from './dashboard-metrics'
 import { isDesktopDeviceType, parseVisitorProfile } from './visitor-profile'
 
 test('parses Android mobile traffic with chrome and device brand details', () => {
@@ -44,4 +45,24 @@ test('treats desktop-like device values as ineligible for US earnings', () => {
   assert.equal(isDesktopDeviceType('Mobile'), false)
   assert.equal(isDesktopDeviceType('Tablet'), false)
   assert.equal(isDesktopDeviceType(null), false)
+})
+
+test('counts US clicks normally even when referrer is empty or device is desktop', () => {
+  const clicks = [
+    { country: 'US', isUnique: true, isBot: false, referrer: '', deviceType: 'Desktop' },
+    { country: 'US', isUnique: true, isBot: false, referrer: null, deviceType: 'Mobile' },
+    { country: 'US', isUnique: true, isBot: false, referrer: 'https://google.com', deviceType: 'Desktop' },
+    { country: 'CA', isUnique: true, isBot: false, referrer: '', deviceType: 'Desktop' },
+    { country: 'US', isUnique: false, isBot: false, referrer: 'https://google.com', deviceType: 'Mobile' },
+    { country: 'US', isUnique: true, isBot: true, referrer: 'https://google.com', deviceType: 'Mobile' },
+  ]
+
+  assert.deepEqual(
+    clicks.filter((click) => isUsNormalClick(click)),
+    [
+      clicks[0],
+      clicks[1],
+      clicks[2],
+    ]
+  )
 })

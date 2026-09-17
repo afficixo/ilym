@@ -1,6 +1,18 @@
 export type DashboardMetricClick = {
   isBot: boolean;
+  country?: string | null;
+  referrer?: string | null;
+  deviceType?: string | null;
 };
+
+export function isUsNormalClick<T extends DashboardMetricClick>(click: T): boolean {
+  if (click.isBot) return false;
+
+  const isUsClick = (click.country || '').trim().toUpperCase() === 'US';
+  if (!isUsClick) return true;
+
+  return true;
+}
 
 export function filterDashboardClicks<T extends DashboardMetricClick>(
   clicks: T[],
@@ -10,7 +22,7 @@ export function filterDashboardClicks<T extends DashboardMetricClick>(
     return clicks.filter((click) => click.isBot);
   }
 
-  return clicks.filter((click) => !click.isBot);
+  return clicks.filter((click) => isUsNormalClick(click));
 }
 
 export function getBotClicksCount<T extends DashboardMetricClick>(clicks: T[]): number {

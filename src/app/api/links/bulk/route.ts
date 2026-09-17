@@ -111,10 +111,7 @@ export async function POST(request: Request) {
       const invoiceRateByUser = new Map(invoiceUsers.map((user) => [user.id, Number(user.clickRate ?? 0) || 0]))
       const invoiceCounts = await Promise.all(invoiceLinks.map(async (link) => ({
         ...link,
-        qualifiedClicks: (await prisma.click.findMany({ where: { linkAccountId: link.id, country: 'US', isUnique: true, isBot: false }, select: { referrer: true, deviceType: true } })).filter((click) => {
-          if (!click.referrer?.trim()) return false
-          return !isDesktopDeviceType(click.deviceType)
-        }).length,
+        qualifiedClicks: (await prisma.click.findMany({ where: { linkAccountId: link.id, country: 'US', isUnique: true, isBot: false }, select: { country: true } })).length,
       })))
       const invoiceCreates = invoiceCounts.flatMap((link) => {
         const clickRate = invoiceRateByUser.get(link.userId) || 0

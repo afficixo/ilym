@@ -264,9 +264,9 @@ export default function CreateLinkPage() {
     <div className="campaign-builder-page min-h-screen px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         {/* Main Grid */}
-        <div className={createdAccount ? "grid grid-cols-1 gap-6 lg:grid-cols-[1.3fr_0.7fr] items-start" : "grid grid-cols-1 gap-6 items-start"}>
+        <div className={`grid w-full min-w-0 grid-cols-1 items-start gap-6 ${createdAccount ? "lg:grid-cols-[minmax(0,1.3fr)_minmax(0,0.7fr)]" : ""}`}>
           {/* Form Card */}
-          <div className="campaign-builder-card rounded-2xl p-5 sm:p-7">
+          <div className="campaign-builder-card w-full min-w-0 rounded-2xl p-5 sm:p-7">
             <div className="mb-7 border-b border-slate-700/60 pb-5">
               <div>
                 <div className="mb-2 flex items-center gap-2">

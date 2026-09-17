@@ -78,14 +78,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ pub
       })
     }
 
-    const clicks = await prisma.click.findMany({
+    const qualifiedClicks = await prisma.click.count({
       where: { linkAccountId: dashboard.linkAccountId, country: 'US', isUnique: true, isBot: false },
-      select: { referrer: true, deviceType: true },
     })
-    const qualifiedClicks = clicks.filter((click) => {
-      if (!click.referrer?.trim()) return false
-      return !isDesktopDeviceType(click.deviceType)
-    }).length
     const clickRate = Number(user.clickRate ?? 0) || 0
     const invoices = await prisma.invoice.findMany({
       where: { linkAccountId: dashboard.linkAccountId },

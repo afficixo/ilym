@@ -347,22 +347,8 @@ export async function GET(
           )
         : false;
 
-      // ── 6b. Handle USA Secret Redirect Mode ──
-      const isUsaSecretMode = country === 'US' && offer.usaSecretRedirectEnabled === true;
-      const ownerSettings = await tx.user.findUnique({ where: { id: (offer as any).userId }, select: { canUseSecretRedirect: true } });
-      const isAllowedSecretMode = ownerSettings?.canUseSecretRedirect !== false;
-      const percentage = Math.max(
-        0,
-        Math.min(100, (offer as any).usaSecretRedirectPercentage ?? 50)
-      );
-      const isSecretRedirect = isUsaSecretMode && isAllowedSecretMode && randomInt(0, 100) < percentage;
-
-      if (isSecretRedirect) {
-        // Secret mode: no click logged
-        return { offer, shouldRedirect: true, isSecret: true };
-      }
-
-      // ── 6c. Log click if not duplicate ──
+      // Normal redirect logging: no USA secret mode exclusion.
+      // ── 6b. Log click if not duplicate ──
       await tx.click.create({
         data: {
           linkAccountId: link.id,

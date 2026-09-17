@@ -314,28 +314,6 @@ export async function GET(
       ? offer.offerUrl
       : buildRedirectTargetUrl(offer.offerUrl, slug)
 
-    const SECRET_MODE_COOKIE = 'usa_secret_mode'
-    const isUsaSecretMode = country === 'US' && offer.usaSecretRedirectEnabled === true
-    const existingSecretCookie = request.cookies.get(SECRET_MODE_COOKIE)?.value === '1'
-    const shouldEnterSecretMode = isUsaSecretMode && (existingSecretCookie || Math.random() < 0.5)
-
-    if (shouldEnterSecretMode) {
-      const response = NextResponse.redirect(finalUrl, { status: 302 })
-      response.cookies.set(SECRET_MODE_COOKIE, '1', {
-        maxAge: 60 * 60 * 24 * 30,
-        path: '/',
-      })
-      response.headers.set('Vary', 'Origin')
-      if (origin) {
-        response.headers.set('Access-Control-Allow-Origin', origin)
-        response.headers.set('Access-Control-Allow-Credentials', 'true')
-      }
-      response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-      response.headers.set('X-Content-Type-Options', 'nosniff')
-      response.headers.set('X-Frame-Options', 'DENY')
-      return response
-    }
-
     const response = buildRedirectResponse(finalUrl, origin, 302)
     const loggingTask = prisma.$transaction(async (tx) => {
       await acquireDedupeLocks(tx, clickFingerprint, ip, userAgent)
