@@ -316,17 +316,8 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const paymentPromptShown = useRef(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  // Keep the public dashboard showing all clicks by default unless the user intentionally filters.
-  useEffect(() => {
-    setFilterCountry('')
-    setFilterUnique('all')
-    setFilterReferrer('all')
-  }, [])
-
-  // Auto-select 30-day time range on page load
-  useEffect(() => {
-    setTimeRange('30d')
-  }, [])
+  // Keep the public dashboard showing all traffic by default unless the user intentionally filters.
+  // No auto-selected country, unique mode, referrer mode, or time range should be applied.
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -545,13 +536,9 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   }, [filteredClicks, timeRange, isDark])
 
   const countries = computedStats.geoSummary.map(e => e.country).filter(Boolean)
-  
-  // Force USA to always appear in the filter bar
+
   const allCountries = useMemo(() => {
-    const countrySet = new Set(countries)
-    // Always include USA in the list, even if it has no data
-    countrySet.add('US')
-    return Array.from(countrySet)
+    return Array.from(new Set(countries))
   }, [countries])
 
   const totalClicks = computedStats.totalClicks

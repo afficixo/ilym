@@ -47,7 +47,7 @@ test('treats desktop-like device values as ineligible for US earnings', () => {
   assert.equal(isDesktopDeviceType(null), false)
 })
 
-test('counts US clicks normally even when referrer is empty or device is desktop', () => {
+test('counts normal non-bot clicks as valid even when referrer is empty or device is desktop', () => {
   const clicks = [
     { country: 'US', isUnique: true, isBot: false, referrer: '', deviceType: 'Desktop' },
     { country: 'US', isUnique: true, isBot: false, referrer: null, deviceType: 'Mobile' },
@@ -63,6 +63,8 @@ test('counts US clicks normally even when referrer is empty or device is desktop
       clicks[0],
       clicks[1],
       clicks[2],
+      clicks[3],
+      clicks[4],
     ]
   )
 })
