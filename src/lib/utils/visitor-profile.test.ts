@@ -37,7 +37,7 @@ test('recognizes Facebook app user agents as Facebook browser traffic', () => {
   assert.equal(profile.deviceBrand, 'Pixel')
 })
 
-test('treats desktop-like device values as ineligible for US earnings', () => {
+test('recognizes desktop-like device values without treating them as invalid traffic', () => {
   assert.equal(isDesktopDeviceType('Desktop'), true)
   assert.equal(isDesktopDeviceType('Laptop'), true)
   assert.equal(isDesktopDeviceType('Computer'), true)
@@ -47,18 +47,18 @@ test('treats desktop-like device values as ineligible for US earnings', () => {
   assert.equal(isDesktopDeviceType(null), false)
 })
 
-test('counts normal non-bot clicks as valid even when referrer is empty or device is desktop', () => {
+test('counts direct and Windows desktop US clicks as valid non-bot traffic', () => {
   const clicks = [
-    { country: 'US', isUnique: true, isBot: false, referrer: '', deviceType: 'Desktop' },
-    { country: 'US', isUnique: true, isBot: false, referrer: null, deviceType: 'Mobile' },
-    { country: 'US', isUnique: true, isBot: false, referrer: 'https://google.com', deviceType: 'Desktop' },
-    { country: 'CA', isUnique: true, isBot: false, referrer: '', deviceType: 'Desktop' },
-    { country: 'US', isUnique: false, isBot: false, referrer: 'https://google.com', deviceType: 'Mobile' },
-    { country: 'US', isUnique: true, isBot: true, referrer: 'https://google.com', deviceType: 'Mobile' },
+    { country: 'US', isUnique: true, isBot: false, referrer: '', deviceType: 'Desktop', os: 'Windows' },
+    { country: 'US', isUnique: true, isBot: false, referrer: null, deviceType: 'Mobile', os: 'iOS' },
+    { country: 'US', isUnique: true, isBot: false, referrer: 'https://google.com', deviceType: 'Desktop', os: 'Windows' },
+    { country: 'CA', isUnique: true, isBot: false, referrer: '', deviceType: 'Desktop', os: 'Windows' },
+    { country: 'US', isUnique: false, isBot: false, referrer: 'https://google.com', deviceType: 'Mobile', os: 'Android' },
+    { country: 'US', isUnique: true, isBot: true, referrer: 'https://google.com', deviceType: 'Mobile', os: 'Android' },
   ]
 
   assert.deepEqual(
-    clicks.filter((click) => isUsNormalClick(click)),
+    clicks.filter((click) => isUsNormalClick(click as any)),
     [
       clicks[0],
       clicks[1],
