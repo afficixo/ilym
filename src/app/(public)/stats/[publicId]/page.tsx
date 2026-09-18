@@ -347,7 +347,15 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
         setIsRefreshing(true)
         const response = await fetch(
           `/api/analytics/public/${publicId}?search=${encodeURIComponent(search)}&country=${encodeURIComponent(filterCountry)}&unique=${encodeURIComponent(filterUnique)}&referrer=${encodeURIComponent(filterReferrer)}&range=${timeRange}&limit=10000`,
-          { signal: abortController.signal }
+          {
+            signal: abortController.signal,
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              Pragma: 'no-cache',
+              Expires: '0',
+            },
+          }
         )
         if (!response.ok) throw new Error('Dashboard not found')
         const data = await response.json()

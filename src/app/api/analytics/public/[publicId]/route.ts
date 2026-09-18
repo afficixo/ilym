@@ -133,7 +133,15 @@ export async function GET(
     if (!dashboard || dashboard.isPrivate) {
       return NextResponse.json(
         { error: 'Dashboard not found' },
-        { status: 404, headers: getCorsHeaders(origin) }
+        {
+          status: 404,
+          headers: {
+            ...getCorsHeaders(origin),
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+          },
+        }
       );
     }
 
@@ -273,13 +281,28 @@ export async function GET(
           totalPages: Math.ceil(totalClicks / limit),
         },
       },
-      { headers: getCorsHeaders(origin) }
+      {
+        headers: {
+          ...getCorsHeaders(origin),
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      }
     );
   } catch (error) {
     console.error('Error fetching public stats:', error);
     return NextResponse.json(
       { error: 'Failed to fetch stats' },
-      { status: 500, headers: getCorsHeaders(origin) }
+      {
+        status: 500,
+        headers: {
+          ...getCorsHeaders(origin),
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      }
     );
   }
 }
@@ -288,6 +311,11 @@ export async function OPTIONS(request: Request) {
   const origin = request.headers.get('origin') || '*';
   return new NextResponse(null, {
     status: 204,
-    headers: getCorsHeaders(origin),
+    headers: {
+      ...getCorsHeaders(origin),
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    },
   });
 }
