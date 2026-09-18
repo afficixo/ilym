@@ -321,9 +321,9 @@ export default function Sidebar() {
                   aria-current={isActive ? 'page' : undefined}
                   className={`group flex min-h-9 w-full items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} ${isMobile ? 'min-h-10 rounded-md px-2.5 py-1.5 border-0' : 'rounded-md px-2 py-1.5 border'} transition-colors duration-200 ${
                     isActive
-                      ? isMobile 
-                        ? 'border-0 bg-slate-700 font-medium text-white dark:bg-[#344047] dark:text-slate-100'
-                        : 'border-transparent bg-slate-700 font-medium text-white dark:bg-[#344047] dark:text-slate-100'
+                      ? isMobile
+                        ? 'border border-cyan-400/20 bg-slate-200/90 font-medium text-slate-900 shadow-sm dark:border-cyan-400/20 dark:bg-white/[0.08] dark:text-white'
+                        : 'border border-cyan-400/20 bg-slate-200/90 font-medium text-slate-900 shadow-sm dark:border-cyan-400/20 dark:bg-white/[0.08] dark:text-white'
                       : isMobile
                         ? 'border-0 text-slate-600 hover:bg-slate-200/80 hover:text-slate-950 dark:text-[#b7bec2] dark:hover:bg-white/[0.06] dark:hover:text-white'
                         : 'border-transparent text-slate-600 hover:bg-slate-200/80 hover:text-slate-950 dark:text-[#b7bec2] dark:hover:bg-white/[0.06] dark:hover:text-white'

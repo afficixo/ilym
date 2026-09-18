@@ -125,6 +125,10 @@ export async function GET(
         linkAccount: {
           include: {
             user: { select: { clickRate: true } },
+            invoices: {
+              where: { isPaid: false },
+              select: { totalEarning: true },
+            },
           },
         },
       },
@@ -244,6 +248,10 @@ export async function GET(
       select: { country: true, isUnique: true },
     });
     const geoSummary = aggregateGeoData(geoRows);
+    const unpaidEarning = (dashboard.linkAccount?.invoices ?? []).reduce(
+      (sum, invoice) => sum + Number(invoice.totalEarning || 0),
+      0,
+    );
 
     return NextResponse.json(
       {
@@ -253,6 +261,7 @@ export async function GET(
         botClicks,
         clickRate: Number(dashboard.linkAccount?.user?.clickRate ?? 0) || 0,
         payoutMethod: dashboard.linkAccount?.payoutMethod || null,
+        unpaidEarning,
         geoSummary,
         clickTrend,
         clicks: clicks.map((c) => ({

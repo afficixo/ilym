@@ -51,6 +51,7 @@ interface Stats {
   botClicks: number
   clickRate?: number
   payoutMethod?: string | null
+  unpaidEarning?: number
   geoSummary: Array<{
     country: string
     totalClicks: number
@@ -114,13 +115,14 @@ const MetricCard = ({
   isDark = true,
   valueAction,
   showIcon = true,
+  children,
 }: any) => (
   <div className={`group relative overflow-hidden rounded-xl border p-5 transition-all duration-200 hover:-translate-y-0.5 ${
     isDark
       ? 'bg-white/5 backdrop-blur-sm border-white/10 hover:border-white/20 hover:bg-white/10'
       : 'bg-white/80 backdrop-blur-sm border-gray-200 hover:border-indigo-300 hover:bg-white'
   }`}>
-    <div className="flex items-start justify-between">
+    <div className="flex items-start justify-between gap-3">
       <div className="space-y-1.5">
         <div className="flex items-center justify-between gap-2">
           <p className={`text-[11px] font-medium uppercase tracking-wider ${
@@ -152,12 +154,16 @@ const MetricCard = ({
           </div>
         )}
       </div>
-      {valueAction && <div className="shrink-0">{valueAction}</div>}
-      {showIcon && (
-        <div className="rounded-lg p-2 shrink-0" style={{ backgroundColor: `${color}20` }}>
-          <Icon className="h-4 w-4" style={{ color }} strokeWidth={1.5} />
-        </div>
-      )}
+
+      <div className="flex shrink-0 flex-col items-end gap-2">
+        {valueAction && <div>{valueAction}</div>}
+        {children && <div className="w-full">{children}</div>}
+        {showIcon && (
+          <div className="rounded-lg p-2 shrink-0" style={{ backgroundColor: `${color}20` }}>
+            <Icon className="h-4 w-4" style={{ color }} strokeWidth={1.5} />
+          </div>
+        )}
+      </div>
     </div>
   </div>
 )
@@ -564,6 +570,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const clickRate = Number(stats?.clickRate ?? 0) || 0
   const usaUniqueClicks = filteredClicks.filter((click) => click.country === 'US' && click.isUnique).length
   const earning = usaUniqueClicks * clickRate
+  const unpaidEarning = Number(stats?.unpaidEarning ?? 0) || 0
   const uniqueRate = totalClicks ? ((uniqueClicks / totalClicks) * 100) : 0
   const botRate = totalClicks ? ((botClicks / totalClicks) * 100) : 0
   const maxCountryClicks = computedStats.geoSummary.length
@@ -788,7 +795,29 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               )}
               subtitle={`🇺🇸 ${formatNumber(usaUniqueClicks)} clicks`}
               isDark={isDark}
-            />
+            >
+              {unpaidEarning > 0 && (
+                <div className="mt-0 w-full rounded-md border border-emerald-500/20 bg-emerald-500/5 px-2 py-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-emerald-300">Pending</span>
+                      </div>
+                      <span className="mt-0.5 block text-[11px] font-bold leading-none text-emerald-200">
+                        {earningCurrency === 'USD'
+                          ? formatCurrency(unpaidEarning)
+                          : (
+                            <>
+                              <span className="align-baseline text-[0.78em] font-extrabold">৳</span>{' '}
+                              {formatTaka(unpaidEarning * 118)}
+                            </>
+                          )}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </MetricCard>
           </div>
 
           {/* Chart & Geography */}
