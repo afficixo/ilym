@@ -315,6 +315,7 @@ export default function Sidebar() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch={item.href.includes('/dashboard') || item.href.includes('/postbacks')}
                   onClick={() => {
                     if (isMobile) setMobileOpen(false)
                   }}

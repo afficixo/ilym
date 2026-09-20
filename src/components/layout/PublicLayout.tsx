@@ -30,7 +30,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           className="fixed top-0 left-0 right-0 z-40 border-b border-emerald-100/10 bg-[#071014]/90 backdrop-blur-md"
         >
           <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 md:h-20">
-            <Link href="/" className="flex items-center shrink-0" onClick={() => setMobileMenuOpen(false)}>
+            <Link href="/" prefetch={false} className="flex items-center shrink-0" onClick={() => setMobileMenuOpen(false)}>
               <div className="relative h-12 w-32 overflow-hidden rounded-lg md:h-14 md:w-40">
                 <Image
                   src="/afficixo-logo.png"
@@ -45,18 +45,19 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
 
             <div className="public-header-nav hidden items-center gap-8 text-xs font-bold uppercase tracking-[0.18em] text-slate-400 md:flex">
               {navLinks.map((link) => (
-                <Link key={link.href} href={link.href} className="transition-colors hover:text-emerald-300">
+                <Link key={link.href} href={link.href} prefetch={false} className="transition-colors hover:text-emerald-300">
                   {link.label}
                 </Link>
               ))}
             </div>
 
             <div className="flex items-center gap-2 sm:gap-4">
-              <Link href="/signup" className="public-header-login hidden text-xs font-semibold uppercase tracking-[0.15em] text-slate-400 transition-colors hover:text-white sm:block">
+              <Link href="/signup" prefetch={false} className="public-header-login hidden text-xs font-semibold uppercase tracking-[0.15em] text-slate-400 transition-colors hover:text-white sm:block">
                 Join Now
               </Link>
               <Link
                 href="/login"
+                prefetch={false}
                 className="inline-flex items-center gap-2 rounded-md bg-emerald-300 px-3 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[#071014] shadow-[0_0_24px_rgba(110,231,183,0.22)] transition-all duration-300 hover:bg-emerald-200 hover:-translate-y-0.5 md:px-4 md:text-sm"
               >
                 Login
@@ -86,6 +87,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                   <Link
                     key={link.href}
                     href={link.href}
+                    prefetch={false}
                     className="block py-1 text-sm text-slate-300 transition-colors hover:text-white"
                     onClick={() => setMobileMenuOpen(false)}
                   >
@@ -94,6 +96,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                 ))}
                 <Link
                   href="/login"
+                  prefetch={false}
                   className="block py-1 text-sm text-slate-300 transition-colors hover:text-white"
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -101,6 +104,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                 </Link>
                 <Link
                   href="/signup"
+                  prefetch={false}
                   className="block py-1 text-sm text-slate-300 transition-colors hover:text-white"
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -129,12 +133,12 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-slate-400 md:gap-6 md:text-sm">
-              <Link href="/about" className="transition-colors hover:text-white">About</Link>
-              <Link href="/publishers" className="transition-colors hover:text-white">Publishers</Link>
-              <Link href="/faq" className="transition-colors hover:text-white">FAQ</Link>
-              <Link href="/privacy-policy" className="transition-colors hover:text-white">Privacy Policy</Link>
-              <Link href="/terms-of-service" className="transition-colors hover:text-white">Terms of Service</Link>
-              <Link href="/contact" className="transition-colors hover:text-white">Contact</Link>
+              <Link href="/about" prefetch={false} className="transition-colors hover:text-white">About</Link>
+              <Link href="/publishers" prefetch={false} className="transition-colors hover:text-white">Publishers</Link>
+              <Link href="/faq" prefetch={false} className="transition-colors hover:text-white">FAQ</Link>
+              <Link href="/privacy-policy" prefetch={false} className="transition-colors hover:text-white">Privacy Policy</Link>
+              <Link href="/terms-of-service" prefetch={false} className="transition-colors hover:text-white">Terms of Service</Link>
+              <Link href="/contact" prefetch={false} className="transition-colors hover:text-white">Contact</Link>
             </div>
 
             <div className="flex items-center gap-3 text-slate-400 md:gap-4">

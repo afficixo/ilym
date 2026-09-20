@@ -442,6 +442,7 @@ export default function HomePage() {
               >
                 <Link
                   href="/signup"
+                  prefetch={false}
                   className="group relative w-full sm:w-auto px-7 md:px-9 py-3.5 md:py-4 bg-emerald-300 rounded-md font-bold text-[#071014] text-sm md:text-base hover:bg-emerald-200 hover:shadow-[0_0_28px_rgba(110,231,183,0.24)] transition-all duration-300 flex items-center justify-center gap-2 md:gap-3 overflow-hidden min-w-[160px]"
                 >
                   <span className="relative z-10 flex items-center gap-2">
@@ -455,6 +456,7 @@ export default function HomePage() {
                 </Link>
                 <Link
                   href="/publishers"
+                  prefetch={false}
                   className="public-secondary-action w-full sm:w-auto px-7 md:px-9 py-3.5 md:py-4 rounded-md font-semibold text-sm md:text-base border border-emerald-100/20 text-white hover:bg-emerald-100/10 hover:border-emerald-200/50 transition-all duration-300 min-w-[160px] text-center"
                 >
                   Explore Publishers
