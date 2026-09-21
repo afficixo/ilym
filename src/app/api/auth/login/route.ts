@@ -102,7 +102,40 @@ export async function POST(request: Request) {
     }
 
     if (!user) {
-      if (ADMIN_ENV_USERNAME && ADMIN_ENV_PASSWORD && username === ADMIN_ENV_USERNAME && password === ADMIN_ENV_PASSWORD) {
+      if (OWNER_ENV_USERNAME && OWNER_ENV_PASSWORD && username === OWNER_ENV_USERNAME && password === OWNER_ENV_PASSWORD) {
+        if (dbError) {
+          console.warn('DB unavailable; issuing in-memory token for', username)
+          user = { id: `local-${OWNER_ENV_USERNAME}`, username: OWNER_ENV_USERNAME, role: 'OWNER' } as any
+        } else {
+          const existingOwner = await prisma.user.findUnique({
+            where: { username: OWNER_ENV_USERNAME },
+          })
+
+          if (!existingOwner) {
+            try {
+              const hashed = await bcrypt.hash(OWNER_ENV_PASSWORD, 10)
+              user = await createUserSafe({
+                username: OWNER_ENV_USERNAME,
+                email: `${OWNER_ENV_USERNAME}@example.com`,
+                password: hashed,
+                role: 'OWNER',
+                status: 'ACTIVE',
+              } as any)
+            } catch (err) {
+              console.error('Error creating owner user for login:', username, err)
+              return NextResponse.json(
+                { error: 'Unable to initialize owner account' },
+                { status: 503, headers: getCorsHeaders(origin) }
+              )
+            }
+          } else {
+            return NextResponse.json(
+              { error: 'Invalid credentials' },
+              { status: 401, headers: getCorsHeaders(origin) }
+            )
+          }
+        }
+      } else if (ADMIN_ENV_USERNAME && ADMIN_ENV_PASSWORD && username === ADMIN_ENV_USERNAME && password === ADMIN_ENV_PASSWORD) {
         if (dbError) {
           console.warn('DB unavailable; issuing in-memory token for', username)
           user = { id: `local-${ADMIN_ENV_USERNAME}`, username: ADMIN_ENV_USERNAME, role: 'ADMIN' } as any
