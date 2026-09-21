@@ -286,6 +286,7 @@ type AuthUser = {
   clickRate?: number | null
   commissionRate?: number | null
   canUseSecretRedirect?: boolean
+  botFallbackUrl?: string | null
   payoutMethod?: string | null
   payoutAccount?: string | null
 }
@@ -336,6 +337,7 @@ export async function getUserFromToken(token: string): Promise<AuthUser | null> 
         clickRate: true,
         commissionRate: true,
         canUseSecretRedirect: true,
+        botFallbackUrl: true,
         payoutMethod: true,
         payoutAccount: true,
         status: true,

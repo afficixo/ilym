@@ -38,6 +38,47 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}))
     const action = typeof body?.action === 'string' ? body.action : ''
 
+    if (action === 'update-bot-fallback-url') {
+      if (!isOwner(user) && !isAdmin(user)) {
+        return NextResponse.json(
+          { error: 'Only an owner or admin can update the bot fallback URL.' },
+          { status: 403, headers: getCorsHeaders(origin) }
+        )
+      }
+
+      const rawUrl = typeof body?.botFallbackUrl === 'string' ? body.botFallbackUrl.trim() : ''
+      const normalizedUrl = rawUrl || ''
+
+      if (normalizedUrl) {
+        try {
+          const parsed = new URL(normalizedUrl)
+          if (!['http:', 'https:'].includes(parsed.protocol)) {
+            throw new Error('Invalid protocol')
+          }
+        } catch {
+          return NextResponse.json(
+            { error: 'Fallback URL must be a valid http or https URL.' },
+            { status: 400, headers: getCorsHeaders(origin) }
+          )
+        }
+      }
+
+      const updatedUser = await prisma.user.update({
+        where: { id: user.id },
+        data: { botFallbackUrl: normalizedUrl || null, updatedAt: new Date() },
+        select: { botFallbackUrl: true },
+      })
+
+      return NextResponse.json(
+        {
+          success: true,
+          botFallbackUrl: updatedUser.botFallbackUrl || '',
+          message: 'Bot fallback URL updated successfully.',
+        },
+        { headers: getCorsHeaders(origin) }
+      )
+    }
+
     if (action === 'update-click-rate') {
       if (!isOwner(user) && !isAdmin(user)) {
         return NextResponse.json(

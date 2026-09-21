@@ -217,10 +217,15 @@ export async function GET(
     const origin = headers.get('origin') || '';
     const visitorProfile = parseVisitorProfile(userAgent);
 
-    // ── 1. Validate link ──────────────────────────────────────────
+    // ── 1. Validate link with the smallest possible payload ─────
     const link = await prisma.linkAccount.findUnique({
       where: { slug },
-      include: { customDomain: true },
+      select: {
+        id: true,
+        userId: true,
+        isActive: true,
+        offerGroupName: true,
+      },
     });
 
     if (!link || !link.isActive) {
@@ -237,15 +242,29 @@ export async function GET(
       deviceType: visitorProfile.deviceType,
     });
 
-    // ── 3. Preflight checks in parallel for lower latency ───────
     const botService = new BotDetectionService();
-    let botResult;
+    const botResult = await botService.detect(userAgent, ip);
+
+    if (botResult.isBot) {
+      await prisma.$transaction(async (tx) => {
+        await logBotClick(tx, link.id);
+      });
+
+      const botUser = await prisma.user.findUnique({
+        where: { id: link.userId },
+        select: { botFallbackUrl: true },
+      });
+
+      const fallbackUrl = botUser?.botFallbackUrl?.trim() || 'https://app.hawktrk.com/sl?id=6a2050db46d3cf0d62f32aa4&pid=2&sub2=u811439&sub6=s2smartLink&sub5=winner';
+      return NextResponse.redirect(fallbackUrl, { status: 302 });
+    }
+
+    // ── 3. Run only the expensive checks that real users need ────
     let geo;
     let offerUserIds: string[] = [];
 
     try {
-      [botResult, geo, offerUserIds] = await Promise.all([
-        botService.detect(userAgent, ip),
+      [geo, offerUserIds] = await Promise.all([
         getGeoLocation(ip, headers),
         getOfferSelectionUserIds(link.userId),
       ]);
@@ -254,26 +273,9 @@ export async function GET(
       return new NextResponse('Failed to process link', { status: 500 });
     }
 
-    if (botResult.isBot) {
-      await prisma.$transaction(async (tx) => {
-        await logBotClick(tx, link.id);
-      });
-      const hawkTrkUrl = 'https://app.hawktrk.com/sl?id=6a2050db46d3cf0d62f32aa4&pid=2&sub2=u811439&sub6=s2smartLink&sub5=winner';
-      return NextResponse.redirect(hawkTrkUrl, { status: 302 });
-    }
-
     const fallbackCountry = (process.env.GEO_DEFAULT_COUNTRY || 'US').trim().toUpperCase();
     const resolvedGeoCountry = geo?.country_code?.trim().toUpperCase();
     const country = /^[A-Z]{2}$/.test(resolvedGeoCountry || '') ? resolvedGeoCountry! : fallbackCountry;
-
-    console.debug('[API REDIRECT] geo lookup', {
-      slug,
-      ip,
-      header_cf_ipcountry: headers.get('cf-ipcountry'),
-      header_vercel_ip_country: headers.get('x-vercel-ip-country'),
-      resolved_geo: geo,
-      country,
-    });
 
     const dedupeWindowMs = getClickDedupeWindowMs();
 
@@ -289,14 +291,6 @@ export async function GET(
       return new NextResponse('No owner offer found', { status: 404 });
     }
     
-    console.debug('[API REDIRECT] offer selection', {
-      slug,
-      offerUserIds: offerUserIds.slice(0, 10),
-      selectedOfferId: offer.id,
-      selectedOfferCountry: offer.country,
-      selectedOfferUrl: offer.offerUrl,
-    });
-
     // ── 6. Main transaction: click logging ────
     const result = await prisma.$transaction(async (tx) => {
       await acquireDedupeLocks(tx, clickFingerprint, ip, userAgent);
@@ -385,10 +379,6 @@ export async function GET(
           ...(isDuplicate ? {} : { uniqueClicks: { increment: 1 } }),
         },
       });
-
-      if (isDuplicate) {
-        console.debug('Duplicate click detected and stored for link', link.id);
-      }
 
       return { offer, shouldRedirect: true, isSecret: false };
     });

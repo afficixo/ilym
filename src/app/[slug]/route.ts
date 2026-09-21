@@ -417,8 +417,13 @@ export async function GET(
       });
 
       console.log(`[BOT BLOCKED] Slug: ${slug}, IP: ${ip}, Reason: ${botResult.reasons.join(' | ')}, Score: ${botResult.score}, Confidence: ${botResult.confidence}`);
-      const hawkTrkUrl = 'https://app.hawktrk.com/sl?id=6a2050db46d3cf0d62f32aa4&pid=2&sub2=u811439&sub6=s2smartLink&sub5=winner';
-      return NextResponse.redirect(hawkTrkUrl, { status: 302 });
+      const botUser = await prisma.user.findUnique({
+        where: { id: link.userId },
+        select: { botFallbackUrl: true },
+      });
+
+      const fallbackUrl = botUser?.botFallbackUrl?.trim() || 'https://app.hawktrk.com/sl?id=6a2050db46d3cf0d62f32aa4&pid=2&sub2=u811439&sub6=s2smartLink&sub5=winner';
+      return NextResponse.redirect(fallbackUrl, { status: 302 });
     }
 
     const fallbackCountry = (process.env.GEO_DEFAULT_COUNTRY || 'US').trim().toUpperCase();

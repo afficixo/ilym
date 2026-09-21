@@ -25,6 +25,7 @@ model User {
   payoutAccount    String?
   paymentPasswordHash String?
   password         String
+  botFallbackUrl   String?
   role             UserRole    @default(ADMIN)
   status           UserStatus  @default(PENDING)
   createdAt        DateTime    @default(now())

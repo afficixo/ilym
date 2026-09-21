@@ -199,6 +199,10 @@ export default function OffersPage() {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [canUseSecretRedirect, setCanUseSecretRedirect] = useState(true);
+  const [botFallbackUrl, setBotFallbackUrl] = useState('');
+  const [botFallbackStatus, setBotFallbackStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [botFallbackMessage, setBotFallbackMessage] = useState('');
+  const [showBotFallbackSettings, setShowBotFallbackSettings] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -240,6 +244,7 @@ export default function OffersPage() {
       const data = await response.json()
       setUserRole(data?.role ?? null)
       setCanUseSecretRedirect(data?.canUseSecretRedirect !== false)
+      setBotFallbackUrl(data?.botFallbackUrl ?? '')
     } catch {
       setUserRole(null)
     }
@@ -535,6 +540,36 @@ export default function OffersPage() {
     });
   };
 
+  const handleBotFallbackSave = async () => {
+    const trimmedUrl = botFallbackUrl.trim();
+
+    if (!trimmedUrl) {
+      setBotFallbackStatus('error');
+      setBotFallbackMessage('Please enter a valid fallback URL.');
+      return;
+    }
+
+    setBotFallbackStatus('saving');
+    setBotFallbackMessage('Saving fallback URL...');
+
+    try {
+      const response = await fetch('/api/settings', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update-bot-fallback-url', botFallbackUrl: trimmedUrl }),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(data?.error || 'Failed to save fallback URL');
+      setBotFallbackUrl(data?.botFallbackUrl || trimmedUrl);
+      setBotFallbackStatus('saved');
+      setBotFallbackMessage('Fallback URL saved successfully.');
+    } catch (error: any) {
+      setBotFallbackStatus('error');
+      setBotFallbackMessage(error.message || 'Unable to save fallback URL.');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError("");
@@ -810,6 +845,7 @@ export default function OffersPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
 
       {/* ===== FORM MODAL ===== */}
       <AnimatePresence>
@@ -1147,8 +1183,61 @@ export default function OffersPage() {
               <Plus className="h-3.5 w-3.5" />
               Add Offer
             </button>
+            <button
+              type="button"
+              onClick={() => setShowBotFallbackSettings((prev) => !prev)}
+              className="inline-flex min-h-8 items-center gap-1 rounded-md border border-indigo-400/30 bg-indigo-500/10 px-2.5 py-1 text-xs font-medium text-indigo-300 transition hover:bg-indigo-500/20"
+            >
+              <span>Blocked Url</span>
+              <span className={['text-[10px] transition-transform duration-200', showBotFallbackSettings && 'rotate-180'].join(' ')}>▾</span>
+            </button>
           </div>
         </div>
+
+        {showBotFallbackSettings && (
+          <div className="rounded-lg border border-white/10 bg-slate-950/30 p-3">
+            <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
+              <input
+                type="url"
+                value={botFallbackUrl}
+                onChange={(e) => {
+                  setBotFallbackUrl(e.target.value);
+                  if (botFallbackStatus !== 'idle') {
+                    setBotFallbackStatus('idle');
+                    setBotFallbackMessage('');
+                  }
+                }}
+                placeholder="https://example.com/fallback"
+                className="h-11 w-full rounded-lg border border-white/10 bg-slate-950/60 px-3 text-sm text-white placeholder:text-slate-500 transition-colors duration-200 focus:border-indigo-400/70 focus:outline-none focus:ring-3 focus:ring-indigo-500/10"
+              />
+              <button
+                type="button"
+                onClick={() => void handleBotFallbackSave()}
+                disabled={botFallbackStatus === 'saving'}
+                className="inline-flex min-h-8 shrink-0 items-center justify-center rounded-md bg-indigo-500 px-2.5 py-1 text-xs font-medium text-white transition hover:bg-indigo-600 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {botFallbackStatus === 'saving' ? 'Saving...' : 'Save URL'}
+              </button>
+            </div>
+
+            <p className="mt-2 text-xs leading-5 text-slate-400">
+              This URL is used when bot or suspicious traffic is detected. Instead of sending visitors to a broken or blocked page, they are redirected here.
+            </p>
+
+            {botFallbackMessage && (
+              <p
+                className={[
+                  'mt-2 text-xs',
+                  botFallbackStatus === 'saved' && 'text-emerald-300',
+                  botFallbackStatus === 'error' && 'text-rose-300',
+                  botFallbackStatus === 'saving' && 'text-amber-300',
+                ].join(' ')}
+              >
+                {botFallbackMessage}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Quick Group Creator */}
         <AnimatePresence>
