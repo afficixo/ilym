@@ -80,14 +80,13 @@ export function isDuplicateClickEvent(
   context: DuplicateClickContext,
   windowMs = CLICK_DEDUPE_WINDOW_MS,
 ): boolean {
-  // Same IP must always be treated as the same visitor, even if it happens days later.
   const sameIpAddress = Boolean(
     hasMeaningfulMatchValue(context.ipAddress) &&
       hasMeaningfulMatchValue(context.lastIpAddress) &&
       normalizeMatchValue(context.ipAddress) === normalizeMatchValue(context.lastIpAddress),
   )
 
-  if (sameIpAddress) {
+  if (sameIpAddress && isDuplicateVisit(lastSeenAt, now, windowMs)) {
     return true
   }
 

@@ -91,7 +91,7 @@ test('marks a click as duplicate when the same user-agent is seen again inside t
   )
 })
 
-test('treats the same IP as duplicate even after many days have passed', () => {
+test('does not treat the same IP as duplicate after the dedupe window has expired', () => {
   const now = new Date('2026-07-20T10:00:00Z')
   const lastSeenAt = new Date('2026-07-13T09:55:00Z')
 
@@ -109,6 +109,6 @@ test('treats the same IP as duplicate even after many days have passed', () => {
       },
       10 * 60 * 1000,
     ),
-    true,
+    false,
   )
 })

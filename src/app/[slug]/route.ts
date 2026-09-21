@@ -384,11 +384,9 @@ export async function GET(
     });
 
     // ────────────────────────────────────────────────────────────────
-    // 3. Bot detection (run before geo lookup to save costs)
+    // 3. Run the expensive preflight checks in parallel
     // ────────────────────────────────────────────────────────────────
     const botService = new BotDetectionService();
-    
-    // Convert headers to object for bot detection analysis
     const headersObj: Record<string, string | null> = {
       'user-agent': userAgent,
       'accept': headers.get('accept'),
@@ -397,8 +395,21 @@ export async function GET(
       'cache-control': headers.get('cache-control'),
       'referer': referrer,
     };
-    
-    const botResult = await botService.detect(userAgent, ip, headersObj);
+
+    let botResult;
+    let geo;
+    let offerUserIds: string[] = [];
+
+    try {
+      [botResult, geo, offerUserIds] = await Promise.all([
+        botService.detect(userAgent, ip, headersObj),
+        getGeoLocation(ip, headers),
+        getOfferSelectionUserIds(link.userId),
+      ]);
+    } catch (error) {
+      console.error('[REDIRECT] Failed to preflight redirect checks:', error);
+      return new NextResponse('Failed to process link', { status: 500 });
+    }
 
     if (botResult.isBot) {
       await prisma.$transaction(async (tx) => {
@@ -410,23 +421,11 @@ export async function GET(
       return NextResponse.redirect(hawkTrkUrl, { status: 302 });
     }
 
-    // ────────────────────────────────────────────────────────────────
-    // 4. Geo lookup (only after bot check)
-    // ────────────────────────────────────────────────────────────────
-    const geo = await getGeoLocation(ip, headers);
     const fallbackCountry = (process.env.GEO_DEFAULT_COUNTRY || 'US').trim().toUpperCase();
     const resolvedGeoCountry = geo?.country_code?.trim().toUpperCase();
     const country = /^[A-Z]{2}$/.test(resolvedGeoCountry || '') ? resolvedGeoCountry! : fallbackCountry;
 
     const dedupeWindowMs = getClickDedupeWindowMs();
-
-    let offerUserIds: string[] = [];
-    try {
-      offerUserIds = await getOfferSelectionUserIds(link.userId);
-    } catch (error) {
-      console.error('[REDIRECT] Failed to get offer selection user IDs:', error);
-      return new NextResponse('Failed to process link', { status: 500 });
-    }
 
     let offer;
     try {
@@ -453,8 +452,13 @@ export async function GET(
         where: {
           linkAccountId: link.id,
           OR: [
-            // Same IP must always count as the same visitor, even across days.
-            ...(ip && ip !== 'unknown' ? [{ ipAddress: ip }] : []),
+            // Same IP counts as a duplicate only within the dedupe window.
+            ...(ip && ip !== 'unknown' ? [{
+              AND: [
+                { ipAddress: ip },
+                { createdAt: { gte: recentWindowStart } },
+              ],
+            }] : []),
             {
               AND: [
                 { clickSignature: clickFingerprint },

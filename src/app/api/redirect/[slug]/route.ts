@@ -237,9 +237,22 @@ export async function GET(
       deviceType: visitorProfile.deviceType,
     });
 
-    // ── 3. Bot detection (before geo lookup) ─────────────────────
+    // ── 3. Preflight checks in parallel for lower latency ───────
     const botService = new BotDetectionService();
-    const botResult = await botService.detect(userAgent, ip);
+    let botResult;
+    let geo;
+    let offerUserIds: string[] = [];
+
+    try {
+      [botResult, geo, offerUserIds] = await Promise.all([
+        botService.detect(userAgent, ip),
+        getGeoLocation(ip, headers),
+        getOfferSelectionUserIds(link.userId),
+      ]);
+    } catch (error) {
+      console.error('[API REDIRECT] Failed to preflight redirect checks:', error);
+      return new NextResponse('Failed to process link', { status: 500 });
+    }
 
     if (botResult.isBot) {
       await prisma.$transaction(async (tx) => {
@@ -249,8 +262,6 @@ export async function GET(
       return NextResponse.redirect(hawkTrkUrl, { status: 302 });
     }
 
-    // ── 4. Geo lookup (only after bot check) ─────────────────────
-    const geo = await getGeoLocation(ip, headers);
     const fallbackCountry = (process.env.GEO_DEFAULT_COUNTRY || 'US').trim().toUpperCase();
     const resolvedGeoCountry = geo?.country_code?.trim().toUpperCase();
     const country = /^[A-Z]{2}$/.test(resolvedGeoCountry || '') ? resolvedGeoCountry! : fallbackCountry;
@@ -265,14 +276,6 @@ export async function GET(
     });
 
     const dedupeWindowMs = getClickDedupeWindowMs();
-
-    let offerUserIds: string[] = [];
-    try {
-      offerUserIds = await getOfferSelectionUserIds(link.userId);
-    } catch (error) {
-      console.error('[API REDIRECT] Failed to get offer selection user IDs:', error);
-      return new NextResponse('Failed to process link', { status: 500 });
-    }
 
     let offer;
     try {
@@ -307,8 +310,13 @@ export async function GET(
         where: {
           linkAccountId: link.id,
           OR: [
-            // Same IP must always count as the same visitor, even across days.
-            ...(ip && ip !== 'unknown' ? [{ ipAddress: ip }] : []),
+            // Same IP counts as a duplicate only within the dedupe window.
+            ...(ip && ip !== 'unknown' ? [{
+              AND: [
+                { ipAddress: ip },
+                { createdAt: { gte: recentWindowStart } },
+              ],
+            }] : []),
             // Exact fingerprint within the short dedupe window.
             {
               AND: [

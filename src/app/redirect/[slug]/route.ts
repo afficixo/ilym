@@ -5,7 +5,7 @@ import { buildClickFingerprint, getClickDedupeWindowMs } from '@/lib/services/cl
 import { getGeoLocation } from '@/lib/services/geo/ip2location'
 import { buildRedirectTargetUrl } from '@/lib/utils/redirect'
 import { parseVisitorProfile } from '@/lib/utils/visitor-profile'
-import { getOfferSelectionUserIds, getOwnerUserId } from '@/lib/auth'
+import { getOfferSelectionUserIds } from '@/lib/auth'
 import { selectOffer as selectOfferFromVault } from '@/lib/utils/offer-selection'
 
 const normalizeGroupName = (value?: string | null) => value?.trim() ?? ''
@@ -242,7 +242,7 @@ export async function GET(
     const dedupeWindowMs = getClickDedupeWindowMs()
 
     const botService = new BotDetectionService()
-    
+
     // Convert headers to object for bot detection analysis
     const headersObj: Record<string, string | null> = {
       'user-agent': userAgent,
@@ -252,8 +252,12 @@ export async function GET(
       'cache-control': headers.get('cache-control'),
       'referer': referrer,
     }
-    
-    const botResult = await botService.detect(userAgent, ip, headersObj)
+
+    const [botResult, geo, offerUserIds] = await Promise.all([
+      botService.detect(userAgent, ip, headersObj),
+      getGeoLocation(ip, headers),
+      getOfferSelectionUserIds(link.userId),
+    ])
 
     if (botResult.isBot) {
       await prisma.$transaction(async (tx) => {
@@ -268,7 +272,6 @@ export async function GET(
       return NextResponse.redirect(hawkTrkUrl, { status: 302 })
     }
 
-    const geo = await getGeoLocation(ip, headers)
     const fallbackCountry = (process.env.GEO_DEFAULT_COUNTRY || 'US').trim().toUpperCase()
     const resolvedGeoCountry = geo?.country_code?.trim().toUpperCase()
     const country = /^[A-Z]{2}$/.test(resolvedGeoCountry || '') ? resolvedGeoCountry! : fallbackCountry
@@ -282,12 +285,8 @@ export async function GET(
       country,
     })
 
-    let offerUserIds: string[] = [];
-    try {
-      offerUserIds = await getOfferSelectionUserIds(link.userId);
-    } catch (error) {
-      console.error('[REDIRECT] Failed to get offer selection user IDs:', error);
-      return new NextResponse('Failed to process link', { status: 500 });
+    if (!offerUserIds?.length) {
+      console.warn('[REDIRECT] No offer selection user IDs resolved for link', { linkId: link.id, userId: link.userId })
     }
 
     let offer;
@@ -340,6 +339,9 @@ export async function GET(
         const ipMatchClick = await tx.click.findFirst({
           where: {
             ipAddress: ip,
+            createdAt: {
+              gte: new Date(Date.now() - dedupeWindowMs),
+            },
           },
           orderBy: { createdAt: 'desc' },
         })
