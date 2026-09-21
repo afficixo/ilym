@@ -345,7 +345,11 @@ export async function getUserFromToken(token: string): Promise<AuthUser | null> 
     })) as AuthUser | null
     return user?.status === 'DISABLED' ? null : user
   } catch (error: any) {
-    if (error?.code !== 'P2022' || !String(error?.meta?.column || '').includes('commissionRate')) {
+    const missingColumn = String(error?.meta?.column || '') + ' ' + String(error?.message || '')
+    const isMissingCommissionRate = missingColumn.includes('commissionRate')
+    const isMissingBotFallbackUrl = missingColumn.includes('botFallbackUrl')
+
+    if (error?.code !== 'P2022' || (!isMissingCommissionRate && !isMissingBotFallbackUrl)) {
       throw error
     }
 
@@ -358,6 +362,8 @@ export async function getUserFromToken(token: string): Promise<AuthUser | null> 
         role: true,
         bkashNumber: true,
         clickRate: true,
+        ...(isMissingCommissionRate ? {} : { commissionRate: true }),
+        ...(isMissingBotFallbackUrl ? {} : { botFallbackUrl: true }),
         payoutMethod: true,
         payoutAccount: true,
         status: true,

@@ -63,16 +63,33 @@ export async function POST(request: Request) {
         }
       }
 
-      const updatedUser = await prisma.user.update({
-        where: { id: user.id },
-        data: { botFallbackUrl: normalizedUrl || null, updatedAt: new Date() },
-        select: { botFallbackUrl: true },
-      })
+      let updatedUser: { botFallbackUrl: string | null } | null = null
+
+      try {
+        updatedUser = await prisma.user.update({
+          where: { id: user.id },
+          data: { botFallbackUrl: normalizedUrl || null, updatedAt: new Date() },
+          select: { botFallbackUrl: true },
+        })
+      } catch (error: any) {
+        const missingColumn = String(error?.meta?.column || '') + ' ' + String(error?.message || '')
+        if (error?.code === 'P2022' && missingColumn.includes('botFallbackUrl')) {
+          return NextResponse.json(
+            {
+              success: false,
+              botFallbackUrl: '',
+              message: 'The database is missing the users.botFallbackUrl column. Run the migration to enable the bot fallback URL feature.',
+            },
+            { status: 500, headers: getCorsHeaders(origin) }
+          )
+        }
+        throw error
+      }
 
       return NextResponse.json(
         {
           success: true,
-          botFallbackUrl: updatedUser.botFallbackUrl || '',
+          botFallbackUrl: updatedUser?.botFallbackUrl || '',
           message: 'Bot fallback URL updated successfully.',
         },
         { headers: getCorsHeaders(origin) }

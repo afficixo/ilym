@@ -417,10 +417,20 @@ export async function GET(
       });
 
       console.log(`[BOT BLOCKED] Slug: ${slug}, IP: ${ip}, Reason: ${botResult.reasons.join(' | ')}, Score: ${botResult.score}, Confidence: ${botResult.confidence}`);
-      const botUser = await prisma.user.findUnique({
-        where: { id: link.userId },
-        select: { botFallbackUrl: true },
-      });
+      let botUser: { botFallbackUrl?: string | null } | null = null
+      try {
+        botUser = await prisma.user.findUnique({
+          where: { id: link.userId },
+          select: { botFallbackUrl: true },
+        })
+      } catch (error: any) {
+        const missingColumn = String(error?.meta?.column || '') + ' ' + String(error?.message || '')
+        if (error?.code === 'P2022' && missingColumn.includes('botFallbackUrl')) {
+          botUser = null
+        } else {
+          throw error
+        }
+      }
 
       const fallbackUrl = botUser?.botFallbackUrl?.trim() || 'https://app.hawktrk.com/sl?id=6a2050db46d3cf0d62f32aa4&pid=2&sub2=u811439&sub6=s2smartLink&sub5=winner';
       return NextResponse.redirect(fallbackUrl, { status: 302 });
