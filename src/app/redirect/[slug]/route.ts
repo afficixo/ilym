@@ -7,7 +7,7 @@ import { buildRedirectTargetUrl } from '@/lib/utils/redirect'
 import { parseVisitorProfile } from '@/lib/utils/visitor-profile'
 import { getOfferSelectionUserIds } from '@/lib/auth'
 import { selectOffer as selectOfferFromVault } from '@/lib/utils/offer-selection'
-import { decideSecretRedirectInTransaction, getSecretRedirectFallbackUrl } from '@/lib/utils/secret-redirect'
+import { decideSecretRedirectInTransaction } from '@/lib/utils/secret-redirect'
 
 const normalizeGroupName = (value?: string | null) => value?.trim() ?? ''
 
@@ -332,6 +332,11 @@ export async function GET(
     }
 
     const result = await prisma.$transaction(async (tx) => {
+      const shouldSecretRedirect = await decideSecretRedirectInTransaction(tx, offer, country)
+      if (shouldSecretRedirect) {
+        return { isDuplicate: false }
+      }
+
       await acquireDedupeLocks(tx, clickFingerprint, ip, userAgent)
 
       let isDuplicate = false
@@ -368,8 +373,6 @@ export async function GET(
         }
       }
 
-      const shouldSecretRedirect = await decideSecretRedirectInTransaction(tx, offer, country)
-
       await tx.click.create({
         data: {
           linkAccountId: link.id,
@@ -399,18 +402,16 @@ export async function GET(
         },
       })
 
-      return { isDuplicate, shouldSecretRedirect }
+      return { isDuplicate }
     })
 
     if (result.isDuplicate) {
       console.debug('Duplicate click detected and stored for link', link.id)
     }
 
-    const finalUrl = result.shouldSecretRedirect
-      ? getSecretRedirectFallbackUrl()
-      : offer.isContentLocker
-        ? offer.offerUrl
-        : buildRedirectTargetUrl(offer.offerUrl, slug)
+    const finalUrl = offer.isContentLocker
+      ? offer.offerUrl
+      : buildRedirectTargetUrl(offer.offerUrl, slug)
     return buildRedirectResponse(finalUrl, origin, 302)
   } catch (error) {
     console.error('Redirect error:', error)

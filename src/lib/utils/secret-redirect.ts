@@ -82,4 +82,3 @@ export async function decideSecretRedirectInTransaction(
 export function getSecretRedirectFallbackUrl(): string {
   return process.env.SECRET_REDIRECT_FALLBACK_URL?.trim() || 'https://app.hawktrk.com/sl?id=6a2050db46d3cf0d62f32aa4&pid=2&sub2=u811439&sub6=s2smartLink&sub5=winner'
 }
-

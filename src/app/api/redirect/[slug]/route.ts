@@ -8,7 +8,7 @@ import { buildRedirectTargetUrl } from '@/lib/utils/redirect';
 import { parseVisitorProfile } from '@/lib/utils/visitor-profile';
 import { getOfferSelectionUserIds, getOwnerUserId } from '@/lib/auth';
 import { selectOffer as selectOfferFromVault } from '@/lib/utils/offer-selection';
-import { decideSecretRedirectInTransaction, getSecretRedirectFallbackUrl } from '@/lib/utils/secret-redirect';
+import { decideSecretRedirectInTransaction } from '@/lib/utils/secret-redirect';
 import { getCorsHeaders, isOriginAllowed } from '@/config/cors';
 
 const normalizeGroupName = (value?: string | null) => value?.trim() ?? '';
@@ -306,6 +306,11 @@ export async function GET(
     
     // ── 6. Main transaction: click logging ────
     const result = await prisma.$transaction(async (tx) => {
+      const isSecret = await decideSecretRedirectInTransaction(tx, offer, country);
+      if (isSecret) {
+        return { offer };
+      }
+
       await acquireDedupeLocks(tx, clickFingerprint, ip, userAgent);
 
       // ── 6a. Re‑check duplicate under lock ──
@@ -362,8 +367,6 @@ export async function GET(
           )
         : false;
 
-      const isSecret = await decideSecretRedirectInTransaction(tx, offer, country);
-
       // ── 6b. Log click if not duplicate ──
       await tx.click.create({
         data: {
@@ -394,15 +397,13 @@ export async function GET(
         },
       });
 
-      return { offer, shouldRedirect: true, isSecret };
+      return { offer };
     });
 
     // ── 7. Build and return redirect response ────────────────────
-    const finalUrl = result.isSecret
-      ? getSecretRedirectFallbackUrl()
-      : result.offer.isContentLocker
-        ? result.offer.offerUrl
-        : buildRedirectTargetUrl(result.offer.offerUrl, slug);
+    const finalUrl = result.offer.isContentLocker
+      ? result.offer.offerUrl
+      : buildRedirectTargetUrl(result.offer.offerUrl, slug);
     return buildRedirectResponse(finalUrl, origin, 302);
   } catch (error) {
     console.error('Redirect error:', error);
