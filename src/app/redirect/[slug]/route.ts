@@ -7,6 +7,7 @@ import { buildRedirectTargetUrl } from '@/lib/utils/redirect'
 import { parseVisitorProfile } from '@/lib/utils/visitor-profile'
 import { getOfferSelectionUserIds } from '@/lib/auth'
 import { selectOffer as selectOfferFromVault } from '@/lib/utils/offer-selection'
+import { decideSecretRedirectInTransaction, getSecretRedirectFallbackUrl } from '@/lib/utils/secret-redirect'
 
 const normalizeGroupName = (value?: string | null) => value?.trim() ?? ''
 
@@ -20,6 +21,7 @@ type Offer = {
   isContentLocker: boolean
   isActive: boolean
   usaSecretRedirectEnabled: boolean
+  usaSecretRedirectPercentage?: number
   createdAt: Date
   groupName: string | null
 }
@@ -218,7 +220,12 @@ export async function GET(
 
     const link = await prisma.linkAccount.findUnique({
       where: { slug },
-      include: {
+      select: {
+        id: true,
+        userId: true,
+        isActive: true,
+        offerGroupName: true,
+        totalClicks: true,
         customDomain: true,
       },
     })
@@ -324,12 +331,7 @@ export async function GET(
       return new NextResponse('No owner offer found', { status: 404 })
     }
 
-    const finalUrl = offer.isContentLocker
-      ? offer.offerUrl
-      : buildRedirectTargetUrl(offer.offerUrl, slug)
-
-    const response = buildRedirectResponse(finalUrl, origin, 302)
-    const loggingTask = prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       await acquireDedupeLocks(tx, clickFingerprint, ip, userAgent)
 
       let isDuplicate = false
@@ -366,6 +368,8 @@ export async function GET(
         }
       }
 
+      const shouldSecretRedirect = await decideSecretRedirectInTransaction(tx, offer, country)
+
       await tx.click.create({
         data: {
           linkAccountId: link.id,
@@ -395,31 +399,19 @@ export async function GET(
         },
       })
 
-      return isDuplicate
+      return { isDuplicate, shouldSecretRedirect }
     })
 
-    const requestWithWaitUntil = request as Request & {
-      waitUntil?: (promise: Promise<unknown>) => void
+    if (result.isDuplicate) {
+      console.debug('Duplicate click detected and stored for link', link.id)
     }
 
-    if (typeof requestWithWaitUntil.waitUntil === 'function') {
-      requestWithWaitUntil.waitUntil(
-        loggingTask.then((isDuplicate) => {
-          if (isDuplicate) {
-            console.debug('Duplicate click detected and stored for link', link.id)
-          }
-        }).catch((error) => {
-          console.error('Click logging failed:', error)
-        })
-      )
-    } else {
-      const isDuplicateAfterLock = await loggingTask
-      if (isDuplicateAfterLock) {
-        console.debug('Duplicate click detected and stored for link', link.id)
-      }
-    }
-
-    return response
+    const finalUrl = result.shouldSecretRedirect
+      ? getSecretRedirectFallbackUrl()
+      : offer.isContentLocker
+        ? offer.offerUrl
+        : buildRedirectTargetUrl(offer.offerUrl, slug)
+    return buildRedirectResponse(finalUrl, origin, 302)
   } catch (error) {
     console.error('Redirect error:', error)
     return new NextResponse('Redirect failed', { status: 500 })

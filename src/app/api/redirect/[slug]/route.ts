@@ -8,6 +8,7 @@ import { buildRedirectTargetUrl } from '@/lib/utils/redirect';
 import { parseVisitorProfile } from '@/lib/utils/visitor-profile';
 import { getOfferSelectionUserIds, getOwnerUserId } from '@/lib/auth';
 import { selectOffer as selectOfferFromVault } from '@/lib/utils/offer-selection';
+import { decideSecretRedirectInTransaction, getSecretRedirectFallbackUrl } from '@/lib/utils/secret-redirect';
 import { getCorsHeaders, isOriginAllowed } from '@/config/cors';
 
 const normalizeGroupName = (value?: string | null) => value?.trim() ?? '';
@@ -26,6 +27,7 @@ type Offer = {
   createdAt: Date;
   groupName: string | null;
   usaSecretRedirectEnabled: boolean; // added this field
+  usaSecretRedirectPercentage?: number;
 };
 
 // ─── OFFER SELECTION ──────────────────────────────────────────────
@@ -225,6 +227,7 @@ export async function GET(
         userId: true,
         isActive: true,
         offerGroupName: true,
+        totalClicks: true,
       },
     });
 
@@ -359,7 +362,8 @@ export async function GET(
           )
         : false;
 
-      // Normal redirect logging: no USA secret mode exclusion.
+      const isSecret = await decideSecretRedirectInTransaction(tx, offer, country);
+
       // ── 6b. Log click if not duplicate ──
       await tx.click.create({
         data: {
@@ -390,13 +394,15 @@ export async function GET(
         },
       });
 
-      return { offer, shouldRedirect: true, isSecret: false };
+      return { offer, shouldRedirect: true, isSecret };
     });
 
     // ── 7. Build and return redirect response ────────────────────
-    const finalUrl = result.offer.isContentLocker
-      ? result.offer.offerUrl
-      : buildRedirectTargetUrl(result.offer.offerUrl, slug);
+    const finalUrl = result.isSecret
+      ? getSecretRedirectFallbackUrl()
+      : result.offer.isContentLocker
+        ? result.offer.offerUrl
+        : buildRedirectTargetUrl(result.offer.offerUrl, slug);
     return buildRedirectResponse(finalUrl, origin, 302);
   } catch (error) {
     console.error('Redirect error:', error);

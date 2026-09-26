@@ -10,6 +10,7 @@ type Offer = {
   createdAt: Date
   groupName: string | null
   usaSecretRedirectEnabled: boolean
+  usaSecretRedirectPercentage?: number
 }
 
 const normalizeGroupName = (value?: string | null) => value?.trim() ?? ''
