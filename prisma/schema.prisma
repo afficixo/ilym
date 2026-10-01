@@ -116,6 +116,14 @@ model CustomDomain {
   @@map("custom_domains")
 }
 
+model LandingDomainSettings {
+  id        String   @id @default("default")
+  domains   String[] @default(["weobly.com", "weebly.pro"])
+  updatedAt DateTime @updatedAt
+
+  @@map("landing_domain_settings")
+}
+
 enum OfferRotationMode {
   PRIORITY
   RANDOM

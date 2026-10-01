@@ -1,12 +1,31 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getCookieValue } from '@/lib/utils/helpers'
-import { getLandingPageSubdomainFromHost } from '@/lib/utils/landing-page-host'
+import { prisma } from '@/lib/db/prisma'
+import { DEFAULT_LANDING_PAGE_DOMAINS, getLandingPageSubdomainFromHost } from '@/lib/utils/landing-page-host'
 
-export function proxy(request: NextRequest) {
+async function getLandingPageSubdomain(host?: string | null) {
+  const hostname = host?.split(':')[0].toLowerCase().trim()
+  if (!hostname || hostname.split('.').length < 3 || hostname.endsWith('.localhost')) {
+    return getLandingPageSubdomainFromHost(host, [])
+  }
+
+  try {
+    const settings = await prisma.landingDomainSettings.findUnique({
+      where: { id: 'default' },
+      select: { domains: true },
+    })
+    return getLandingPageSubdomainFromHost(host, settings?.domains ?? DEFAULT_LANDING_PAGE_DOMAINS)
+  } catch (error) {
+    console.error('Failed to load landing page domains:', error)
+    return getLandingPageSubdomainFromHost(host)
+  }
+}
+
+export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
   const host = request.headers.get('host')
-  const subdomain = getLandingPageSubdomainFromHost(host)
+  const subdomain = await getLandingPageSubdomain(host)
 
   // If subdomain is detected and root path, route to landing page
   if (subdomain && (path === '/' || path === '')) {

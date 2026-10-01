@@ -2,8 +2,12 @@
 
 import Link from 'next/link'
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, Trash2, Edit2, X, ArrowLeft, Image as ImageIcon } from 'lucide-react'
+import { Plus, Trash2, Edit2, X, ArrowLeft, Image as ImageIcon, Check, Globe } from 'lucide-react'
 import AfficixoLoading from '@/components/ui/AfficixoLoading'
+import {
+  DEFAULT_LANDING_PAGE_DOMAIN_SETTINGS,
+  type LandingPageDomainSetting,
+} from '@/lib/utils/landing-page-host'
 
 interface Template {
   id: string
@@ -26,6 +30,9 @@ export default function TemplateManager() {
   const [success, setSuccess] = useState('')
   const [userRole, setUserRole] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
+  const [landingPageDomains, setLandingPageDomains] = useState<LandingPageDomainSetting[]>(DEFAULT_LANDING_PAGE_DOMAIN_SETTINGS)
+  const [newLandingPageDomain, setNewLandingPageDomain] = useState('')
+  const [isSavingDomains, setIsSavingDomains] = useState(false)
 
   // Form state
   const [formData, setFormData] = useState({
@@ -67,12 +74,67 @@ export default function TemplateManager() {
     }
   }, [])
 
+  const fetchLandingPageDomains = useCallback(async () => {
+    try {
+      const response = await fetch('/api/landing-pages/domains')
+      if (response.ok) {
+        const data = await response.json()
+        if (Array.isArray(data.domains) && data.domains.length > 0) {
+          setLandingPageDomains(data.domains)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load landing page domains:', err)
+    }
+  }, [])
+
   useEffect(() => {
     checkUserRole()
     fetchTemplates()
+    fetchLandingPageDomains()
     setError('')
     setSuccess('')
-  }, [checkUserRole, fetchTemplates])
+  }, [checkUserRole, fetchTemplates, fetchLandingPageDomains])
+
+  const addLandingPageDomain = () => {
+    const domain = newLandingPageDomain.trim().toLowerCase()
+    if (!/^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/.test(domain)) {
+      setError('Enter a valid root domain without https:// or a path')
+      return
+    }
+    if (landingPageDomains.some((item) => item.domain === domain)) {
+      setError('This landing page domain is already configured')
+      return
+    }
+    if (landingPageDomains.length >= 10) {
+      setError('You can configure up to 10 landing page domains')
+      return
+    }
+    setLandingPageDomains((domains) => [...domains, { domain, includeProtocol: false }])
+    setNewLandingPageDomain('')
+    setError('')
+  }
+
+  const saveLandingPageDomains = async () => {
+    setIsSavingDomains(true)
+    setError('')
+    try {
+      const response = await fetch('/api/landing-pages/domains', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domains: landingPageDomains }),
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Failed to save landing page domains')
+      setLandingPageDomains(data.domains)
+      setSuccess('Landing page domains saved')
+      setTimeout(() => setSuccess(''), 3000)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save landing page domains')
+    } finally {
+      setIsSavingDomains(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -257,6 +319,84 @@ export default function TemplateManager() {
             )}
           </div>
         </div>
+
+        <section className="mb-6 rounded-lg border border-slate-700/80 bg-slate-900/40 p-4">
+          <div className="mb-4 flex items-start gap-3">
+            <Globe className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
+            <div>
+              <h2 className="text-sm font-semibold text-white">Landing page root domains</h2>
+              <p className="mt-1 text-xs text-slate-400">Manage the domains shown on landing page links. Each domain must have DNS pointed to this app.</p>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input
+              type="text"
+              value={newLandingPageDomain}
+              onChange={(event) => setNewLandingPageDomain(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault()
+                  addLandingPageDomain()
+                }
+              }}
+              placeholder="example.com"
+              aria-label="New landing page root domain"
+              className="h-10 min-w-0 flex-1 rounded-md border border-slate-700 bg-slate-950 px-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15"
+            />
+            <button
+              type="button"
+              onClick={addLandingPageDomain}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-600 px-3 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-800"
+            >
+              <Plus className="h-4 w-4" />
+              Add domain
+            </button>
+          </div>
+          <ul className="mt-3 divide-y divide-slate-800 border-y border-slate-800">
+            {landingPageDomains.map((domain) => (
+              <li key={domain.domain} className="flex min-h-10 items-center justify-between gap-3 py-1">
+                <span className="font-mono text-sm text-emerald-300">{domain.domain}</span>
+                <div className="flex shrink-0 items-center gap-3">
+                  <label className="flex cursor-pointer items-center gap-2 text-xs text-slate-400">
+                    <input
+                      type="checkbox"
+                      checked={domain.includeProtocol}
+                      onChange={(event) => setLandingPageDomains((domains) => domains.map((item) => item.domain === domain.domain
+                        ? { ...item, includeProtocol: event.target.checked }
+                        : item))}
+                      disabled={isSavingDomains}
+                      className="h-4 w-4 accent-emerald-500"
+                      aria-label={`Show https:// for ${domain.domain}`}
+                    />
+                    <span>Show https://</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setLandingPageDomains((domains) => domains.filter((item) => item.domain !== domain.domain))}
+                    disabled={landingPageDomains.length <= 1 || isSavingDomains}
+                    className="rounded p-1.5 text-slate-400 transition-colors hover:bg-red-500/10 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-40"
+                    aria-label={`Remove ${domain.domain}`}
+                    title="Remove domain"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-slate-500">Changes update generated links and host routing after saving.</p>
+            <button
+              type="button"
+              onClick={saveLandingPageDomains}
+              disabled={isSavingDomains}
+              className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-emerald-600 px-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-500 disabled:cursor-wait disabled:opacity-60"
+            >
+              <Check className="h-4 w-4" />
+              {isSavingDomains ? 'Saving...' : 'Save domains'}
+            </button>
+          </div>
+        </section>
 
         {/* Form */}
         {showForm && (

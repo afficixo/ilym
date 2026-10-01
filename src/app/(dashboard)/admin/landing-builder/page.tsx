@@ -4,6 +4,11 @@ import Image from 'next/image'
 import { useState, useEffect, useCallback } from 'react'
 import AfficixoLoading from '@/components/ui/AfficixoLoading'
 import {
+  DEFAULT_LANDING_PAGE_DOMAIN_SETTINGS,
+  formatLandingPageUrl,
+  type LandingPageDomainSetting,
+} from '@/lib/utils/landing-page-host'
+import {
   Plus,
   Trash2,
   Copy,
@@ -78,6 +83,7 @@ export default function LandingPageBuilder() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [landingPageDomain, setLandingPageDomain] = useState('')
+  const [landingPageDomains, setLandingPageDomains] = useState<LandingPageDomainSetting[]>(DEFAULT_LANDING_PAGE_DOMAIN_SETTINGS)
   const [userId, setUserId] = useState<string | null>(null)
   const [userRole, setUserRole] = useState<string | null>(null)
   const [managerFilter, setManagerFilter] = useState('all')
@@ -140,6 +146,20 @@ export default function LandingPageBuilder() {
     }
   }, [])
 
+  const fetchLandingPageDomains = useCallback(async () => {
+    try {
+      const response = await fetch('/api/landing-pages/domains')
+      if (response.ok) {
+        const data = await response.json()
+        if (Array.isArray(data.domains) && data.domains.length > 0) {
+          setLandingPageDomains(data.domains)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load landing page domains:', err)
+    }
+  }, [])
+
   const selectTemplateAt = (index: number) => {
     const template = templates[index]
     if (!template) return
@@ -151,7 +171,8 @@ export default function LandingPageBuilder() {
     setLandingPageDomain(getDomain())
     fetchCurrentUser()
     fetchTemplates()
-  }, [fetchCurrentUser, fetchTemplates])
+    fetchLandingPageDomains()
+  }, [fetchCurrentUser, fetchTemplates, fetchLandingPageDomains])
 
   useEffect(() => {
     if (userId) {
@@ -314,7 +335,10 @@ export default function LandingPageBuilder() {
   const canDeleteSelected = selectedPages.length > 0 && (userRole === 'OWNER' || selectedPages.every((page) => page.userId === userId))
 
   const copySelectedLinks = async () => {
-    const links = selectedPages.map((page) => `https://${page.subdomain}.${landingPageDomain}`)
+    const domain = landingPageDomains[0]
+    const links = selectedPages.map((page) => domain
+      ? formatLandingPageUrl(page.subdomain, domain)
+      : `${page.subdomain}.${landingPageDomain}`)
     try {
       await navigator.clipboard.writeText(links.join('\n'))
       setSuccess(`Copied ${links.length} landing page link${links.length === 1 ? '' : 's'}`)
@@ -550,42 +574,26 @@ export default function LandingPageBuilder() {
                         )}
                       </div>
                       <div className="divide-y divide-slate-800/80 border-y border-slate-800/80">
-                        <div className="flex min-h-9 min-w-0 items-center justify-between gap-2 py-1">
-                          <h3
-                            className="min-w-0 flex-1 truncate font-mono text-sm text-emerald-600 dark:text-emerald-400"
-                            title={`https://${page.subdomain}.weobly.com`}
-                          >
-                            {page.subdomain}.weobly.com
-                          </h3>
-                          <button
-                            type="button"
-                            onClick={() => copyLandingPageLink(page, 'weobly.com')}
-                            className="flex shrink-0 items-center justify-center gap-1 whitespace-nowrap rounded-md px-2 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/70"
-                            aria-label={`Copy URL for ${page.subdomain}`}
-                            title="Copy link"
-                          >
-                            <Copy className="h-3.5 w-3.5" />
-                            <span className="hidden sm:inline">Copy</span>
-                          </button>
-                        </div>
-                        <div className="flex min-h-9 min-w-0 items-center justify-between gap-2 py-1">
-                          <p
-                            className="min-w-0 flex-1 truncate font-mono text-sm text-green-800 dark:text-green-300"
-                            title={`https://${page.subdomain}.weebly.pro`}
-                          >
-                            {page.subdomain}.weebly.pro
-                          </p>
-                          <button
-                            type="button"
-                            onClick={() => copyLandingPageLink(page, 'weebly.pro', true)}
-                            className="flex shrink-0 items-center justify-center gap-1 whitespace-nowrap rounded-md px-2 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/70"
-                            aria-label={`Copy Weebly URL for ${page.subdomain}`}
-                            title="Copy Weebly URL"
-                          >
-                            <Copy className="h-3.5 w-3.5" />
-                            <span className="hidden sm:inline">Copy</span>
-                          </button>
-                        </div>
+                        {landingPageDomains.map((domain) => (
+                          <div key={domain.domain} className="flex min-h-9 min-w-0 items-center justify-between gap-2 py-1">
+                            <h3
+                              className="min-w-0 flex-1 truncate font-mono text-sm text-emerald-600 dark:text-emerald-400"
+                              title={formatLandingPageUrl(page.subdomain, domain)}
+                            >
+                              {formatLandingPageUrl(page.subdomain, domain)}
+                            </h3>
+                            <button
+                              type="button"
+                              onClick={() => copyLandingPageLink(page, domain.domain, domain.includeProtocol)}
+                              className="flex shrink-0 items-center justify-center gap-1 whitespace-nowrap rounded-md px-2 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/70"
+                              aria-label={`Copy URL for ${page.subdomain}.${domain.domain}`}
+                              title="Copy link"
+                            >
+                              <Copy className="h-3.5 w-3.5" />
+                              <span className="hidden sm:inline">Copy</span>
+                            </button>
+                          </div>
+                        ))}
                       </div>
                     </div>
 

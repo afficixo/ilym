@@ -1,4 +1,37 @@
-export function getLandingPageSubdomainFromHost(hostHeader?: string | null): string | null {
+export interface LandingPageDomainSetting {
+  domain: string
+  includeProtocol: boolean
+}
+
+export const DEFAULT_LANDING_PAGE_DOMAIN_SETTINGS: LandingPageDomainSetting[] = [
+  { domain: 'weobly.com', includeProtocol: false },
+  { domain: 'weebly.pro', includeProtocol: true },
+]
+export const DEFAULT_LANDING_PAGE_DOMAINS = DEFAULT_LANDING_PAGE_DOMAIN_SETTINGS.map(({ domain }) => domain)
+
+export function formatLandingPageUrl(subdomain: string, setting: LandingPageDomainSetting): string {
+  return `${setting.includeProtocol ? 'https://' : ''}${subdomain}.${setting.domain}`
+}
+
+export function deserializeLandingPageDomain(value: string): LandingPageDomainSetting {
+  const hasExplicitProtocol = /^https?:\/\//i.test(value)
+  const domain = value.replace(/^https?:\/\//i, '')
+  const defaultProtocol = DEFAULT_LANDING_PAGE_DOMAIN_SETTINGS.find((setting) => setting.domain === domain)?.includeProtocol ?? false
+
+  return {
+    domain,
+    includeProtocol: hasExplicitProtocol ? /^https:\/\//i.test(value) : defaultProtocol,
+  }
+}
+
+export function serializeLandingPageDomain(setting: LandingPageDomainSetting): string {
+  return `${setting.includeProtocol ? 'https://' : 'http://'}${setting.domain}`
+}
+
+export function getLandingPageSubdomainFromHost(
+  hostHeader?: string | null,
+  additionalRootDomains?: string[],
+): string | null {
   if (!hostHeader) return null
 
   const host = hostHeader.split(':')[0].toLowerCase().trim()
@@ -11,7 +44,9 @@ export function getLandingPageSubdomainFromHost(hostHeader?: string | null): str
     .toLowerCase()
 
   const configuredRootDomain = landingPageDomain.replace(/^www\./i, '')
-  const fallbackRootDomains = ['weebly.pro', 'www.weebly.pro', 'weobly.com', 'www.weobly.com', 'afficix.com', 'www.afficix.com']
+  const fallbackRootDomains = additionalRootDomains === undefined
+    ? [...DEFAULT_LANDING_PAGE_DOMAINS, 'afficix.com'].flatMap((domain) => [domain, `www.${domain}`])
+    : []
   const candidateRootDomains = new Set([
     configuredRootDomain,
     `www.${configuredRootDomain}`,
@@ -19,6 +54,10 @@ export function getLandingPageSubdomainFromHost(hostHeader?: string | null): str
     `app.${configuredRootDomain}`,
     `api.${configuredRootDomain}`,
     ...fallbackRootDomains,
+    ...(additionalRootDomains || []).flatMap((domain) => {
+      const rootDomain = domain.replace(/^https?:\/\//i, '').toLowerCase()
+      return [rootDomain, `www.${rootDomain}`]
+    }),
   ])
 
   const rootDomains = [...candidateRootDomains].filter(Boolean)
