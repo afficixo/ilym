@@ -36,11 +36,6 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  if (path === '/login' && token) {
-    const dashboardUrl = new URL('/admin/dashboard', request.url)
-    return NextResponse.redirect(dashboardUrl)
-  }
-
   const dashboardAlias = path.match(/^\/(owner|publisher)(\/.*)?$/)
   const hasDedicatedRoute =
     path === '/owner/dashboard' ||

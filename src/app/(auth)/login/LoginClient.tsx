@@ -29,6 +29,30 @@ export default function LoginClient() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
+  useEffect(() => {
+    let isActive = true;
+
+    const restoreSession = async () => {
+      try {
+        const response = await fetch("/api/auth/me", {
+          credentials: "include",
+          cache: "no-store",
+        });
+        if (!isActive || !response.ok) return;
+
+        const user = await response.json();
+        router.replace(getDashboardPath(user.role));
+      } catch (error) {
+        console.error("Session check failed:", error);
+      }
+    };
+
+    void restoreSession();
+    return () => {
+      isActive = false;
+    };
+  }, [router]);
+
   // ─── OPTIMISED PARTICLE NETWORK ───
   useEffect(() => {
     const canvas = canvasRef.current;

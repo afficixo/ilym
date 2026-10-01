@@ -16,6 +16,13 @@ test('detects custom production subdomains for the app domain', () => {
   assert.equal(getLandingPageSubdomainFromHost('summer-sale.afficixo.com'), 'summer-sale')
 })
 
+test('detects weobly.com landing page subdomains when the app URL is not configured', () => {
+  delete process.env.NEXT_PUBLIC_LANDING_PAGE_DOMAIN
+  delete process.env.NEXT_PUBLIC_APP_URL
+  assert.equal(getLandingPageSubdomainFromHost('summer-sale.weobly.com'), 'summer-sale')
+  assert.equal(getLandingPageSubdomainFromHost('weobly.com'), null)
+})
+
 test('detects weebly.pro landing page subdomains even when app URL is not configured', () => {
   delete process.env.NEXT_PUBLIC_APP_URL
   assert.equal(getLandingPageSubdomainFromHost('tests.weebly.pro'), 'tests')

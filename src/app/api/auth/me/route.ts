@@ -18,10 +18,12 @@ export async function GET(request: Request) {
     const user = await getUserFromToken(token)
 
     if (!user) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401, headers: getCorsHeaders(origin) }
       )
+      response.cookies.delete('auth-token')
+      return response
     }
 
     if (user.role === 'MANAGER' && user.status !== 'ACTIVE') {
@@ -49,8 +51,8 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error('Auth error:', error)
     return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 401 }
+      { error: 'Authentication service unavailable' },
+      { status: 503, headers: getCorsHeaders(request.headers.get('origin')) }
     )
   }
 }
