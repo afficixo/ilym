@@ -82,10 +82,13 @@ export default function DashboardPage() {
     async (isManualRefresh = false) => {
       if (isManualRefresh) setRefreshing(true);
       try {
-        const response = await fetch(
-          "/api/analytics/dashboard?period=all",
-          { credentials: "include", cache: "no-store" }
-        );
+        const [response, postbacksResponse] = await Promise.all([
+          fetch(
+            "/api/analytics/dashboard?period=all",
+            { credentials: "include", cache: "no-store" }
+          ),
+          fetch("/api/postbacks?summary=1", { credentials: "include" }),
+        ]);
 
         if (response.status === 401) {
           router.push("/login");
@@ -118,33 +121,17 @@ export default function DashboardPage() {
         }
 
         const data = await response.json();
-        const postbacksResponse = await fetch("/api/postbacks", { credentials: "include" });
         const postbacksData = postbacksResponse.ok ? await postbacksResponse.json() : null;
-        const linksResponse = await fetch("/api/links", { credentials: "include" });
-        const paymentLinks = linksResponse.ok ? await linksResponse.json() : [];
-        const managerCommissionRate = Array.isArray(paymentLinks)
-          ? Number(paymentLinks.find((link: { isActive?: boolean }) => link.isActive)?.commissionRate ?? 20)
-          : 20;
-        const paymentSummary = Array.isArray(paymentLinks)
-          ? paymentLinks.filter((link) => link.isActive).reduce(
-              (summary, link) => {
-                const current = Number(link.totalEarning) || 0;
-                const commissionRate = Number(link.commissionRate ?? 20);
-                return { totalEarned: summary.totalEarned + current, commission: summary.commission + current * (commissionRate / 100) };
-              },
-              { totalEarned: 0, commission: 0 },
-            )
-          : { totalEarned: 0, commission: 0 };
 
         // Safe assignment with defaults
         const safeData: DashboardStats = {
           totalClicks: data.totalClicks ?? 0,
           uniqueClicks: data.uniqueClicks ?? 0,
           totalLinks: data.totalLinks ?? 0,
-          totalEarned: paymentSummary.totalEarned,
-          commission: paymentSummary.commission,
-          commissionRate: managerCommissionRate,
-          revenue: paymentSummary.totalEarned + paymentSummary.commission,
+          totalEarned: data.activeLinkEarnings ?? 0,
+          commission: data.activeLinkCommission ?? 0,
+          commissionRate: data.activeLinkCommissionRate ?? 20,
+          revenue: (data.activeLinkEarnings ?? 0) + (data.activeLinkCommission ?? 0),
           totalPayout: Number(postbacksData?.totalPayout) || 0,
           chartData: data.chartData || createDefaultChart(),
           countryBreakdown: Array.isArray(data.countryBreakdown)

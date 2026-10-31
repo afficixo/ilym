@@ -15,6 +15,17 @@ export async function GET(request: Request) {
   const user = await getAuthenticatedUser(request)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: getCorsHeaders(origin) })
   if (!isAdminOrOwner(user)) return NextResponse.json({ error: 'Only owners and admins can access postbacks.' }, { status: 403, headers: getCorsHeaders(origin) })
+  if (new URL(request.url).searchParams.get('summary') === '1') {
+    const totalPayout = await prisma.conversionLead.aggregate({
+      where: { userId: user.id },
+      _sum: { payout: true },
+    })
+    return NextResponse.json(
+      { totalPayout: totalPayout._sum.payout || 0 },
+      { headers: getCorsHeaders(origin) },
+    )
+  }
+
   const [configs, leads, totalConversions, totalPayout] = await Promise.all([
     prisma.postbackConfig.findMany({ where: { userId: user.id }, orderBy: { provider: 'asc' } }),
     prisma.conversionLead.findMany({ where: { userId: user.id }, orderBy: { createdAt: 'desc' }, take: 100, include: { postback: { select: { provider: true } } } }),

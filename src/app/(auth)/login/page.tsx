@@ -7,13 +7,10 @@ export const metadata: Metadata = {
   title: 'Manager Login — Afficix',
   description:
     'Log in to your Afficix publisher account to manage CPC offers, tracking links, traffic analytics, and earnings.',
-  keywords: [
-    'manager login',
-    'Afficix login',
-    'affiliate dashboard',
-    'offer management login',
-    'click tracking login',
-  ],
+  robots: {
+    index: false,
+    follow: true,
+  },
   alternates: {
     canonical: 'https://afficix.com/login',
   },

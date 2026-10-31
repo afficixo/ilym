@@ -10,18 +10,31 @@ import {
   ArrowRight, Layers, Headphones, Mail, MapPin, Check,
 } from "lucide-react";
 
-const structuredData = [
-  {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    name: "Afficix",
-    url: "https://afficix.com",
-    logo: "https://afficix.com/afficixlogo.png",
-    description:
-      "Afficix is a CPC affiliate marketplace that helps publishers monetize traffic with pay-per-click offers.",
-  },
-  { "@context": "https://schema.org", "@type": "WebSite", name: "Afficix", url: "https://afficix.com" },
-];
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://afficix.com/#organization",
+      name: "Afficix",
+      url: "https://afficix.com/",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://afficix.com/afficixlogo.png",
+      },
+      description:
+        "A CPC affiliate marketplace for publishers and advertisers to discover campaigns and manage click tracking.",
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://afficix.com/#website",
+      name: "Afficix",
+      url: "https://afficix.com/",
+      publisher: { "@id": "https://afficix.com/#organization" },
+      inLanguage: "en",
+    },
+  ],
+};
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },

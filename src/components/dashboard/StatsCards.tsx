@@ -58,6 +58,8 @@ export default function StatsCards({
 
   const activeLabel = showCredit ? 'Total Credit' : 'Total Cost'
   const activeValue = showCredit ? totalPayout : stats.revenue
+  const clickTrend = chartData?.datasets.find(dataset => /click/i.test(dataset.label))?.data
+  const visitorTrend = chartData?.datasets.find(dataset => /unique|visitor/i.test(dataset.label))?.data
 
   return (
     <div className="space-y-4">
@@ -74,6 +76,7 @@ export default function StatsCards({
           value={stats.totalClicks}
           icon={MousePointerClick}
           color="green"
+          sparklineData={clickTrend}
           delay={100}
         />
         <StatsCard
@@ -81,6 +84,7 @@ export default function StatsCards({
           value={stats.uniqueClicks}
           icon={Users}
           color="blue"
+          sparklineData={visitorTrend}
           delay={200}
         />
         {showConversions ? (

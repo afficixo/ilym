@@ -63,7 +63,7 @@ export default function ClickLogs({ filter, canDelete }: ClickLogsProps) {
   const [deleteError, setDeleteError] = useState('')
   const cancelDeleteButtonRef = useRef<HTMLButtonElement>(null)
 
-  const limit = 100
+  const limit = 25
 
   const fetchClicks = useCallback(async (showLoading = true) => {
     if (showLoading) {

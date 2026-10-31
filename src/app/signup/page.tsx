@@ -7,13 +7,10 @@ export const metadata: Metadata = {
   title: 'Join Afficix — Become a CPC Affiliate Publisher',
   description:
     'Create your Afficix publisher account to access CPC offers, track campaign performance, and monetize your traffic.',
-  keywords: [
-    'join Afficix',
-    'CPC affiliate publisher',
-    'publisher signup',
-    'affiliate tracking tools',
-    'traffic monetization platform',
-  ],
+  robots: {
+    index: false,
+    follow: true,
+  },
   alternates: {
     canonical: 'https://afficix.com/signup',
   },
