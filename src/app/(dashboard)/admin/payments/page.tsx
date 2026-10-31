@@ -439,7 +439,7 @@ export default function PaymentsPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.06 }}
-            className={`relative flex h-[116px] flex-col justify-between overflow-hidden rounded-2xl p-4 shadow-sm shadow-slate-900/[0.04] transition duration-200 ${card.surface} ${card.label === "Paid out" && userRole === "OWNER" ? "cursor-pointer hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70" : ""}`}
+            className={`relative flex min-h-[116px] flex-col justify-between overflow-hidden rounded-2xl p-4 shadow-sm shadow-slate-900/[0.04] transition duration-200 ${card.surface} ${card.label === "Paid out" && userRole === "OWNER" ? "cursor-pointer hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70" : ""}`}
             role={card.label === "Paid out" && userRole === "OWNER" ? "button" : undefined}
             tabIndex={card.label === "Paid out" && userRole === "OWNER" ? 0 : undefined}
             onClick={card.label === "Paid out" && userRole === "OWNER" ? () => setShowPayoutTransactions(true) : undefined}
@@ -464,7 +464,7 @@ export default function PaymentsPage() {
               </span>
             </div>
             <div>
-              <div className={`min-w-0 truncate tabular-nums text-[clamp(1.25rem,2.4vw,1.75rem)] font-bold leading-none tracking-tight ${card.tone}`} title={money(card.value)}>{money(card.value)}</div>
+              <div className={`min-w-0 break-words tabular-nums text-[clamp(0.75rem,2.4vw,1.75rem)] font-bold leading-tight tracking-tight ${card.tone}`} title={money(card.value)}>{money(card.value)}</div>
             </div>
           </motion.div>
         ))}

@@ -4,7 +4,7 @@ import Image from 'next/image'
 import MessageBody from '@/components/support/MessageBody'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { FormEvent, useState, useEffect, useRef } from 'react'
+import { FormEvent, useState, useEffect, useRef, type MouseEvent } from 'react'
 import {
   LayoutDashboard,
   Plus,
@@ -25,8 +25,10 @@ import {
   UsersRound,
   Sun,
   Moon,
+  ChevronDown,
 } from 'lucide-react'
 import { getDashboardBasePath, getDashboardPath } from '@/lib/auth/dashboard-path'
+import { applyDashboardTheme } from '@/lib/dashboard-theme'
 
 type SupportMessage = { id: string; body: string; sender: { role: string } }
 type SupportConversation = { id: string; messages: SupportMessage[] }
@@ -43,6 +45,7 @@ export default function Sidebar({ collapsed, mobileOpen, onMobileOpenChange }: S
   const [isMobile, setIsMobile] = useState<boolean | null>(null)
   const [isDark, setIsDark] = useState(false)
   const [userRole, setUserRole] = useState<string | null>(null)
+  const [linkAccountsOpen, setLinkAccountsOpen] = useState(false)
   const [supportOpen, setSupportOpen] = useState(false)
   const [supportConversation, setSupportConversation] = useState<SupportConversation | null>(null)
   const [supportBody, setSupportBody] = useState('')
@@ -167,6 +170,15 @@ export default function Sidebar({ collapsed, mobileOpen, onMobileOpenChange }: S
   }, [])
 
   const dashboardBasePath = getDashboardBasePath(userRole)
+  const isLinkAccountsRoute =
+    pathname === `${dashboardBasePath}/links` ||
+    pathname?.startsWith(`${dashboardBasePath}/links/`) ||
+    pathname === `${dashboardBasePath}/landing-builder`
+
+  useEffect(() => {
+    if (isLinkAccountsRoute) setLinkAccountsOpen(true)
+  }, [isLinkAccountsRoute])
+
   const menuGroups = [
     {
       label: 'Overview',
@@ -177,7 +189,7 @@ export default function Sidebar({ collapsed, mobileOpen, onMobileOpenChange }: S
     {
       label: 'Link accounts',
       items: [
-        { href: `${dashboardBasePath}/links/create`, label: 'Create Link Account', icon: Plus },
+        { href: `${dashboardBasePath}/links/create`, label: 'Create', icon: Plus },
         { href: `${dashboardBasePath}/links/create-turbo`, label: 'Bulk Create', icon: Zap },
         { href: `${dashboardBasePath}/links`, label: 'All Link Accounts', icon: Link2, exact: true },
         { href: `${dashboardBasePath}/landing-builder`, label: 'Landing Builder', icon: Layers },
@@ -196,11 +208,6 @@ export default function Sidebar({ collapsed, mobileOpen, onMobileOpenChange }: S
         ...(userRole !== 'MANAGER'
           ? [{ href: `${dashboardBasePath}/postbacks`, label: 'S2S Postbacks', icon: Webhook }]
           : []),
-      ],
-    },
-    {
-      label: 'Workspace',
-      items: [
         { href: `${dashboardBasePath}/url-shortener`, label: 'URL Shortener', icon: Link2 },
         ...(userRole === 'OWNER'
           ? [{ href: `${dashboardBasePath}/templates`, label: 'Templates', icon: Layers }]
@@ -239,28 +246,11 @@ export default function Sidebar({ collapsed, mobileOpen, onMobileOpenChange }: S
     router.push('/login')
   }
 
-  const toggleTheme = () => {
+  const toggleTheme = (event: MouseEvent<HTMLButtonElement>) => {
     const nextIsDark = !isDarkRef.current
     isDarkRef.current = nextIsDark
-    const root = document.documentElement
     setIsDark(nextIsDark)
-
-    const applyTheme = () => {
-      root.classList.toggle('dark', nextIsDark)
-      window.localStorage.setItem('theme', nextIsDark ? 'dark' : 'light')
-      window.dispatchEvent(new Event('themechange'))
-    }
-
-    const transitionDocument = document as Document & {
-      startViewTransition?: (callback: () => void) => unknown
-    }
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-    if (!prefersReducedMotion && transitionDocument.startViewTransition) {
-      transitionDocument.startViewTransition(applyTheme)
-    } else {
-      applyTheme()
-    }
+    applyDashboardTheme(nextIsDark, event.currentTarget)
   }
 
   const sendSupportMessage = async (event: FormEvent) => {
@@ -282,44 +272,63 @@ export default function Sidebar({ collapsed, mobileOpen, onMobileOpenChange }: S
   }
 
   const sidebarContent = (
-    <div className="flex h-full flex-col bg-[#f3f6f5] text-[#263238] dark:bg-[#192326] dark:text-slate-100">
+    <div className="flex h-full flex-col bg-[#f3f6f5] text-[#263238] transition-colors duration-200 motion-reduce:transition-none dark:bg-[#192326] dark:text-slate-100">
       <nav className="relative z-10 min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-2.5 py-4 lg:space-y-3 lg:px-2 lg:py-3">
         {menuGroups.map((group) => group.items.length > 0 && (
           <div key={group.label} className="space-y-1.5 lg:space-y-1">
-            {(!collapsed || isMobile) && (
-              <h2 className="px-2.5 pb-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#2b7d20] dark:text-[#a2fa8e]/80 lg:px-2 lg:text-[9px] lg:tracking-[0.16em]">
-                {group.label}
-              </h2>
-            )}
-            {group.items.map((item) => {
-              const isActive = item.exact
-                ? pathname === item.href
-                : pathname === item.href || pathname?.startsWith(item.href + '/')
-              const Icon = item.icon
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  title={collapsed && !isMobile ? item.label : undefined}
-                  prefetch={item.href.includes('/dashboard') || item.href.includes('/postbacks')}
-                  onClick={() => {
-                    if (isMobile) onMobileOpenChange(false)
-                  }}
-                  aria-current={isActive ? 'page' : undefined}
-                  className={`group relative flex min-h-10 w-full items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} rounded-lg border px-2.5 py-2 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#359f25] lg:min-h-9 lg:py-1.5 ${
-                    isActive
-                      ? 'border-[#359f25]/20 bg-[#e8f4e6] font-semibold text-[#1f5520] dark:border-[#5ff442]/20 dark:bg-[#5ff442]/10 dark:text-white'
-                      : 'border-transparent text-[#455964] hover:border-[#4dd935]/25 hover:bg-white/90 hover:text-[#24651d] dark:text-slate-300 dark:hover:border-[#5ff442]/20 dark:hover:bg-[#5ff442]/[0.08] dark:hover:text-white'
-                  }`}
+            {group.label === 'Link accounts' && (!collapsed || isMobile) && (
+                <button
+                  type="button"
+                  aria-expanded={linkAccountsOpen}
+                  aria-controls="link-accounts-menu"
+                  onClick={() => setLinkAccountsOpen((open) => !open)}
+                  className="group flex min-h-10 w-full items-center gap-2.5 rounded-lg border border-sky-200 bg-sky-50 px-2.5 py-2 text-left text-[13px] font-semibold tracking-[0.005em] text-sky-800 transition-colors duration-200 hover:border-sky-300 hover:bg-sky-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-500 dark:border-sky-400/20 dark:bg-sky-400/10 dark:text-sky-100 dark:hover:border-sky-400/35 dark:hover:bg-sky-400/[0.15] lg:min-h-9 lg:py-1.5"
                 >
-                  <Icon className={`h-[18px] w-[18px] shrink-0 transition-colors duration-200 lg:h-4 lg:w-4 ${isActive ? 'text-[#24651d] dark:text-[#a2fa8e]' : 'text-slate-500 group-hover:text-[#359f25] dark:text-slate-400 dark:group-hover:text-[#a2fa8e]'}`} />
-                  {(!collapsed || isMobile) && <span className="truncate text-[13px] font-medium tracking-[0.005em]">{item.label}</span>}
-                  {isActive && (!collapsed || isMobile) && (
-                    <span aria-hidden="true" className="absolute inset-y-2 left-0 w-[3px] rounded-r-full bg-[#359f25] dark:bg-[#5ff442]" />
-                  )}
-                </Link>
-              )
-            })}
+                  <Link2 className="h-[18px] w-[18px] shrink-0 text-sky-700 transition-colors duration-200 dark:text-sky-300 lg:h-4 lg:w-4" aria-hidden="true" />
+                  <span className="flex-1">Link Accounts</span>
+                  <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition-transform ${linkAccountsOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+                </button>
+            )}
+            {(group.label !== 'Link accounts' || linkAccountsOpen || (collapsed && !isMobile)) && (
+              <div
+                id={group.label === 'Link accounts' ? 'link-accounts-menu' : undefined}
+                className={`space-y-1.5 lg:space-y-1 ${
+                  group.label === 'Link accounts' && (!collapsed || isMobile)
+                    ? 'ml-4 border-l border-slate-300/80 pl-2.5 dark:border-white/15'
+                    : ''
+                }`}
+              >
+                {group.items.map((item) => {
+                  const isActive = item.exact
+                    ? pathname === item.href
+                    : pathname === item.href || pathname?.startsWith(item.href + '/')
+                  const Icon = item.icon
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      title={collapsed && !isMobile ? item.label : undefined}
+                      prefetch={item.href.includes('/dashboard') || item.href.includes('/postbacks')}
+                      onClick={() => {
+                        if (isMobile) onMobileOpenChange(false)
+                      }}
+                      aria-current={isActive ? 'page' : undefined}
+                      className={`group relative flex min-h-10 w-full items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} rounded-lg border px-2.5 py-2 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#359f25] lg:min-h-9 lg:py-1.5 ${
+                        isActive
+                          ? 'border-[#359f25]/20 bg-[#e8f4e6] font-semibold text-[#1f5520] dark:border-[#5ff442]/20 dark:bg-[#5ff442]/10 dark:text-white'
+                          : 'border-transparent text-[#455964] hover:border-[#4dd935]/25 hover:bg-white/90 hover:text-[#24651d] dark:text-slate-300 dark:hover:border-[#5ff442]/20 dark:hover:bg-[#5ff442]/[0.08] dark:hover:text-white'
+                      }`}
+                    >
+                      <Icon className={`h-[18px] w-[18px] shrink-0 transition-colors duration-200 lg:h-4 lg:w-4 ${isActive ? 'text-[#24651d] dark:text-[#a2fa8e]' : 'text-slate-500 group-hover:text-[#359f25] dark:text-slate-400 dark:group-hover:text-[#a2fa8e]'}`} />
+                      {(!collapsed || isMobile) && <span className="truncate text-[13px] font-medium tracking-[0.005em]">{item.label}</span>}
+                      {isActive && (!collapsed || isMobile) && (
+                        <span aria-hidden="true" className="absolute inset-y-2 left-0 w-[3px] rounded-r-full bg-[#359f25] dark:bg-[#5ff442]" />
+                      )}
+                    </Link>
+                  )
+                })}
+              </div>
+            )}
           </div>
         ))}
       </nav>
@@ -328,11 +337,25 @@ export default function Sidebar({ collapsed, mobileOpen, onMobileOpenChange }: S
         <button
           type="button"
           onClick={toggleTheme}
-          className={`group flex min-h-10 w-full items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} rounded-lg border border-transparent px-2.5 py-2 text-[#455964] transition-colors duration-200 hover:bg-white/90 hover:text-[#24651d] dark:text-slate-300 dark:hover:bg-[#5ff442]/[0.08] dark:hover:text-white`}
+          data-theme-toggle="sidebar"
+          className={`relative group flex min-h-10 w-full items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} rounded-lg border border-transparent px-2.5 py-2 text-[#455964] transition-colors duration-200 hover:bg-white/90 hover:text-[#24651d] dark:text-slate-300 dark:hover:bg-[#5ff442]/[0.08] dark:hover:text-white`}
           aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
           title={collapsed && !isMobile ? (isDark ? 'Light theme' : 'Dark theme') : undefined}
         >
-          {isDark ? <Sun className="h-5 w-5 shrink-0 text-[#5ff442]" /> : <Moon className="h-5 w-5 shrink-0 text-[#455964] dark:text-[#a2fa8e]" />}
+          <span className="relative grid h-5 w-5 shrink-0 place-items-center">
+            <Sun
+              aria-hidden="true"
+              className={`absolute h-full w-full text-amber-500 transition-[opacity,transform] duration-[240ms] ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none dark:text-amber-300 ${
+                isDark ? 'rotate-0 scale-100 opacity-100' : 'rotate-45 scale-75 opacity-0'
+              }`}
+            />
+            <Moon
+              aria-hidden="true"
+              className={`absolute h-full w-full text-indigo-500 transition-[opacity,transform] duration-[240ms] ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none dark:text-sky-200 ${
+                isDark ? '-rotate-45 scale-75 opacity-0' : 'rotate-0 scale-100 opacity-100'
+              }`}
+            />
+          </span>
           {(!collapsed || isMobile) && <span className="text-[13px] font-medium tracking-[0.01em]">{isDark ? 'Light theme' : 'Dark theme'}</span>}
         </button>
         <button

@@ -1,12 +1,13 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type MouseEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Menu, MessageCircle, Moon, Settings, Sun, X } from 'lucide-react'
 import Sidebar from '@/components/layout/Sidebar'
 import { getDashboardBasePath } from '@/lib/auth/dashboard-path'
+import { applyDashboardTheme } from '@/lib/dashboard-theme'
 
 export default function DashboardLayout({
   children,
@@ -74,31 +75,15 @@ export default function DashboardLayout({
     }
   }, [router])
 
-  const toggleTheme = () => {
+  const toggleTheme = (event: MouseEvent<HTMLButtonElement>) => {
     const nextIsDark = !document.documentElement.classList.contains('dark')
-    const applyTheme = () => {
-      document.documentElement.classList.toggle('dark', nextIsDark)
-      window.localStorage.setItem('theme', nextIsDark ? 'dark' : 'light')
-      window.dispatchEvent(new Event('themechange'))
-      setIsDark(nextIsDark)
-    }
-    const transitionDocument = document as Document & {
-      startViewTransition?: (callback: () => void) => unknown
-    }
-
-    if (
-      !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
-      transitionDocument.startViewTransition
-    ) {
-      transitionDocument.startViewTransition(applyTheme)
-    } else {
-      applyTheme()
-    }
+    applyDashboardTheme(nextIsDark, event.currentTarget)
+    setIsDark(nextIsDark)
   }
 
   return (
-    <div className="dashboard-shell flex h-dvh flex-col overflow-hidden bg-[var(--page-bg)]">
-      <header className="relative z-[60] flex h-14 w-full shrink-0 border-b border-[#263238]/10 bg-white shadow-[0_2px_8px_rgba(38,50,56,0.05)] dark:border-white/10 dark:bg-[#202b2f] dark:shadow-[0_2px_10px_rgba(0,0,0,0.2)]">
+    <div className="dashboard-shell flex h-dvh flex-col overflow-hidden bg-[var(--page-bg)] transition-colors duration-200 motion-reduce:transition-none">
+      <header className="relative z-[60] flex h-14 w-full shrink-0 border-b border-[#263238]/10 bg-white shadow-[0_2px_8px_rgba(38,50,56,0.05)] transition-colors duration-200 motion-reduce:transition-none dark:border-white/10 dark:bg-[#202b2f] dark:shadow-[0_2px_10px_rgba(0,0,0,0.2)]">
         <div className={`hidden h-full shrink-0 items-center border-r border-[#263238]/10 bg-[#f3f6f5] px-3 transition-[width] duration-300 dark:border-white/10 dark:bg-[#192326] lg:flex ${sidebarCollapsed ? 'w-16 justify-center' : 'w-52 justify-between'}`}>
           {!sidebarCollapsed && (
             <Image
@@ -185,11 +170,25 @@ export default function DashboardLayout({
             <button
               type="button"
               onClick={toggleTheme}
-              className="flex h-7 w-7 items-center justify-center rounded-lg text-[#455964] transition-colors hover:bg-white hover:text-[#24651d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#359f25] dark:text-[#a2fa8e] dark:hover:bg-white/[0.08] dark:hover:text-[#c4ffb4] min-[360px]:h-8 min-[360px]:w-8 sm:h-9 sm:w-9"
+              data-theme-toggle="header"
+              className="relative flex h-7 w-7 items-center justify-center rounded-lg text-[#455964] transition-colors hover:bg-white hover:text-[#24651d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#359f25] dark:text-[#a2fa8e] dark:hover:bg-white/[0.08] dark:hover:text-[#c4ffb4] min-[360px]:h-8 min-[360px]:w-8 sm:h-9 sm:w-9"
               aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
               title={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
             >
-              {isDark ? <Sun className="h-[18px] w-[18px] sm:h-5 sm:w-5" /> : <Moon className="h-[18px] w-[18px] sm:h-5 sm:w-5" />}
+              <span className="relative grid h-[18px] w-[18px] place-items-center sm:h-5 sm:w-5">
+                <Sun
+                  aria-hidden="true"
+                  className={`absolute h-full w-full text-amber-500 transition-[opacity,transform] duration-[240ms] ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none dark:text-amber-300 ${
+                    isDark ? 'rotate-0 scale-100 opacity-100' : 'rotate-45 scale-75 opacity-0'
+                  }`}
+                />
+                <Moon
+                  aria-hidden="true"
+                  className={`absolute h-full w-full text-indigo-500 transition-[opacity,transform] duration-[240ms] ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none dark:text-sky-200 ${
+                    isDark ? '-rotate-45 scale-75 opacity-0' : 'rotate-0 scale-100 opacity-100'
+                  }`}
+                />
+              </span>
             </button>
             <button
               type="button"
@@ -212,7 +211,7 @@ export default function DashboardLayout({
           mobileOpen={mobileMenuOpen}
         />
         <div className="flex min-w-0 flex-1 flex-col">
-          <main data-page-loader-region className="relative flex min-h-0 w-full flex-1 overflow-x-hidden overflow-y-auto px-2 py-3 sm:px-3 sm:py-5 lg:px-3 lg:py-6">
+          <main data-page-loader-region className="relative flex min-h-0 w-full flex-1 overflow-x-hidden overflow-y-auto px-2 py-3 transition-colors duration-200 motion-reduce:transition-none sm:px-3 sm:py-5 lg:px-3 lg:py-6">
             <div className="w-full">{children}</div>
           </main>
         </div>
