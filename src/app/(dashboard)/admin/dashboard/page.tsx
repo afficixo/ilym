@@ -203,7 +203,7 @@ export default function DashboardPage() {
     <div className="w-full max-w-full overflow-x-hidden bg-[var(--page-bg)] pb-20 text-[var(--text-primary)] selection:bg-[var(--aff-accent)] selection:text-[var(--aff-ink)]">
       <div className="relative z-10 w-full px-2 pt-4 sm:px-3 sm:pt-0 lg:px-3">
         {/* ─── Stats & Charts ─── */}
-        <section className="relative mb-4 sm:mb-6">
+        <section className="relative mb-4 sm:mb-6 lg:mb-4">
           <StatsCards
             stats={stats}
             chartData={chartData}
@@ -214,7 +214,7 @@ export default function DashboardPage() {
         </section>
 
         {/* ─── Traffic Breakdown ─── */}
-        <section className="mb-4 sm:mb-6">
+        <section className="mb-4 sm:mb-6 lg:mb-4">
           <TrafficBreakdown
             referrerBreakdown={referrerBreakdown}
             browserBreakdown={browserBreakdown}

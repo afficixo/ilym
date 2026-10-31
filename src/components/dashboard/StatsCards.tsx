@@ -63,7 +63,7 @@ export default function StatsCards({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4 lg:gap-3">
         <StatsCard
           title="Total Links"
           value={stats.totalLinks}
@@ -93,7 +93,7 @@ export default function StatsCards({
             initial={{ opacity: 0, y: 16, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.45, delay: 0.3 }}
-            className="h-full min-h-[94px] min-w-0 w-full rounded-xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-3 text-left shadow-[var(--shadow-sm)] transition-colors duration-200 hover:border-[var(--primary-600)] hover:bg-[var(--primary-50)] sm:p-4 dark:hover:border-[var(--primary-500)] dark:hover:bg-[#5ff442]/10"
+            className="h-full min-h-[94px] min-w-0 w-full rounded-xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-3 text-left shadow-[var(--shadow-sm)] transition-colors duration-200 hover:border-[var(--primary-600)] hover:bg-[var(--primary-50)] sm:p-4 lg:p-3 dark:hover:border-[var(--primary-500)] dark:hover:bg-[#5ff442]/10"
             onClick={() => setShowCredit((current) => !current)}
             aria-label={`Toggle balance view. Current value: ${activeLabel}`}
           >

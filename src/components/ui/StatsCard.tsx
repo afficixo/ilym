@@ -77,14 +77,14 @@ export function StatsCard({
       initial={{ opacity: 0, y: 16, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.45, delay: delay / 1000 }}
-      className={`h-full min-h-[94px] min-w-0 rounded-xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-4 shadow-[var(--shadow-sm)] transition-colors duration-200 hover:border-[var(--primary-600)] hover:bg-[var(--primary-50)] dark:hover:border-[var(--primary-500)] dark:hover:bg-[#5ff442]/10 ${sparklinePath ? 'min-h-[122px]' : ''} ${className}`}
+      className={`h-full min-h-[94px] min-w-0 rounded-xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-4 shadow-[var(--shadow-sm)] transition-colors duration-200 hover:border-[var(--primary-600)] hover:bg-[var(--primary-50)] lg:p-3 lg:min-h-[108px] dark:hover:border-[var(--primary-500)] dark:hover:bg-[#5ff442]/10 ${sparklinePath ? 'min-h-[122px]' : ''} ${className}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <p className="text-[10px] font-semibold uppercase leading-[14px] tracking-[0.08em] text-slate-600 dark:text-slate-300 sm:text-xs sm:leading-5 sm:tracking-[0.12em]">
             {title}
           </p>
-          <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+          <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl lg:mt-1 lg:text-2xl">
             {prefix}{decimalPlaces !== undefined
               ? value === 0
                 ? '0'
@@ -106,7 +106,7 @@ export function StatsCard({
         <svg
           viewBox="0 0 100 26"
           preserveAspectRatio="none"
-          className="mt-2 h-7 w-full overflow-visible"
+          className="mt-2 h-7 w-full overflow-visible lg:mt-1 lg:h-6"
           role="img"
           aria-label={`${title} activity trend across ${sparklineValues.length} periods`}
         >
