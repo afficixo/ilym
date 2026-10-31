@@ -1,6 +1,6 @@
 'use client'
 
-import { Flame, Globe2, Monitor, MonitorSmartphone, Smartphone, Tablet } from 'lucide-react'
+import { AppWindow, Flame, Globe2, Link2, Monitor, MonitorSmartphone, Smartphone, Tablet } from 'lucide-react'
 import { formatNumber } from '@/lib/utils/helpers'
 import { BrowserLogo } from '@/components/ui/BrowserLogo'
 import { CountryFlag } from '@/components/ui/CountryFlag'
@@ -19,11 +19,11 @@ interface TrafficBreakdownProps {
 }
 
 const palette = {
+  devices: 'bg-emerald-500',
   countries: 'bg-sky-500',
   browsers: 'bg-violet-500',
-  referrers: 'bg-emerald-500',
+  referrers: 'bg-[var(--primary-600)]',
 }
-const deviceChartColors = ['#10b981', '#6366f1', '#f59e0b', '#ec4899', '#06b6d4']
 
 function DeviceIcon({ name }: { name: string }) {
   const device = name.toLowerCase()
@@ -71,147 +71,6 @@ function ResponsiveReferrer({ url }: { url: string }) {
   )
 }
 
-function DevicePieChart({ items }: { items: BreakdownItem[] }) {
-  const totalClicks = items.reduce((total, item) => total + Math.max(0, item.clicks), 0)
-  const maxClicks = Math.max(...items.map(item => Math.max(0, item.clicks)), 1)
-
-  const slices = items.map((item, index) => {
-    const clicks = Math.max(0, item.clicks)
-    const fraction = totalClicks > 0 ? clicks / totalClicks : 0
-    const precedingClicks = items
-      .slice(0, index)
-      .reduce((total, previousItem) => total + Math.max(0, previousItem.clicks), 0)
-    const startAngle = -90 + (totalClicks > 0 ? (precedingClicks / totalClicks) * 360 : 0)
-    const endAngle = startAngle + fraction * 360
-
-    if (fraction <= 0) return null
-
-    if (fraction >= 1) {
-      return (
-        <circle
-          key={item.name}
-          cx="60"
-          cy="60"
-          r="52"
-          fill={deviceChartColors[index % deviceChartColors.length]}
-        />
-      )
-    }
-
-    const startRadians = (startAngle * Math.PI) / 180
-    const endRadians = (endAngle * Math.PI) / 180
-    const startX = 60 + 52 * Math.cos(startRadians)
-    const startY = 60 + 52 * Math.sin(startRadians)
-    const endX = 60 + 52 * Math.cos(endRadians)
-    const endY = 60 + 52 * Math.sin(endRadians)
-    const largeArc = fraction > 0.5 ? 1 : 0
-
-    return (
-      <path
-        key={item.name}
-        d={`M 60 60 L ${startX} ${startY} A 52 52 0 ${largeArc} 1 ${endX} ${endY} Z`}
-        fill={deviceChartColors[index % deviceChartColors.length]}
-        stroke="var(--surface-card)"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-    )
-  })
-
-  return (
-    <>
-      <div className="hidden items-center gap-5 py-2 sm:flex">
-        <svg
-          viewBox="0 0 120 120"
-          className="h-48 w-48 shrink-0 lg:h-56 lg:w-56"
-          role="img"
-          aria-label={`Device click share: ${items.map((item) => `${item.name} ${Math.round((Math.max(0, item.clicks) / (totalClicks || 1)) * 100)}%`).join(', ')}`}
-        >
-          <title>Device click share</title>
-          {slices}
-          <circle
-            cx="60"
-            cy="60"
-            r="27"
-            fill="var(--surface-card)"
-            stroke="var(--surface-border)"
-            strokeWidth="1"
-          />
-          <text x="60" y="54" textAnchor="middle" className="fill-slate-600 dark:fill-slate-400" fontSize="6" fontWeight="600" letterSpacing="0.8">
-            TOTAL CLICKS
-          </text>
-          <text x="60" y="73" textAnchor="middle" className="fill-slate-800 dark:fill-slate-100" fontSize="15" fontWeight="700">
-            {formatNumber(totalClicks)}
-          </text>
-        </svg>
-        <ul className="min-w-0 flex-1 divide-y divide-[var(--surface-border)]">
-          {items.map((item, index) => {
-            const percentage = totalClicks > 0 ? Math.round((Math.max(0, item.clicks) / totalClicks) * 100) : 0
-            return (
-              <li key={item.name} className="flex min-w-0 items-center gap-2.5 py-2 first:pt-0 last:pb-0 sm:gap-3">
-                <span
-                  className="h-2.5 w-2.5 shrink-0 rounded-full ring-2 ring-[var(--surface-card)]"
-                  style={{ backgroundColor: deviceChartColors[index % deviceChartColors.length] }}
-                  aria-hidden="true"
-                />
-                <span className="min-w-0 flex-1">
-                  <span className="flex min-w-0 items-center gap-1.5">
-                    <span className="break-words text-sm font-semibold text-slate-800 dark:text-slate-100">{item.name}</span>
-                    <span className="shrink-0 rounded-full bg-[var(--surface-elevated)] px-1.5 py-0.5 text-[11px] font-semibold tabular-nums text-slate-600 dark:text-slate-300">
-                      {percentage}%
-                    </span>
-                  </span>
-                  <span className="mt-0.5 block text-xs text-slate-500">
-                    {formatNumber(item.uniqueClicks)} unique visitors
-                  </span>
-                </span>
-                <span className="shrink-0 text-right">
-                  <span className="block text-sm font-semibold tabular-nums text-slate-700 dark:text-slate-200">
-                    {formatNumber(item.clicks)}
-                  </span>
-                  <span className="block text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">clicks</span>
-                </span>
-              </li>
-            )
-          })}
-        </ul>
-      </div>
-      <div className="space-y-3.5 sm:hidden">
-        {items.map((item, index) => {
-          const clicks = Math.max(0, item.clicks)
-          const percentage = Math.min(100, Math.round((clicks / maxClicks) * 100))
-
-          return (
-            <div key={item.name} className="border-b border-[var(--surface-border)] pb-3.5 last:border-0 last:pb-0">
-              <div className="mb-1 flex items-center justify-between gap-2 text-sm">
-                <span className="flex min-w-0 items-center gap-2 text-slate-800 dark:text-slate-100">
-                  <DeviceIcon name={item.name} />
-                  <span className="truncate font-medium">{item.name}</span>
-                </span>
-                <span className="shrink-0 font-semibold tabular-nums text-slate-700 dark:text-slate-200">
-                  {formatNumber(clicks)}
-                </span>
-              </div>
-              <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[var(--surface-elevated)]">
-                <div
-                  className="h-full rounded-full"
-                  style={{
-                    width: `${percentage}%`,
-                    backgroundColor: deviceChartColors[index % deviceChartColors.length],
-                  }}
-                />
-              </div>
-              <div className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
-                {formatNumber(item.uniqueClicks)} unique visitors
-              </div>
-            </div>
-          )
-        })}
-      </div>
-    </>
-  )
-}
-
 function BreakdownSection({
   title,
   icon: Icon,
@@ -230,7 +89,7 @@ function BreakdownSection({
   const isReferrerSection = title === 'Top Referrers'
 
   return (
-    <section className="rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-4 shadow-[var(--shadow-sm)] sm:p-5">
+    <section className="flex h-full flex-col rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-4 shadow-[var(--shadow-sm)] sm:p-5">
       <div className="mb-4 flex items-center gap-2.5">
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[var(--surface-elevated)] ring-1 ring-inset ring-[var(--surface-border)]">
           <Icon className={`h-4 w-4 ${iconColor ?? 'text-slate-500 dark:text-slate-400'}`} aria-hidden="true" />
@@ -244,17 +103,16 @@ function BreakdownSection({
           <p className="text-sm font-medium text-slate-700 dark:text-slate-200">No data to display</p>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Traffic details will appear here when available.</p>
         </div>
-      ) : title === 'Devices' ? (
-        <DevicePieChart items={filteredItems} />
       ) : (
-        <div className="space-y-3.5">
+        <div className="flex flex-col space-y-3.5 sm:flex-1 sm:space-y-0">
           {filteredItems.slice(0, 4).map((item, index) => {
             const clicks = Math.max(0, item.clicks)
             const pct = Math.min(100, Math.round((clicks / maxValue) * 100))
             return (
-              <div key={`${title}-${item.name}-${index}`} className="border-b border-[var(--surface-border)] pb-3.5 last:border-0 last:pb-0">
+              <div key={`${title}-${item.name}-${index}`} className="border-b border-[var(--surface-border)] pb-3.5 last:border-0 last:pb-0 sm:flex sm:flex-1 sm:flex-col sm:justify-center sm:py-2">
                 <div className="flex min-w-0 items-start justify-between gap-3">
                   <span className="flex min-w-0 flex-1 items-start gap-2.5 text-slate-800 dark:text-slate-100">
+                    {title === 'Devices' && <DeviceIcon name={item.name} />}
                     {title === 'Browsers' && <BrowserLogo name={item.name} />}
                     {title === 'Top Countries' && <CountryFlag country={item.name} />}
                     {isReferrerSection ? (
@@ -283,7 +141,7 @@ function BreakdownSection({
                   />
                 </div>
 
-                <div className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">{formatNumber(item.uniqueClicks)} unique visitors</div>
+                <div className="mt-1.5 text-xs text-slate-600 dark:text-slate-400">{formatNumber(item.uniqueClicks)} unique visitors</div>
               </div>
             )
           })}
@@ -305,7 +163,7 @@ export function TrafficBreakdown({
           title="Devices"
           icon={MonitorSmartphone}
           items={deviceBreakdown}
-          accent={palette.browsers}
+          accent={palette.devices}
           iconColor="text-emerald-600 dark:text-emerald-300"
         />
         <BreakdownSection
@@ -317,14 +175,14 @@ export function TrafficBreakdown({
         />
         <BreakdownSection
           title="Browsers"
-          icon={Globe2}
+          icon={AppWindow}
           items={browserBreakdown}
           accent={palette.browsers}
           iconColor="text-violet-600 dark:text-violet-300"
         />
         <BreakdownSection
           title="Top Referrers"
-          icon={Globe2}
+          icon={Link2}
           items={referrerBreakdown}
           accent={palette.referrers}
           iconColor="text-emerald-600 dark:text-emerald-300"
