@@ -179,7 +179,7 @@ export default function Sidebar({ collapsed, mobileOpen, onMobileOpenChange }: S
       items: [
         { href: `${dashboardBasePath}/links/create`, label: 'Create Link Account', icon: Plus },
         { href: `${dashboardBasePath}/links/create-turbo`, label: 'Bulk Create', icon: Zap },
-        { href: `${dashboardBasePath}/links`, label: 'All Link Account', icon: Link2, exact: true },
+        { href: `${dashboardBasePath}/links`, label: 'All Link Accounts', icon: Link2, exact: true },
         { href: `${dashboardBasePath}/landing-builder`, label: 'Landing Builder', icon: Layers },
       ],
     },
@@ -283,11 +283,11 @@ export default function Sidebar({ collapsed, mobileOpen, onMobileOpenChange }: S
 
   const sidebarContent = (
     <div className="flex h-full flex-col bg-[#f3f6f5] text-[#263238] dark:bg-[#192326] dark:text-slate-100">
-      <nav className="relative z-10 min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-2.5 py-4">
+      <nav className="relative z-10 min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-2.5 py-4 lg:space-y-3 lg:px-2 lg:py-3">
         {menuGroups.map((group) => group.items.length > 0 && (
-          <div key={group.label} className="space-y-1.5">
+          <div key={group.label} className="space-y-1.5 lg:space-y-1">
             {(!collapsed || isMobile) && (
-              <h2 className="px-2.5 pb-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#2b7d20] dark:text-[#a2fa8e]/80">
+              <h2 className="px-2.5 pb-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#2b7d20] dark:text-[#a2fa8e]/80 lg:px-2 lg:text-[9px] lg:tracking-[0.16em]">
                 {group.label}
               </h2>
             )}
@@ -306,16 +306,16 @@ export default function Sidebar({ collapsed, mobileOpen, onMobileOpenChange }: S
                     if (isMobile) onMobileOpenChange(false)
                   }}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`group flex min-h-10 w-full items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} rounded-lg border px-2.5 py-2 transition-all duration-200 ${
+                  className={`group relative flex min-h-10 w-full items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} rounded-lg border px-2.5 py-2 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#359f25] lg:min-h-9 lg:py-1.5 ${
                     isActive
-                      ? 'border-[#4dd935]/40 bg-[#5ff442]/20 font-semibold text-[#263238] shadow-sm shadow-[#263238]/[0.04] dark:border-[#5ff442]/30 dark:bg-[#5ff442]/15 dark:text-white dark:shadow-black/20'
+                      ? 'border-[#359f25]/20 bg-[#e8f4e6] font-semibold text-[#1f5520] dark:border-[#5ff442]/20 dark:bg-[#5ff442]/10 dark:text-white'
                       : 'border-transparent text-[#455964] hover:border-[#4dd935]/25 hover:bg-white/90 hover:text-[#24651d] dark:text-slate-300 dark:hover:border-[#5ff442]/20 dark:hover:bg-[#5ff442]/[0.08] dark:hover:text-white'
                   }`}
                 >
-                  <Icon className={`h-[18px] w-[18px] shrink-0 transition-colors duration-200 ${isActive ? 'text-[#24651d] dark:text-[#a2fa8e]' : 'text-slate-500 group-hover:text-[#359f25] dark:text-slate-400 dark:group-hover:text-[#a2fa8e]'}`} />
+                  <Icon className={`h-[18px] w-[18px] shrink-0 transition-colors duration-200 lg:h-4 lg:w-4 ${isActive ? 'text-[#24651d] dark:text-[#a2fa8e]' : 'text-slate-500 group-hover:text-[#359f25] dark:text-slate-400 dark:group-hover:text-[#a2fa8e]'}`} />
                   {(!collapsed || isMobile) && <span className="truncate text-[13px] font-medium tracking-[0.005em]">{item.label}</span>}
-                  {isActive && !collapsed && !isMobile && (
-                    <span className="ml-auto h-5 w-0.5 rounded-full bg-[#359f25] dark:bg-[#5ff442]" />
+                  {isActive && (!collapsed || isMobile) && (
+                    <span aria-hidden="true" className="absolute inset-y-2 left-0 w-[3px] rounded-r-full bg-[#359f25] dark:bg-[#5ff442]" />
                   )}
                 </Link>
               )

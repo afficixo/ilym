@@ -193,11 +193,11 @@ const CountryBar = ({ country, clicks, totalClicks, max, isDark = true }: any) =
       <CountryFlag country={country} className="h-4 w-6" />
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1">
-          <span className={`text-sm truncate ${isDark ? 'text-white/75' : 'text-gray-700'}`}>
+          <span className={`text-sm truncate ${isDark ? 'text-white/75' : 'text-slate-700'}`}>
             {getCountryLabel(country)}
           </span>
           <span className={`text-xs font-medium tabular-nums flex items-center gap-2 ${
-            isDark ? 'text-white/50' : 'text-gray-600'
+            isDark ? 'text-white/50' : 'text-slate-600'
           }`}>
             <span>{formatNumber(clicks)}</span>
             <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
@@ -210,13 +210,15 @@ const CountryBar = ({ country, clicks, totalClicks, max, isDark = true }: any) =
           </span>
         </div>
         <div className={`h-1.5 w-full rounded-full overflow-hidden ${
-          isDark ? 'bg-white/5' : 'bg-gray-200'
+          isDark ? 'bg-white/5' : 'bg-slate-200'
         }`}>
           <div
             className="h-full rounded-full transition-all duration-500 ease-out will-change-transform"
             style={{
               width: `${percentage}%`,
-              background: 'linear-gradient(90deg, #34D399, #5FF442)',
+              background: isDark
+                ? 'linear-gradient(90deg, #34D399, #10B981)'
+                : 'linear-gradient(90deg, #059669, #047857)',
               transform: 'translateZ(0)'
             }}
           />
@@ -248,7 +250,7 @@ const ClickStatusIcon = ({ isUnique, isDark = true }: { isUnique: boolean; isDar
 
 // Skeleton Loader
 const SkeletonLoader = ({ isDark = true }: { isDark?: boolean }) => (
-  <div className={`min-h-screen ${isDark ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950' : 'bg-gradient-to-br from-gray-50 via-white to-gray-50'}`}>
+  <div className={`min-h-screen ${isDark ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950' : 'bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100'}`}>
     <div className="max-w-7xl mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -550,12 +552,12 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
       datasets: [{
         label: 'Clicks',
         data,
-        borderColor: '#5FF442',
-        backgroundColor: isDark ? 'rgba(95, 244, 66, 0.08)' : 'rgba(95, 244, 66, 0.13)',
+        borderColor: isDark ? '#34D399' : '#059669',
+        backgroundColor: isDark ? 'rgba(52, 211, 153, 0.08)' : 'rgba(5, 150, 105, 0.1)',
         fill: true,
         tension: 0.4,
         pointRadius: 2,
-        pointBackgroundColor: '#5FF442',
+        pointBackgroundColor: isDark ? '#34D399' : '#059669',
         borderWidth: 2,
       }],
     }
@@ -594,13 +596,13 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
 
   if (error) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950' : 'bg-gradient-to-br from-gray-50 via-white to-gray-50'}`}>
+      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950' : 'bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100'}`}>
         <div className="text-center max-w-md px-4">
           <div className={`rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 ${isDark ? 'bg-white/5' : 'bg-gray-100'}`}>
             <Shield className={`h-8 w-8 ${isDark ? 'text-rose-400' : 'text-rose-600'}`} strokeWidth={1.5} />
           </div>
-          <h1 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>Unable to Load Dashboard</h1>
-          <p className={`text-sm mb-6 ${isDark ? 'text-white/40' : 'text-gray-600'}`}>{error}</p>
+          <h1 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>Unable to Load Dashboard</h1>
+          <p className={`text-sm mb-6 ${isDark ? 'text-white/40' : 'text-slate-600'}`}>{error}</p>
           <button
             onClick={() => window.location.reload()}
             className="inline-flex items-center gap-2 px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 focus:ring-offset-slate-950"
@@ -644,13 +646,13 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
       />
 
       <div className={`min-h-screen transition-colors duration-300 ${
-        isDark ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950' : 'bg-gradient-to-br from-gray-50 via-white to-gray-50'
+        isDark ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950' : 'bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100'
       }`}>
         <div className="mx-auto w-full max-w-[1920px] px-3 py-4 sm:px-5 sm:py-6 xl:px-7">
 
           {/* Header */}
-          <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-            <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+          <div className="relative mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+            <div className="flex min-w-0 items-center gap-3 pr-[88px] sm:gap-4 sm:pr-0">
               <div className="relative h-11 w-32 shrink-0 overflow-hidden rounded-2xl border border-transparent bg-transparent sm:h-[54px] sm:w-36">
                 <Image
                   src="/afficixlogo.png"
@@ -679,7 +681,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 href={`/payment/${publicId}`}
                 aria-label="Wallet and payment settings"
                 title="Wallet and payment settings"
-                className={`group flex min-h-10 min-w-0 items-center justify-between gap-3 rounded-xl border px-3 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/60 focus:ring-offset-2 sm:min-h-11 sm:px-3.5 ${
+                className={`group flex min-h-10 w-fit min-w-0 items-center justify-between justify-self-start gap-2 rounded-xl border px-2 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/60 focus:ring-offset-2 sm:min-h-11 sm:w-auto sm:justify-self-auto sm:gap-3 sm:px-3.5 ${
                   isDark
                     ? 'border-white/10 bg-white/[0.04] hover:border-emerald-400/30 hover:bg-white/[0.07] focus:ring-offset-slate-950'
                     : 'border-slate-200 bg-white hover:border-emerald-300 hover:bg-emerald-50/50 focus:ring-offset-white'
@@ -692,7 +694,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                     <CreditCard className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
                   </span>
                   {unpaidEarning <= 0 && (
-                    <span className={`truncate text-xs font-semibold ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
+                    <span className={`hidden truncate text-xs font-semibold sm:inline ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
                       Wallet
                     </span>
                   )}
@@ -709,7 +711,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                     </span>
                   )}
                 </div>
-                <span className="flex shrink-0 items-center">
+                <span className="hidden shrink-0 items-center sm:flex">
                   <ArrowRight className={`h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 ${isDark ? 'text-white/35' : 'text-slate-400'}`} aria-hidden="true" />
                 </span>
               </a>
@@ -746,27 +748,27 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 >
                   {isDark ? <Sun className="h-3.5 w-3.5" strokeWidth={1.5} /> : <Moon className="h-3.5 w-3.5" strokeWidth={1.5} />}
                 </button>
-                <div className={`flex shrink-0 rounded-lg border p-0.5 text-[10px] font-semibold ${
-                  isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-100'
-                }`}>
-                  {(['BDT', 'USD'] as const).map((currency) => (
-                    <button
-                      key={currency}
-                      type="button"
-                      onClick={() => setEarningCurrency(currency)}
-                      aria-pressed={earningCurrency === currency}
-                      className={`rounded-md px-2 py-1 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/60 ${
-                        earningCurrency === currency
-                          ? 'bg-emerald-500 text-slate-950'
-                          : (isDark ? 'text-white/45 hover:text-white/75' : 'text-gray-500 hover:text-gray-800')
-                      }`}
-                      aria-label={`Show earning in ${currency}`}
-                    >
-                      {currency}
-                    </button>
-                  ))}
-                </div>
               </div>
+            </div>
+            <div className={`absolute right-0 top-2 z-10 flex shrink-0 rounded-lg border p-0.5 text-[10px] font-semibold sm:static sm:z-auto ${
+              isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-100'
+            }`}>
+              {(['BDT', 'USD'] as const).map((currency) => (
+                <button
+                  key={currency}
+                  type="button"
+                  onClick={() => setEarningCurrency(currency)}
+                  aria-pressed={earningCurrency === currency}
+                  className={`rounded-md px-2 py-1 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/60 ${
+                    earningCurrency === currency
+                      ? 'bg-emerald-500 text-slate-950'
+                      : (isDark ? 'text-white/45 hover:text-white/75' : 'text-gray-500 hover:text-gray-800')
+                  }`}
+                  aria-label={`Show earning in ${currency}`}
+                >
+                  {currency}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -819,8 +821,8 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
 
           {/* Chart & Geography */}
           <div className="mb-4 grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-3">
-            <div className={`min-w-0 overflow-hidden rounded-xl p-3 sm:rounded-2xl sm:p-4 lg:col-span-2 ${
-              isDark ? 'bg-white/[0.035]' : 'bg-white/80'
+            <div className={`min-w-0 overflow-hidden rounded-xl border p-3 shadow-sm sm:rounded-2xl sm:p-4 lg:col-span-2 ${
+              isDark ? 'border-white/10 bg-white/[0.035]' : 'border-slate-200 bg-white'
             }`}>
               <div className="mb-2 flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
@@ -864,12 +866,12 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             </div>
 
             <div className={`rounded-xl border p-3 shadow-sm sm:rounded-2xl sm:p-5 ${
-              isDark ? 'bg-white/[0.045] backdrop-blur-sm border-white/10' : 'bg-white/90 backdrop-blur-sm border-slate-200'
+              isDark ? 'bg-white/[0.045] backdrop-blur-sm border-white/10' : 'bg-white border-slate-200'
             }`}>
               <div className="mb-3 flex items-center">
                 <div className="flex items-center gap-2">
                   <Globe2 className="h-5 w-5 text-emerald-400" strokeWidth={1.5} />
-                  <span className={`text-sm font-medium ${isDark ? 'text-white/70' : 'text-gray-700'}`}>Top Countries</span>
+                  <span className={`text-sm font-medium ${isDark ? 'text-white/70' : 'text-slate-700'}`}>Top Countries</span>
                 </div>
               </div>
               <div className="space-y-2.5">
@@ -895,10 +897,10 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
 
           {/* Filters */}
           <div className={`mb-3 flex flex-wrap items-center gap-2 rounded-xl border p-2 sm:rounded-2xl sm:p-3 ${
-            isDark ? 'bg-white/[0.035] border-white/10' : 'bg-white/80 border-slate-200'
+            isDark ? 'bg-white/[0.035] border-white/10' : 'bg-white border-slate-200 shadow-sm'
           }`}>
             <div className={`flex basis-full items-center gap-2 rounded-lg border px-3 py-2 sm:min-w-[200px] sm:flex-1 sm:basis-auto sm:rounded-xl ${
-              isDark ? 'bg-white/5 border-white/10' : 'bg-white/80 border-gray-200'
+              isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200'
             }`}>
               <Search className={`h-3.5 w-3.5 ${isDark ? 'text-white/20' : 'text-gray-400'}`} strokeWidth={1.5} />
               <input
@@ -907,7 +909,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 onChange={(e) => setSearch(e.target.value)}
                 aria-label="Search click logs"
                 className={`w-full border-none bg-transparent text-sm outline-none focus:ring-0 ${
-                  isDark ? 'text-white placeholder:text-white/20' : 'text-gray-800 placeholder:text-gray-400'
+                  isDark ? 'text-white placeholder:text-white/20' : 'text-slate-900 placeholder:text-slate-400'
                 }`}
                 placeholder="Search by IP, country, browser..."
               />
@@ -1086,7 +1088,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                   .filter((value): value is string => Boolean(value))
                   .map((value) => decodeURIComponent(value))
                 const detailButtonClass = (isActive: boolean) =>
-                  `flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                  `flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                     isActive
                       ? (isDark
                         ? 'bg-emerald-400/10 text-emerald-300'
@@ -1102,29 +1104,14 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                       isDark ? 'border-white/10 bg-white/[0.045] hover:border-white/15' : 'border-slate-200 bg-white hover:border-slate-300'
                     }`}
                   >
-                    <div className="flex min-w-0 items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-1">
                       <time
                         dateTime={click.createdAt || click.timestamp}
-                        className={`min-w-0 truncate text-sm font-medium ${isDark ? 'text-white/75' : 'text-slate-700'}`}
+                        title={formatDate(click.createdAt || click.timestamp)}
+                        className={`min-w-0 flex-1 truncate text-xs font-medium ${isDark ? 'text-white/75' : 'text-slate-700'}`}
                       >
                         {formatDate(click.createdAt || click.timestamp)}
                       </time>
-                      <span
-                        aria-label={click.isUnique ? 'Unique click' : 'Repeat click'}
-                        title={click.isUnique ? 'Unique click' : 'Repeat click'}
-                        className={`inline-flex shrink-0 items-center justify-center ${
-                        click.isUnique
-                          ? (isDark ? 'text-emerald-300' : 'text-emerald-700')
-                          : (isDark ? 'text-amber-300' : 'text-amber-700')
-                      }`}
-                      >
-                        {click.isUnique
-                          ? <Check className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden="true" />
-                          : <X className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden="true" />}
-                      </span>
-                    </div>
-
-                    <div className="mt-2.5 flex min-w-0 flex-wrap items-center gap-2">
                       <button
                         type="button"
                         onClick={() => setShowGeoInfo(showGeoInfo === click.id ? null : click.id)}
@@ -1159,6 +1146,19 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                       >
                         <BrowserLogo name={click.browser || 'Unknown'} />
                       </button>
+                      <span
+                        aria-label={click.isUnique ? 'Unique click' : 'Repeat click'}
+                        title={click.isUnique ? 'Unique click' : 'Repeat click'}
+                        className={`inline-flex shrink-0 items-center justify-center px-0.5 ${
+                        click.isUnique
+                          ? (isDark ? 'text-emerald-300' : 'text-emerald-700')
+                          : (isDark ? 'text-amber-300' : 'text-amber-700')
+                      }`}
+                      >
+                        {click.isUnique
+                          ? <Check className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden="true" />
+                          : <X className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden="true" />}
+                      </span>
                     </div>
 
                     {(showGeoInfo === click.id || showDeviceInfo === click.id || showBrowserVersion === click.id) && (
