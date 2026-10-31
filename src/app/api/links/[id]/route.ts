@@ -88,7 +88,7 @@ export async function PUT(
 
     const body = await request.json()
     const accountName = typeof body.accountName === 'string' ? body.accountName.trim() : ''
-    const slug = normalizeSlug(body.slug)
+    let slug = normalizeSlug(body.slug)
     const customDomainId = typeof body.customDomainId === 'string' && body.customDomainId.trim() ? body.customDomainId.trim() : null
     const offerGroupName = typeof body.offerGroupName === 'string' ? body.offerGroupName.trim() || null : null
     const isActive = typeof body.isActive === 'boolean' ? body.isActive : true
@@ -116,6 +116,17 @@ export async function PUT(
         { error: 'Forbidden' },
         { status: 403, headers: getCorsHeaders(origin) }
       )
+    }
+
+    if (isManager(user)) {
+      if (slug !== normalizeSlug(existingLink.slug)) {
+        return NextResponse.json(
+          { error: 'Managers cannot change link slugs' },
+          { status: 403, headers: getCorsHeaders(origin) }
+        )
+      }
+
+      slug = existingLink.slug
     }
 
     if (customDomainId) {

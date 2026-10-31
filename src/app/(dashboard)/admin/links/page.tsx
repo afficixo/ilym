@@ -720,9 +720,10 @@ export default function LinksPage() {
   ];
 
   const editingLink = links.find((l) => l.id === editingLinkId);
-  const editPreviewUrl = editingLink
-    ? getPreviewUrl(editingLink)
-    : `${getBaseUrl()}/${editingSlug || "your-slug"}`;
+  const editingDomain = editingCustomDomainId
+    ? domains.find((domain) => domain.id === editingCustomDomainId)?.domain ?? editingLink?.customDomain?.domain
+    : null;
+  const editPreviewUrl = `${editingDomain ? `https://${editingDomain}` : getBaseUrl()}/${editingSlug.trim() || "your-slug"}`;
 
   const sortOptions = [
     { value: "createdAt", label: "Date" },
@@ -1272,36 +1273,38 @@ export default function LinksPage() {
                     ) : null}
                     </div>
                   </div>
-                  {!isManager && (
-                    <div className="absolute bottom-3 right-3 flex shrink-0 gap-1 rounded-md bg-slate-900/80 p-0.5">
-                      <button
-                        onClick={() => openEdit(link)}
-                        className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-sky-500/10 hover:text-sky-300"
-                        aria-label={`Edit ${link.accountName}`}
-                        title="Edit link"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleReset(link.id)}
-                        disabled={busyLinkId === link.id}
-                        className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-amber-500/10 hover:text-amber-300 disabled:opacity-60"
-                        aria-label={`Reset ${link.accountName}`}
-                        title="Reset link"
-                      >
-                        <RotateCcw className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(link.id)}
-                        disabled={busyLinkId === link.id}
-                        className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-red-500/10 hover:text-red-300 disabled:opacity-60"
-                        aria-label={`Delete ${link.accountName}`}
-                        title="Delete link"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  )}
+                  <div className="absolute bottom-3 right-3 flex shrink-0 gap-1 rounded-md bg-slate-900/80 p-0.5">
+                    <button
+                      onClick={() => openEdit(link)}
+                      className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-sky-500/10 hover:text-sky-300"
+                      aria-label={`Edit ${link.accountName}`}
+                      title="Edit link"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                    {!isManager && (
+                      <>
+                        <button
+                          onClick={() => handleReset(link.id)}
+                          disabled={busyLinkId === link.id}
+                          className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-amber-500/10 hover:text-amber-300 disabled:opacity-60"
+                          aria-label={`Reset ${link.accountName}`}
+                          title="Reset link"
+                        >
+                          <RotateCcw className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(link.id)}
+                          disabled={busyLinkId === link.id}
+                          className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-red-500/10 hover:text-red-300 disabled:opacity-60"
+                          aria-label={`Delete ${link.accountName}`}
+                          title="Delete link"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -1404,12 +1407,15 @@ export default function LinksPage() {
                   <label className="mb-1.5 block text-xs font-medium text-slate-300">Slug</label>
                   <input
                     value={editingSlug}
-                    onChange={(e) => setEditingSlug(e.target.value.toLowerCase().replace(/\s/g, "-"))}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    onChange={(e) => setEditingSlug(e.target.value)}
+                    readOnly={isManager}
+                    className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 read-only:cursor-not-allowed read-only:opacity-60"
                     placeholder="e.g., iphone-offer"
                     required
                   />
-                  <p className="mt-1 text-xs text-slate-500">Letters, numbers, and hyphens only</p>
+                  {!isManager && (
+                    <p className="mt-1 text-xs text-slate-500">Letters, numbers, and hyphens only</p>
+                  )}
                 </div>
 
                 <div>
@@ -1425,7 +1431,9 @@ export default function LinksPage() {
                       </option>
                     ))}
                   </select>
-                  <p className="mt-1 text-xs text-slate-500">Only verified domains are eligible</p>
+                  {!isManager && (
+                    <p className="mt-1 text-xs text-slate-500">Only verified domains are eligible</p>
+                  )}
                 </div>
 
                 <div>
@@ -1441,7 +1449,9 @@ export default function LinksPage() {
                       </option>
                     ))}
                   </select>
-                  <p className="mt-1 text-xs text-slate-500">Optional. Overrides default geo routing</p>
+                  {!isManager && (
+                    <p className="mt-1 text-xs text-slate-500">Optional. Overrides default geo routing</p>
+                  )}
                 </div>
 
                 <div className="sm:col-span-2">
