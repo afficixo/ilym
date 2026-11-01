@@ -5,6 +5,8 @@ import { getCorsHeaders } from '@/config/cors'
 import { getLinkAccountVisibilityWhereClause } from '@/lib/utils/link-account-access'
 import { isDesktopDeviceType } from '@/lib/utils/visitor-profile'
 import { ensureUserSlugPrefix, generateNextPublisherSlug } from '@/lib/utils/slug'
+import { calculateCountryEarnings } from '@/lib/utils/country-click-rates'
+import { getCountryClickRatesByUserIds } from '@/lib/utils/country-click-rates-db'
 import crypto from 'crypto'
 
 export const dynamic = 'force-dynamic'
@@ -69,6 +71,7 @@ export async function GET(request: Request) {
       })
     }
 
+    const countryRates = await getCountryClickRatesByUserIds(links.map((link) => link.userId))
     const invoiceTotals = links.length
       ? await prisma.invoice.groupBy({
         by: ['linkAccountId', 'isPaid'],
@@ -131,11 +134,11 @@ export async function GET(request: Request) {
       },
       select: { linkAccountId: true, country: true },
     })
-    const qualifiedClickMap = new Map<string, number>()
+    const qualifiedClickMap = new Map<string, Array<{ country: string | null }>>()
     for (const click of qualifiedClicks) {
-      const isUsClick = (click.country || '').trim().toUpperCase() === 'US'
-      if (!isUsClick) continue
-      qualifiedClickMap.set(click.linkAccountId, (qualifiedClickMap.get(click.linkAccountId) || 0) + 1)
+      const countryClicks = qualifiedClickMap.get(click.linkAccountId) || []
+      countryClicks.push({ country: click.country })
+      qualifiedClickMap.set(click.linkAccountId, countryClicks)
     }
 
     const canViewSubIdPayout = isAdmin(user) || isOwner(user)
@@ -156,6 +159,11 @@ export async function GET(request: Request) {
     return NextResponse.json(
       links.map((link) => {
         const clickRate = Number(link.user?.clickRate ?? 0) || 0
+        const earnings = calculateCountryEarnings(
+          qualifiedClickMap.get(link.id) || [],
+          countryRates.ratesByUserId.get(link.userId) || [],
+          clickRate,
+        )
         const commissionRate = link.user?.role === 'ADMIN'
           ? 0
           : Number(link.user?.commissionRate ?? 20)
@@ -165,8 +173,8 @@ export async function GET(request: Request) {
         }))
         return {
           ...link,
-          qualifiedClicks: qualifiedClickMap.get(link.id) || 0,
-          totalEarning: (qualifiedClickMap.get(link.id) || 0) * clickRate,
+          qualifiedClicks: earnings.qualifiedClicks,
+          totalEarning: earnings.totalEarning,
           invoiceSummary: invoiceTotalsByLink.get(link.id) ?? {
             pendingAmount: 0,
             paidAmount: 0,

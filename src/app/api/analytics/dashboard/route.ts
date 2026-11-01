@@ -7,6 +7,8 @@ import { buildAccountGeoReport } from '@/lib/utils/report-data';
 import { getLinkAccountVisibilityWhereClause } from '@/lib/utils/link-account-access';
 import { isDesktopDeviceType } from '@/lib/utils/visitor-profile';
 import { filterDashboardClicks } from '@/lib/utils/dashboard-metrics';
+import { calculateCountryEarnings } from '@/lib/utils/country-click-rates';
+import { getCountryClickRatesByUserIds } from '@/lib/utils/country-click-rates-db';
 
 type Period = 'all' | 'week' | 'month' | 'year' | 'weekly' | 'monthly';
 
@@ -315,9 +317,10 @@ export async function GET(request: Request) {
     const dateRange = getDateRange(period, filters);
 
     const ownerUserId = await getOwnerUserId();
-    const defaultOwnerClickRate = ownerUserId
-      ? Number((await prisma.user.findUnique({ where: { id: ownerUserId }, select: { clickRate: true } }))?.clickRate ?? 0) || 0
-      : 0;
+    const defaultOwnerRates = ownerUserId
+      ? await prisma.user.findUnique({ where: { id: ownerUserId }, select: { clickRate: true } })
+      : null;
+    const defaultOwnerClickRate = Number(defaultOwnerRates?.clickRate ?? 0) || 0;
     const linkWhere = getLinkAccountVisibilityWhereClause(user, ownerUserId) as Prisma.LinkAccountWhereInput;
 
     let links: any[];
@@ -327,6 +330,7 @@ export async function GET(request: Request) {
         orderBy: { createdAt: 'desc' },
         select: {
           id: true,
+          userId: true,
           accountName: true,
           isActive: true,
           botClicks: true,
@@ -343,6 +347,7 @@ export async function GET(request: Request) {
         orderBy: { createdAt: 'desc' },
         select: {
           id: true,
+          userId: true,
           accountName: true,
           isActive: true,
           botClicks: true,
@@ -354,6 +359,14 @@ export async function GET(request: Request) {
 
     const linkIds = links.map((l) => l.id);
     const linkAccounts = links.map((l) => ({ id: l.id, accountName: l.accountName }));
+    const userIds = Array.from(new Set([
+      ...(ownerUserId ? [ownerUserId] : []),
+      ...links.map((link) => link.userId).filter(Boolean),
+    ]));
+    const countryRates = await getCountryClickRatesByUserIds(userIds);
+    const defaultOwnerCountryRates = ownerUserId
+      ? countryRates.ratesByUserId.get(ownerUserId) || []
+      : [];
 
     // Early exit if no links
     if (linkIds.length === 0) {
@@ -465,17 +478,6 @@ export async function GET(request: Request) {
     const uniqueClicks = uniqueIPs.size;
     const botClicks = links.reduce((total, link) => total + (link.botClicks || 0), 0);
 
-    const linkRateById = new Map(links.map((link) => {
-      const managerClickRate = Number(link.user?.clickRate ?? 0) || 0;
-      const clickRate = managerClickRate > 0 ? managerClickRate : defaultOwnerClickRate;
-      return [
-        link.id,
-        {
-          clickRate,
-          commissionRate: link.user?.role === 'ADMIN' ? 0 : Number(link.user?.commissionRate ?? 20),
-        },
-      ];
-    }));
     const qualifiedClicks = await prisma.click.groupBy({
       by: ['linkAccountId', 'country'],
       where: {
@@ -485,30 +487,44 @@ export async function GET(request: Request) {
       },
       _count: { _all: true },
     });
-    const qualifiedClickMap = new Map<string, number>();
+    const qualifiedClicksByLink = new Map<string, Array<{ country: string | null; count: number }>>();
     for (const click of qualifiedClicks) {
-      const isUsClick = (click.country || '').trim().toUpperCase() === 'US';
-      if (!isUsClick) continue;
-      qualifiedClickMap.set(
-        click.linkAccountId,
-        (qualifiedClickMap.get(click.linkAccountId) || 0) + click._count._all,
-      );
+      const countryClicks = qualifiedClicksByLink.get(click.linkAccountId) || [];
+      countryClicks.push({ country: click.country, count: click._count._all });
+      qualifiedClicksByLink.set(click.linkAccountId, countryClicks);
     }
+    const earningsByLink = new Map(links.map((link) => {
+      const managerRates = countryRates.ratesByUserId.get(link.userId) || [];
+      const managerRateByCountry = new Map(managerRates.map((rate: { countryCode: string; rate: number }) => [
+        rate.countryCode.toUpperCase(),
+        rate,
+      ]));
+      const mergedCountryRates = [
+        ...defaultOwnerCountryRates.filter((rate) => !managerRateByCountry.has(rate.countryCode.toUpperCase())),
+        ...managerRates,
+      ];
+      const managerClickRate = Number(link.user?.clickRate ?? 0) || 0;
+      const earnings = calculateCountryEarnings(
+        qualifiedClicksByLink.get(link.id) || [],
+        mergedCountryRates,
+        managerClickRate > 0 ? managerClickRate : defaultOwnerClickRate,
+      );
+      return [link.id, earnings] as const;
+    }));
     const revenueByLink = links.map((link) => {
-      const rates = linkRateById.get(link.id) || { clickRate: 0, commissionRate: 0 };
-      const current = (qualifiedClickMap.get(link.id) || 0) * rates.clickRate;
-      const totalEarned = current;
-      return { totalEarned, commission: totalEarned * (rates.commissionRate / 100) };
+      const earnings = earningsByLink.get(link.id) || { totalEarning: 0 };
+      const commissionRate = link.user?.role === 'ADMIN' ? 0 : Number(link.user?.commissionRate ?? 20);
+      return { totalEarned: earnings.totalEarning, commission: earnings.totalEarning * (commissionRate / 100) };
     });
     const totalEarned = revenueByLink.reduce((sum, item) => sum + item.totalEarned, 0);
     const commission = revenueByLink.reduce((sum, item) => sum + item.commission, 0);
     const activeLinks = links.filter((link) => link.isActive);
     const activeLinkEarnings = activeLinks.reduce(
-      (sum, link) => sum + (qualifiedClickMap.get(link.id) || 0) * (Number(link.user?.clickRate ?? 0) || 0),
+      (sum, link) => sum + (earningsByLink.get(link.id)?.totalEarning || 0),
       0,
     );
     const activeLinkCommission = activeLinks.reduce((sum, link) => {
-      const earned = (qualifiedClickMap.get(link.id) || 0) * (Number(link.user?.clickRate ?? 0) || 0);
+      const earned = earningsByLink.get(link.id)?.totalEarning || 0;
       const commissionRate = link.user?.role === 'ADMIN' ? 0 : Number(link.user?.commissionRate ?? 20);
       return sum + earned * (commissionRate / 100);
     }, 0);

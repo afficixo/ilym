@@ -3,6 +3,7 @@
 import { use, useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { formatNumber } from '@/lib/utils/helpers'
 import { getCountryLabel } from '@/lib/utils/country'
+import { calculateCountryEarnings, type CountryRate } from '@/lib/utils/country-click-rates'
 import { isDesktopDeviceType } from '@/lib/utils/visitor-profile'
 import { Chart } from '@/components/ui/Chart'
 import { CountryFlag } from '@/components/ui/CountryFlag'
@@ -49,6 +50,7 @@ interface Stats {
   uniqueClicks: number
   botClicks: number
   clickRate?: number
+  countryClickRates?: CountryRate[]
   payoutMethod?: string | null
   unpaidEarning?: number
   geoSummary: Array<{
@@ -578,7 +580,14 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const botClicks = computedStats.botClicks
   const clickRate = Number(stats?.clickRate ?? 0) || 0
   const usaUniqueClicks = filteredClicks.filter((click) => click.country === 'US' && click.isUnique).length
-  const earning = usaUniqueClicks * clickRate
+  const earningStats = calculateCountryEarnings(
+    filteredClicks
+      .filter((click) => click.isUnique && !click.isBot)
+      .map((click) => ({ country: click.country })),
+    stats?.countryClickRates || [],
+    clickRate,
+  )
+  const earning = earningStats.totalEarning
   const unpaidEarning = Number(stats?.unpaidEarning ?? 0) || 0
   const uniqueRate = totalClicks ? ((uniqueClicks / totalClicks) * 100) : 0
   const botRate = totalClicks ? ((botClicks / totalClicks) * 100) : 0
@@ -811,8 +820,8 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               color="#34D399"
               subtitle={(
                 <span className="inline-flex items-center gap-1.5">
-                  <CountryFlag country="US" className="h-3 w-[18px]" />
-                  {formatNumber(usaUniqueClicks)} clicks
+                  <Globe2 className="h-3.5 w-3.5" />
+                  {formatNumber(earningStats.qualifiedClicks)} payable clicks
                 </span>
               )}
               isDark={isDark}

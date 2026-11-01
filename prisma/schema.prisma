@@ -48,6 +48,7 @@ model User {
   referrals              User[]                 @relation("UserReferrals")
   referralCommissionsEarned ReferralCommission[] @relation("ReferralCommissionReferrer")
   referralCommissionsGenerated ReferralCommission[] @relation("ReferralCommissionReferred")
+  countryClickRates CountryClickRate[]
   postbackConfigs         PostbackConfig[]
   conversionLeads         ConversionLead[]
   telegramNotification    TelegramNotification?
@@ -55,6 +56,20 @@ model User {
   sentSupportMessages      SupportMessage[] @relation("SupportMessageSender")
   
   @@map("users")
+}
+
+model CountryClickRate {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  countryCode String
+  rate        Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, countryCode])
+  @@index([countryCode])
+  @@map("country_click_rates")
 }
 
 enum UserRole {

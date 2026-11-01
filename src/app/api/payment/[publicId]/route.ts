@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/db/prisma'
 import { isDesktopDeviceType } from '@/lib/utils/visitor-profile'
+import { calculateCountryEarnings } from '@/lib/utils/country-click-rates'
+import { getCountryClickRatesByUserIds } from '@/lib/utils/country-click-rates-db'
 
 export async function GET(_request: Request, { params }: { params: Promise<{ publicId: string }> }) {
   try {
@@ -78,10 +80,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ pub
       })
     }
 
-    const qualifiedClicks = await prisma.click.count({
-      where: { linkAccountId: dashboard.linkAccountId, country: 'US', isUnique: true, isBot: false },
+    const qualifiedClicks = await prisma.click.groupBy({
+      by: ['country'],
+      where: { linkAccountId: dashboard.linkAccountId, isUnique: true, isBot: false },
+      _count: { _all: true },
     })
-    const clickRate = Number(user.clickRate ?? 0) || 0
+    const countryRates = await getCountryClickRatesByUserIds([dashboard.linkAccount.userId])
+    const earnings = calculateCountryEarnings(
+      qualifiedClicks.map((click) => ({ country: click.country, count: click._count._all })),
+      countryRates.ratesByUserId.get(dashboard.linkAccount.userId) || [],
+      Number(user.clickRate ?? 0) || 0,
+    )
     const invoices = await prisma.invoice.findMany({
       where: { linkAccountId: dashboard.linkAccountId },
       orderBy: { createdAt: 'desc' },
@@ -102,9 +111,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ pub
       accountName: dashboard.linkAccount.accountName,
       payoutMethod: savedLinkAccount.payoutMethod || 'BKASH',
       payoutAccount: savedLinkAccount.payoutAccount || '',
-      qualifiedClicks,
-      clickRate,
-      totalEarning: qualifiedClicks * clickRate,
+      qualifiedClicks: earnings.qualifiedClicks,
+      clickRate: earnings.clickRate,
+      totalEarning: earnings.totalEarning,
       invoices,
     })
   } catch (error) {

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getTokenFromCookie, getUserFromToken, isOwner } from '@/lib/auth'
 import { prisma } from '@/lib/db/prisma'
 import { getCorsHeaders } from '@/config/cors'
+import { getCountryClickRatesByUserIds } from '@/lib/utils/country-click-rates-db'
 
 export async function GET(request: Request) {
   const origin = request.headers.get('origin') || null
@@ -119,8 +120,10 @@ export async function GET(request: Request) {
       }
     }
 
+    const managerRates = await getCountryClickRatesByUserIds((managers || []).map((manager: any) => manager.id))
     const normalizedManagers = (managers || []).map((manager: any) => ({
       ...manager,
+      countryClickRates: managerRates.ratesByUserId.get(manager.id) || [],
       managerPayouts: manager.managerPayouts || [],
       linkAccounts: (manager.linkAccounts || []).map((linkAccount: any) => ({
         ...linkAccount,
@@ -131,7 +134,10 @@ export async function GET(request: Request) {
       })),
     }))
 
-    return NextResponse.json({ managers: normalizedManagers }, { headers: getCorsHeaders(origin) })
+    return NextResponse.json(
+      { managers: normalizedManagers, countryRatesAvailable: managerRates.available },
+      { headers: getCorsHeaders(origin) },
+    )
   } catch (error) {
     console.error('Owner managers GET error:', error)
     return NextResponse.json(

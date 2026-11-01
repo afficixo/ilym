@@ -3,6 +3,8 @@ import { prisma } from '@/lib/db/prisma'
 import { isDesktopDeviceType } from '@/lib/utils/visitor-profile'
 import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, isManager, getOwnerUserId } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
+import { calculateCountryEarnings } from '@/lib/utils/country-click-rates'
+import { getCountryClickRatesByUserIds } from '@/lib/utils/country-click-rates-db'
 
 const normalizeIds = (value: unknown) => {
   if (!Array.isArray(value)) return []
@@ -107,19 +109,39 @@ export async function POST(request: Request) {
         where: { id: { in: ids } },
         select: { id: true, userId: true, slug: true, payoutMethod: true, payoutAccount: true },
       })
-      const invoiceUsers = await prisma.user.findMany({ where: { id: { in: invoiceLinks.map((link) => link.userId) } }, select: { id: true, clickRate: true } })
-      const invoiceRateByUser = new Map(invoiceUsers.map((user) => [user.id, Number(user.clickRate ?? 0) || 0]))
-      const invoiceCounts = await Promise.all(invoiceLinks.map(async (link) => ({
-        ...link,
-        qualifiedClicks: (await prisma.click.findMany({ where: { linkAccountId: link.id, country: 'US', isUnique: true, isBot: false }, select: { country: true } })).length,
-      })))
+      const [invoiceUsers, invoiceClicks] = await Promise.all([
+        prisma.user.findMany({
+          where: { id: { in: invoiceLinks.map((link) => link.userId) } },
+          select: { id: true, clickRate: true },
+        }),
+        prisma.click.groupBy({
+          by: ['linkAccountId', 'country'],
+          where: { linkAccountId: { in: ids }, isUnique: true, isBot: false },
+          _count: { _all: true },
+        }),
+      ])
+      const countryRates = await getCountryClickRatesByUserIds(invoiceUsers.map((user) => user.id))
+      const invoiceUserById = new Map(invoiceUsers.map((user) => [user.id, user]))
+      const invoiceClicksByLink = new Map<string, Array<{ country: string | null; count: number }>>()
+      for (const click of invoiceClicks) {
+        const countryClicks = invoiceClicksByLink.get(click.linkAccountId) || []
+        countryClicks.push({ country: click.country, count: click._count._all })
+        invoiceClicksByLink.set(click.linkAccountId, countryClicks)
+      }
+      const invoiceCounts = invoiceLinks.map((link) => {
+        const invoiceUser = invoiceUserById.get(link.userId)
+        const earnings = calculateCountryEarnings(
+          invoiceClicksByLink.get(link.id) || [],
+          countryRates.ratesByUserId.get(link.userId) || [],
+          Number(invoiceUser?.clickRate ?? 0) || 0,
+        )
+        return { ...link, ...earnings }
+      })
       const invoiceCreates = invoiceCounts.flatMap((link) => {
-        const clickRate = invoiceRateByUser.get(link.userId) || 0
-        const totalEarning = link.qualifiedClicks * clickRate
-        if (totalEarning <= 0) return []
+        if (link.totalEarning <= 0) return []
 
         const invoiceTimestamp = new Date().toISOString().replaceAll('-', '').replaceAll(':', '').replaceAll('.', '').replace('T', '').replace('Z', '').slice(0, 14)
-        return [prisma.invoice.create({ data: { invoiceNumber: `INV-${invoiceTimestamp}-${link.id.slice(-6).toUpperCase()}`, linkAccountId: link.id, qualifiedClicks: link.qualifiedClicks, clickRate, totalEarning, payoutMethod: link.payoutMethod, payoutAccount: link.payoutAccount } })]
+        return [prisma.invoice.create({ data: { invoiceNumber: `INV-${invoiceTimestamp}-${link.id.slice(-6).toUpperCase()}`, linkAccountId: link.id, qualifiedClicks: link.qualifiedClicks, clickRate: link.clickRate, totalEarning: link.totalEarning, payoutMethod: link.payoutMethod, payoutAccount: link.payoutAccount } })]
       })
       await prisma.$transaction([
         ...invoiceCreates,

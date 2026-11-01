@@ -3,6 +3,8 @@ import { prisma } from '@/lib/db/prisma'
 import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, isManager, getOwnerUserId } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 import { isDesktopDeviceType } from '@/lib/utils/visitor-profile'
+import { calculateCountryEarnings } from '@/lib/utils/country-click-rates'
+import { getCountryClickRatesByUserIds } from '@/lib/utils/country-click-rates-db'
 
 const normalizeSlug = (value: unknown) => {
   return typeof value === 'string'
@@ -335,18 +337,30 @@ export async function POST(
       )
     }
 
-    const invoiceClicks = await prisma.click.count({
-      where: { linkAccountId: id, country: 'US', isUnique: true, isBot: false },
-    })
-    const invoiceClickRate = Number((await prisma.user.findUnique({ where: { id: link.userId }, select: { clickRate: true } }))?.clickRate ?? 0) || 0
+    const [invoiceClicks, invoiceUser] = await Promise.all([
+      prisma.click.groupBy({
+        by: ['country'],
+        where: { linkAccountId: id, isUnique: true, isBot: false },
+        _count: { _all: true },
+      }),
+      prisma.user.findUnique({
+        where: { id: link.userId },
+        select: { clickRate: true },
+      }),
+    ])
+    const countryRates = await getCountryClickRatesByUserIds([link.userId])
+    const invoiceEarnings = calculateCountryEarnings(
+      invoiceClicks.map((click) => ({ country: click.country, count: click._count._all })),
+      countryRates.ratesByUserId.get(link.userId) || [],
+      Number(invoiceUser?.clickRate ?? 0) || 0,
+    )
     const invoiceTimestamp = new Date().toISOString().replaceAll('-', '').replaceAll(':', '').replaceAll('.', '').replace('T', '').replace('Z', '').slice(0, 14)
     const invoiceNumber = `INV-${invoiceTimestamp}-${id.slice(-6).toUpperCase()}`
-    const invoiceTotalEarning = invoiceClicks * invoiceClickRate
 
     await prisma.$transaction(
       [
-        ...(invoiceTotalEarning > 0
-          ? [prisma.invoice.create({ data: { invoiceNumber, linkAccountId: id, qualifiedClicks: invoiceClicks, clickRate: invoiceClickRate, totalEarning: invoiceTotalEarning, payoutMethod: link.payoutMethod, payoutAccount: link.payoutAccount } })]
+        ...(invoiceEarnings.totalEarning > 0
+          ? [prisma.invoice.create({ data: { invoiceNumber, linkAccountId: id, qualifiedClicks: invoiceEarnings.qualifiedClicks, clickRate: invoiceEarnings.clickRate, totalEarning: invoiceEarnings.totalEarning, payoutMethod: link.payoutMethod, payoutAccount: link.payoutAccount } })]
           : []),
         prisma.click.deleteMany({ where: { linkAccountId: id } }),
         prisma.geoStat.deleteMany({ where: { linkAccountId: id } }),

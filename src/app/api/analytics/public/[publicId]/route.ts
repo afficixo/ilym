@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getCorsHeaders } from '@/config/cors';
+import { getCountryClickRatesByUserIds } from '@/lib/utils/country-click-rates-db';
 
 // ========== HELPERS ==========
 
@@ -149,6 +150,7 @@ export async function GET(
       );
     }
 
+    const countryRates = await getCountryClickRatesByUserIds([dashboard.linkAccount.userId]);
     const url = new URL(request.url);
     const page = parseInt(url.searchParams.get('page') || '1', 10);
     const limit = parseInt(url.searchParams.get('limit') || '10', 10);
@@ -264,6 +266,8 @@ export async function GET(
         uniqueClicks,
         botClicks,
         clickRate: Number(dashboard.linkAccount?.user?.clickRate ?? 0) || 0,
+        countryClickRates: countryRates.ratesByUserId.get(dashboard.linkAccount.userId) || [],
+        countryRatesAvailable: countryRates.available,
         payoutMethod: dashboard.linkAccount?.payoutMethod || null,
         unpaidEarning,
         geoSummary,
