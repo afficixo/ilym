@@ -54,7 +54,7 @@ function getSafeReferrerHref(value: string) {
 
 function ResponsiveReferrer({ url }: { url: string }) {
   const href = getSafeReferrerHref(url)
-  const className = 'block min-w-0 flex-1 text-[13px] leading-5 [overflow-wrap:anywhere] xl:text-xs xl:leading-4'
+  const className = 'block min-w-0 flex-1 text-[13px] leading-5 [overflow-wrap:anywhere] min-[1728px]:text-xs min-[1728px]:leading-4'
 
   return href ? (
     <a
@@ -89,8 +89,8 @@ function BreakdownSection({
   const isReferrerSection = title === 'Top Referrers'
 
   return (
-    <section className="flex h-full flex-col rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-4 shadow-[var(--shadow-sm)] sm:p-5 xl:p-3">
-      <div className="mb-4 flex items-center gap-2.5 xl:mb-3">
+    <section className="flex h-full flex-col rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-4 shadow-[var(--shadow-sm)] sm:p-5 min-[1728px]:p-3">
+      <div className="mb-4 flex items-center gap-2.5 min-[1728px]:mb-3">
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[var(--surface-elevated)] ring-1 ring-inset ring-[var(--surface-border)]">
           <Icon className={`h-4 w-4 ${iconColor ?? 'text-slate-500 dark:text-slate-400'}`} aria-hidden="true" />
         </span>
@@ -109,7 +109,7 @@ function BreakdownSection({
             const clicks = Math.max(0, item.clicks)
             const pct = Math.min(100, Math.round((clicks / maxValue) * 100))
             return (
-              <div key={`${title}-${item.name}-${index}`} className="border-b border-[var(--surface-border)] pb-3.5 last:border-0 last:pb-0 sm:flex sm:flex-1 sm:flex-col sm:justify-center sm:py-2 xl:py-1">
+              <div key={`${title}-${item.name}-${index}`} className="border-b border-[var(--surface-border)] pb-3.5 last:border-0 last:pb-0 sm:flex sm:flex-1 sm:flex-col sm:justify-center sm:py-2 min-[1728px]:py-1">
                 <div className="flex min-w-0 items-start justify-between gap-3">
                   <span className="flex min-w-0 flex-1 items-start gap-2.5 text-slate-800 dark:text-slate-100">
                     {title === 'Devices' && <DeviceIcon name={item.name} />}
@@ -128,7 +128,7 @@ function BreakdownSection({
                 </div>
 
                 <div
-                  className="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--surface-elevated)] xl:mt-1.5"
+                  className="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--surface-elevated)] min-[1728px]:mt-1.5"
                   role="meter"
                   aria-label={`${item.name} clicks compared with the top entry`}
                   aria-valuemin={0}
@@ -141,7 +141,7 @@ function BreakdownSection({
                   />
                 </div>
 
-                <div className="mt-1.5 text-xs text-slate-600 dark:text-slate-400 xl:mt-1">{formatNumber(item.uniqueClicks)} unique visitors</div>
+                <div className="mt-1.5 text-xs text-slate-600 dark:text-slate-400 min-[1728px]:mt-1">{formatNumber(item.uniqueClicks)} unique visitors</div>
               </div>
             )
           })}
@@ -158,7 +158,7 @@ export function TrafficBreakdown({
   countryBreakdown = [],
 }: TrafficBreakdownProps) {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 xl:gap-2">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-3 min-[1728px]:grid-cols-4 min-[1728px]:gap-2">
         <BreakdownSection
           title="Devices"
           icon={MonitorSmartphone}

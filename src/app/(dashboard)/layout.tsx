@@ -83,8 +83,14 @@ export default function DashboardLayout({
 
   return (
     <div className="dashboard-shell flex h-dvh flex-col overflow-hidden bg-[var(--page-bg)] transition-colors duration-200 motion-reduce:transition-none">
+      <a
+        href="#main-content"
+        className="absolute left-3 top-2 z-[100] -translate-y-[150%] rounded-lg bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-lg outline-none ring-2 ring-emerald-600 transition-transform focus:translate-y-0 focus-visible:ring-2 dark:bg-slate-900 dark:text-white"
+      >
+        Skip to content
+      </a>
       <header className="relative z-[60] flex h-14 w-full shrink-0 border-b border-[#263238]/10 bg-white shadow-[0_2px_8px_rgba(38,50,56,0.05)] transition-colors duration-200 motion-reduce:transition-none dark:border-white/10 dark:bg-[#202b2f] dark:shadow-[0_2px_10px_rgba(0,0,0,0.2)]">
-        <div className={`hidden h-full shrink-0 items-center border-r border-[#263238]/10 bg-[#f3f6f5] px-3 transition-[width] duration-300 dark:border-white/10 dark:bg-[#192326] lg:flex ${sidebarCollapsed ? 'w-16 justify-center' : 'w-52 justify-between'}`}>
+        <div className={`hidden h-full shrink-0 items-center border-r border-[#263238]/10 bg-[#f3f6f5] px-3 transition-[width] duration-300 dark:border-white/10 dark:bg-[#192326] lg:flex ${sidebarCollapsed ? 'w-[var(--dashboard-sidebar-collapsed-width)] justify-center' : 'w-[var(--dashboard-sidebar-width)] justify-between'}`}>
           {!sidebarCollapsed && (
             <Image
               src="/afficixlogo.png"
@@ -211,8 +217,8 @@ export default function DashboardLayout({
           mobileOpen={mobileMenuOpen}
         />
         <div className="flex min-w-0 flex-1 flex-col">
-          <main data-page-loader-region className="relative flex min-h-0 w-full flex-1 overflow-x-hidden overflow-y-auto px-2 py-3 transition-colors duration-200 motion-reduce:transition-none sm:px-3 sm:py-5 lg:px-3 lg:py-6">
-            <div className="w-full">{children}</div>
+          <main id="main-content" tabIndex={-1} data-page-loader-region className="relative flex min-h-0 w-full flex-1 overflow-x-hidden overflow-y-auto px-3 py-3 transition-colors duration-200 motion-reduce:transition-none sm:px-4 sm:py-5 lg:px-6 lg:py-6 2xl:px-8">
+            <div className="mx-auto w-full max-w-[1920px] min-w-0">{children}</div>
           </main>
         </div>
       </div>

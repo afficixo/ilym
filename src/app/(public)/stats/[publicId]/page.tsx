@@ -253,7 +253,7 @@ const ClickStatusIcon = ({ isUnique, isDark = true }: { isUnique: boolean; isDar
 // Skeleton Loader
 const SkeletonLoader = ({ isDark = true }: { isDark?: boolean }) => (
   <div className={`min-h-screen ${isDark ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950' : 'bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100'}`}>
-    <div className="max-w-7xl mx-auto px-4 py-6">
+    <div className="mx-auto w-full max-w-screen-2xl px-4 py-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className={`h-10 w-10 rounded-lg ${isDark ? 'bg-white/5' : 'bg-gray-200'} animate-pulse`} />
@@ -657,7 +657,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
       <div className={`min-h-screen transition-colors duration-300 ${
         isDark ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950' : 'bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100'
       }`}>
-        <div className="mx-auto w-full max-w-[1920px] px-3 py-4 sm:px-5 sm:py-6 xl:px-7">
+        <div className="mx-auto w-full max-w-screen-2xl px-3 py-4 sm:px-5 sm:py-6 xl:px-7">
 
           {/* Header */}
           <div className="relative mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:gap-4">

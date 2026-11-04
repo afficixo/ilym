@@ -75,6 +75,8 @@ html:not(.dark) {
 }
 
 .dashboard-shell {
+  --dashboard-sidebar-width: clamp(12.5rem, 13.5vw, 14rem);
+  --dashboard-sidebar-collapsed-width: 4rem;
   --page-bg: #f3f6f5;
   --surface-bg: #f3f6f5;
   --surface-card: #ffffff;

@@ -601,7 +601,7 @@ export default function ManagerControlsSection() {
                 value={bulkCountryCode}
                 onChange={(event) => selectBulkCountry(event.target.value)}
                 disabled={!countryRatesAvailable || isBulkSaving}
-                className={inputClassName}
+                className={`${inputClassName} w-full`}
               >
                 {COUNTRY_OPTIONS.map((country) => (
                   <option key={country.code} value={country.code}>{country.name} ({country.code})</option>
@@ -620,7 +620,7 @@ export default function ManagerControlsSection() {
                 placeholder={selectedBulkCountryRate?.rate === null ? 'Set one rate' : '0.000'}
                 required
                 disabled={!countryRatesAvailable || isBulkSaving}
-                className={inputClassName}
+                className={`${inputClassName} w-full`}
               />
             </label>
             <div className="flex flex-wrap items-center gap-2">
@@ -1012,7 +1012,7 @@ export default function ManagerControlsSection() {
                             aria-label={`Country for click rate for ${manager.username}`}
                             value={selectedCountry}
                             onChange={(event) => updateCountrySelection(manager, event.target.value)}
-                            className={`${inputClassName} h-9`}
+                            className={`${inputClassName} h-9 w-full`}
                             disabled={!countryRatesAvailable || isSubmitting}
                           >
                             {COUNTRY_OPTIONS.map((country) => (
@@ -1042,7 +1042,7 @@ export default function ManagerControlsSection() {
                             }))}
                             required
                             disabled={!countryRatesAvailable || isSubmitting}
-                            className={`${inputClassName} h-9 ${
+                            className={`${inputClassName} h-9 w-full ${
                               countryRateDirty
                                 ? 'border-amber-400 bg-amber-50/60 focus:border-amber-500 dark:border-amber-500/70 dark:bg-amber-500/5'
                                 : ''

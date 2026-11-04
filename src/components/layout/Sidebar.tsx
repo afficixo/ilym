@@ -238,7 +238,7 @@ export default function Sidebar({ collapsed, mobileOpen, onMobileOpenChange }: S
   ]
 
   if (isMobile === null) {
-    return <div className="hidden shrink-0 lg:block lg:w-52" aria-hidden="true" />
+    return <div className="hidden w-[var(--dashboard-sidebar-width)] shrink-0 lg:block" aria-hidden="true" />
   }
 
   const handleLogout = async () => {
@@ -273,9 +273,17 @@ export default function Sidebar({ collapsed, mobileOpen, onMobileOpenChange }: S
 
   const sidebarContent = (
     <div className="flex h-full flex-col bg-[#f3f6f5] text-[#263238] transition-colors duration-200 motion-reduce:transition-none dark:bg-[#192326] dark:text-slate-100">
-      <nav className="relative z-10 min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-2.5 py-4 lg:space-y-3 lg:px-2 lg:py-3">
+      <nav
+        aria-label="Primary navigation"
+        className="relative z-10 min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-2.5 py-4 lg:space-y-3 lg:px-2 lg:py-3"
+      >
         {menuGroups.map((group) => group.items.length > 0 && (
           <div key={group.label} className="space-y-1.5 lg:space-y-1">
+            {group.label !== 'Link accounts' && (!collapsed || isMobile) && (
+              <p className="px-2.5 pb-0.5 pt-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400 first:pt-0 dark:text-slate-500">
+                {group.label}
+              </p>
+            )}
             {group.label === 'Link accounts' && (!collapsed || isMobile) && (
                 <button
                   type="button"
@@ -439,7 +447,7 @@ export default function Sidebar({ collapsed, mobileOpen, onMobileOpenChange }: S
       {supportPopup}
       {supportShortcut}
       <aside
-        className={`panel-bleed sticky top-14 z-[50] hidden h-[calc(100dvh-3.5rem)] shrink-0 flex-col ${collapsed ? 'w-16' : 'w-52'} overflow-hidden rounded-none border-0 border-r border-[#263238]/10 bg-[#f3f6f5] shadow-[8px_0_28px_rgba(38,50,56,0.05)] ring-0 transition-[width,box-shadow] duration-300 ease-out dark:border-white/10 dark:bg-[#192326] dark:shadow-[8px_0_28px_rgba(0,0,0,0.24)] lg:flex`}
+        className={`panel-bleed sticky top-14 z-[50] hidden h-[calc(100dvh-3.5rem)] shrink-0 flex-col ${collapsed ? 'w-[var(--dashboard-sidebar-collapsed-width)]' : 'w-[var(--dashboard-sidebar-width)]'} overflow-hidden rounded-none border-0 border-r border-[#263238]/10 bg-[#f3f6f5] shadow-[8px_0_28px_rgba(38,50,56,0.05)] ring-0 transition-[width,box-shadow] duration-300 ease-out dark:border-white/10 dark:bg-[#192326] dark:shadow-[8px_0_28px_rgba(0,0,0,0.24)] lg:flex`}
       >
         {sidebarContent}
       </aside>
