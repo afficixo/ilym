@@ -52,9 +52,11 @@ export default function ClickLogs({ filter, canDelete }: ClickLogsProps) {
   const router = useRouter()
   const [clicks, setClicks] = useState<Click[]>([])
   const [total, setTotal] = useState(0)
-  const [page, setPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [nextPage, setNextPage] = useState(2)
+  const [hasMore, setHasMore] = useState(false)
+  const [loadError, setLoadError] = useState('')
   const [showBrowserVersion, setShowBrowserVersion] = useState<string | null>(null)
   const [showDeviceInfo, setShowDeviceInfo] = useState<string | null>(null)
   const [showGeoInfo, setShowGeoInfo] = useState<string | null>(null)
@@ -62,41 +64,95 @@ export default function ClickLogs({ filter, canDelete }: ClickLogsProps) {
   const [clickToDelete, setClickToDelete] = useState<Click | null>(null)
   const [deleteError, setDeleteError] = useState('')
   const cancelDeleteButtonRef = useRef<HTMLButtonElement>(null)
+  const loadMoreRef = useRef<HTMLDivElement>(null)
+  const loadingMoreRef = useRef(false)
 
-  const limit = 25
+  const limit = 50
 
-  const fetchClicks = useCallback(async (showLoading = true) => {
-    if (showLoading) {
-      setLoading(true)
+  const fetchPage = useCallback(async (pageNumber: number) => {
+    const params = new URLSearchParams({
+      page: pageNumber.toString(),
+      limit: limit.toString(),
+      sortBy: 'createdAt',
+      sortOrder: 'desc',
+    })
+    const response = await fetch(`/api/analytics/clicks?${params}`)
+    if (response.status === 401) {
+      router.push('/login')
+      return null
     }
 
-    try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
-        sortBy: 'createdAt',
-        sortOrder: 'desc',
-      })
-
-      const response = await fetch(`/api/analytics/clicks?${params}`)
-      if (response.status === 401) {
-        router.push('/login')
-        return
-      }
-      const data = await response.json()
-      setClicks(data.clicks || [])
-      setTotal(data.total || 0)
-      setTotalPages(data.totalPages || 1)
-    } catch (error) {
-      console.error('Failed to fetch clicks:', error)
-    } finally {
-      setLoading(false)
+    const data = await response.json()
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to fetch click logs.')
     }
-  }, [page, router])
+    return data
+  }, [router])
 
   useEffect(() => {
-    fetchClicks(true)
-  }, [fetchClicks])
+    let active = true
+    setLoading(true)
+    setLoadError('')
+
+    fetchPage(1)
+      .then((data) => {
+        if (!active || !data) return
+        setClicks(data.clicks || [])
+        setTotal(data.total || 0)
+        setNextPage(2)
+        setHasMore((data.page || 1) < (data.totalPages || 1))
+      })
+      .catch((error: unknown) => {
+        if (!active) return
+        console.error('Failed to fetch clicks:', error)
+        setLoadError(error instanceof Error ? error.message : 'Failed to fetch click logs.')
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [fetchPage])
+
+  const loadMore = useCallback(async () => {
+    if (!hasMore || loadingMoreRef.current) return
+    loadingMoreRef.current = true
+    setLoadingMore(true)
+    setLoadError('')
+
+    try {
+      const data = await fetchPage(nextPage)
+      if (!data) return
+      setClicks((currentClicks) => currentClicks.concat(data.clicks || []))
+      setNextPage((data.page || nextPage) + 1)
+      setHasMore((data.page || nextPage) < (data.totalPages || nextPage))
+    } catch (error) {
+      console.error('Failed to fetch more clicks:', error)
+      setLoadError(error instanceof Error ? error.message : 'Failed to fetch more click logs.')
+    } finally {
+      loadingMoreRef.current = false
+      setLoadingMore(false)
+    }
+  }, [fetchPage, hasMore, nextPage])
+
+  useEffect(() => {
+    const sentinel = loadMoreRef.current
+    const scrollContainer = document.getElementById('main-content')
+    if (!sentinel || !scrollContainer || !hasMore) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          void loadMore()
+        }
+      },
+      { root: scrollContainer, rootMargin: '400px 0px' },
+    )
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [hasMore, loadMore])
 
   useEffect(() => {
     if (!clickToDelete) return
@@ -142,10 +198,6 @@ export default function ClickLogs({ filter, canDelete }: ClickLogsProps) {
       const remainingClicks = clicks.filter((item) => item.id !== click.id)
       setClicks(remainingClicks)
       setTotal((currentTotal) => Math.max(0, currentTotal - 1))
-      setTotalPages(Math.max(1, Math.ceil(Math.max(0, total - 1) / limit)))
-      if (remainingClicks.length === 0 && page > 1) {
-        setPage((currentPage) => currentPage - 1)
-      }
     } catch (error) {
       setDeleteError(error instanceof Error ? error.message : 'Failed to delete click log.')
     } finally {
@@ -226,7 +278,7 @@ export default function ClickLogs({ filter, canDelete }: ClickLogsProps) {
     return <CountryFlag country={click.country} />
   }
 
-  if (loading) {
+  if (loading && clicks.length === 0) {
     return (
       <div className="border-0 bg-transparent p-0">
         <div className="space-y-4">{[...Array(5)].map((_, i) => <div key={i} className="flex items-center gap-4"><div className="w-8 h-8 skeleton rounded" /><div className="flex-1"><div className="h-4 w-48 skeleton rounded" /><div className="h-3 w-32 skeleton rounded mt-2" /></div><div className="h-3 w-20 skeleton rounded" /></div>)}</div>
@@ -240,7 +292,20 @@ export default function ClickLogs({ filter, canDelete }: ClickLogsProps) {
       <div className="mb-3 flex items-center gap-2">
         <Activity className="h-4 w-4 text-[var(--primary-700)] dark:text-[var(--primary-300)]" strokeWidth={1.5} />
         <span className="text-base font-semibold text-slate-900 dark:text-white/90">Click Activity</span>
+        <span className="text-xs text-slate-500 dark:text-slate-400">
+          {clicks.length.toLocaleString()} of {total.toLocaleString()} logs
+        </span>
       </div>
+      {loadError && (
+        <p role="alert" className="mb-3 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
+          {loadError}
+        </p>
+      )}
+      {loadingMore && (
+        <p role="status" className="mb-3 text-xs text-slate-500 dark:text-slate-400">
+          Loading more click logs…
+        </p>
+      )}
       {deleteError && (
         <p role="alert" className="mb-3 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
           {deleteError}
@@ -389,7 +454,7 @@ export default function ClickLogs({ filter, canDelete }: ClickLogsProps) {
                 <tr
                   key={click.id}
                   className={`transition-all duration-200 ${click.isUnique ? 'hover:bg-[var(--primary-50)] dark:hover:bg-[#5ff442]/10' : 'bg-amber-50 hover:bg-amber-100 dark:bg-amber-500/5 dark:hover:bg-amber-500/10'}`}
-                  style={{ animationDelay: `${index * 50}ms` }}
+                  style={{ animationDelay: `${Math.min(index, 10) * 25}ms` }}
                 >
                   <td className="px-4 py-2 text-sm text-slate-700 dark:text-slate-300">
                     <div className="flex flex-col gap-0">
@@ -489,6 +554,19 @@ export default function ClickLogs({ filter, canDelete }: ClickLogsProps) {
           </tbody>
         </table>
       </div>
+
+      {hasMore && (
+        <div ref={loadMoreRef} className="flex justify-center py-4">
+          <button
+            type="button"
+            onClick={() => void loadMore()}
+            disabled={loadingMore}
+            className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface-card)] px-4 py-2 text-sm font-medium text-slate-700 shadow-[var(--shadow-sm)] transition hover:bg-[var(--surface-elevated)] disabled:cursor-wait disabled:opacity-60 dark:text-slate-200"
+          >
+            {loadingMore ? 'Loading…' : 'Load more click logs'}
+          </button>
+        </div>
+      )}
 
       </div>
       {clickToDelete && (

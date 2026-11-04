@@ -182,9 +182,10 @@ export async function GET(request: Request) {
     // Fetch clicks with pagination
     const clicks = await prisma.click.findMany({
       where,
-      orderBy: {
-        [params.sortBy]: params.sortOrder,
-      },
+      orderBy: [
+        { [params.sortBy]: params.sortOrder },
+        { id: 'asc' },
+      ],
       skip: (params.page - 1) * params.limit,
       take: params.limit,
       select: {
