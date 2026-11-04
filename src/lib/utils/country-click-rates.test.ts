@@ -10,7 +10,7 @@ test('country-specific rates override the legacy United States rate', () => {
   assert.equal(getCountryClickRate('GB', rates, 0.11), 0)
 })
 
-test('countries without a saved rate count as qualified clicks paid at zero', () => {
+test('only countries with a positive rate count as qualified clicks', () => {
   const earnings = calculateCountryEarnings(
     [
       { country: 'US', count: 10 },
@@ -23,19 +23,19 @@ test('countries without a saved rate count as qualified clicks paid at zero', ()
   )
 
   assert.deepEqual(earnings, {
-    qualifiedClicks: 35,
+    qualifiedClicks: 15,
     totalEarning: 1.5,
-    clickRate: 1.5 / 35,
+    clickRate: 1.5 / 15,
   })
   assert.equal(getCountryClickRate('GB', [{ countryCode: 'CA', rate: 0.08 }]), 0)
   assert.equal(getCountryClickRate('UNKNOWN', []), null)
 })
 
-test('a configured zero rate keeps the country configured but pays zero', () => {
+test('a configured zero rate does not qualify clicks', () => {
   const earnings = calculateCountryEarnings(
     [{ country: 'CA', count: 3 }],
     [{ countryCode: 'CA', rate: 0 }],
   )
 
-  assert.deepEqual(earnings, { qualifiedClicks: 3, totalEarning: 0, clickRate: 0 })
+  assert.deepEqual(earnings, { qualifiedClicks: 0, totalEarning: 0, clickRate: 0 })
 })

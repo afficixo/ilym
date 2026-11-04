@@ -38,7 +38,7 @@ export function calculateCountryEarnings(
 
   for (const entry of clicksByCountry) {
     const rate = getCountryClickRate(entry.country, countryRates, defaultUsRate)
-    if (rate === null) continue
+    if (rate === null || rate <= 0) continue
 
     const count = Math.max(0, Number(entry.count ?? 1) || 0)
     qualifiedClicks += count

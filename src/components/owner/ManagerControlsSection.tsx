@@ -10,6 +10,7 @@ import {
   Globe2,
   LoaderCircle,
   Search,
+  Trash2,
   Users,
   X,
 } from 'lucide-react'
@@ -178,9 +179,7 @@ export default function ManagerControlsSection() {
     }))
   }
 
-  const handleBulkCountryRateSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const rate = Number(bulkCountryRate)
+  const saveBulkCountryRate = async (rate: number, removed = false) => {
     if (!Number.isFinite(rate) || rate < 0 || !countryRatesAvailable) return
 
     setIsBulkSaving(true)
@@ -207,6 +206,7 @@ export default function ManagerControlsSection() {
           { countryCode: bulkCountryCode, rate },
         ].sort((a, b) => a.countryCode.localeCompare(b.countryCode)),
       })))
+      setBulkCountryRate(String(rate))
       setCountryRateDrafts((current) => Object.fromEntries(
         Object.entries(current).map(([managerId, value]) => [
           managerId,
@@ -221,7 +221,12 @@ export default function ManagerControlsSection() {
           ]),
         ))
       }
-      setFeedback({ type: 'success', message: data.message || 'Country click rate updated for all managers.' })
+      setFeedback({
+        type: 'success',
+        message: removed
+          ? `${getCountryLabel(bulkCountryCode)} rate removed for all managers. Clicks from this country will not count as qualified.`
+          : data.message || 'Country click rate updated for all managers.',
+      })
     } catch (error) {
       setFeedback({
         type: 'error',
@@ -232,10 +237,15 @@ export default function ManagerControlsSection() {
     }
   }
 
-  const handleManagerCountryRateSubmit = async (event: FormEvent<HTMLFormElement>, manager: ManagerOption) => {
+  const handleBulkCountryRateSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    const rate = Number(bulkCountryRate)
+    if (!Number.isFinite(rate) || rate < 0) return
+    await saveBulkCountryRate(rate)
+  }
+
+  const saveManagerCountryRate = async (manager: ManagerOption, rate: number, removed = false) => {
     const countryCode = selectedCountryByManager[manager.id] || 'US'
-    const rate = Number(countryRateDrafts[manager.id])
     if (!Number.isFinite(rate) || rate < 0) return
 
     setIsSubmitting(true)
@@ -272,7 +282,12 @@ export default function ManagerControlsSection() {
       if (countryCode === 'US') {
         updateManagerDraft(manager.id, 'clickRate', String(countryRate.rate))
       }
-      setFeedback({ type: 'success', message: data.message || 'Country click rate updated successfully.' })
+      setFeedback({
+        type: 'success',
+        message: removed
+          ? `${getCountryLabel(countryCode)} rate removed. Clicks from this country will not count as qualified.`
+          : data.message || 'Country click rate updated successfully.',
+      })
     } catch (error) {
       setFeedback({
         type: 'error',
@@ -282,6 +297,13 @@ export default function ManagerControlsSection() {
       setIsSubmitting(false)
       setSavingField(null)
     }
+  }
+
+  const handleManagerCountryRateSubmit = async (event: FormEvent<HTMLFormElement>, manager: ManagerOption) => {
+    event.preventDefault()
+    const rate = Number(countryRateDrafts[manager.id])
+    if (!Number.isFinite(rate) || rate < 0) return
+    await saveManagerCountryRate(manager, rate)
   }
 
   const handleManagerRatesSubmit = async (event: FormEvent<HTMLFormElement>, managerId: string) => {
@@ -601,14 +623,28 @@ export default function ManagerControlsSection() {
                 className={inputClassName}
               />
             </label>
-            <button
-              type="submit"
-              disabled={!countryRatesAvailable || isBulkSaving || bulkCountryRate.trim() === '' || !Number.isFinite(Number(bulkCountryRate)) || Number(bulkCountryRate) < 0}
-              className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:focus-visible:ring-offset-slate-950"
-            >
-              {isBulkSaving ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Check className="h-4 w-4" aria-hidden="true" />}
-              {isBulkSaving ? 'Applying…' : countryRatesAvailable ? 'Apply rate' : 'Setup required'}
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="submit"
+                disabled={!countryRatesAvailable || isBulkSaving || bulkCountryRate.trim() === '' || !Number.isFinite(Number(bulkCountryRate)) || Number(bulkCountryRate) < 0}
+                className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:focus-visible:ring-offset-slate-950"
+              >
+                {isBulkSaving ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Check className="h-4 w-4" aria-hidden="true" />}
+                {isBulkSaving ? 'Applying…' : countryRatesAvailable ? 'Apply rate' : 'Setup required'}
+              </button>
+              {selectedBulkCountryRate && selectedBulkCountryRate.maximumRate !== '0.000' && (
+                <button
+                  type="button"
+                  disabled={!countryRatesAvailable || isBulkSaving}
+                  aria-label={`Remove ${getCountryLabel(bulkCountryCode)} rate for all managers`}
+                  onClick={() => void saveBulkCountryRate(0, true)}
+                  className={`${saveButtonClassName} h-10 border-red-200 bg-white px-3 text-red-700 hover:bg-red-50 dark:border-red-900/60 dark:bg-slate-950 dark:text-red-300 dark:hover:bg-red-950/30`}
+                >
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                  Remove rate
+                </button>
+              )}
+            </div>
           </div>
           {countryRatesAvailable && selectedBulkCountryRate?.rate === null && (
             <p className="mx-4 -mt-2 mb-4 rounded-lg bg-amber-50 px-3 py-2 text-[11px] leading-4 text-amber-800 dark:bg-amber-500/10 dark:text-amber-200 sm:mx-5">
@@ -962,7 +998,7 @@ export default function ManagerControlsSection() {
                     <section className="mt-4 border-t border-emerald-200/80 pt-3 dark:border-emerald-900/60">
                       <form
                         onSubmit={(event) => void handleManagerCountryRateSubmit(event, manager)}
-                        className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end"
+                        className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_auto] sm:items-end"
                       >
                         <div className="min-w-0">
                           <label
@@ -1018,6 +1054,18 @@ export default function ManagerControlsSection() {
                           'countryClickRate',
                           countryRateDirty,
                           `Save ${getCountryLabel(selectedCountry)} click rate for ${manager.username}`,
+                        )}
+                        {savedCountryRate > 0 && (
+                          <button
+                            type="button"
+                            disabled={isSubmitting}
+                            aria-label={`Remove ${getCountryLabel(selectedCountry)} click rate for ${manager.username}`}
+                            onClick={() => void saveManagerCountryRate(manager, 0, true)}
+                            className={`${saveButtonClassName} h-9 border-red-200 bg-white text-red-700 hover:bg-red-50 dark:border-red-900/60 dark:bg-slate-950 dark:text-red-300 dark:hover:bg-red-950/30`}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                            Remove rate
+                          </button>
                         )}
                       </form>
                       <p className="mt-2 text-[11px] leading-4 text-slate-500 dark:text-slate-400">
