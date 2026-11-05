@@ -422,9 +422,25 @@ export default function ClickLogs({ canDelete }: { canDelete: boolean }) {
                   </div>
                   <div className="flex min-w-0 items-center justify-between gap-2 py-1">
                     <span className="text-slate-600 dark:text-slate-300">Referrer:</span>
-                    <span className="max-w-[78%] break-all text-right text-slate-600 dark:text-slate-300" title={click.referrer || 'Direct'}>
-                      {click.referrer || 'Direct'}
-                    </span>
+                    {click.referrer ? (() => {
+                      const referrerInfo = getReferrerInfo(click.referrer)
+                      const className = 'max-w-[78%] break-all text-right text-slate-600 dark:text-slate-300'
+                      return referrerInfo.href ? (
+                        <a
+                          href={referrerInfo.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`${className} hover:text-[var(--primary-700)] hover:underline dark:hover:text-[var(--primary-300)]`}
+                          title={click.referrer}
+                        >
+                          {click.referrer}
+                        </a>
+                      ) : (
+                        <span className={className} title={click.referrer}>{click.referrer}</span>
+                      )
+                    })() : (
+                      <span className="text-slate-600 dark:text-slate-300">Direct</span>
+                    )}
                   </div>
                 </div>
               </div>
