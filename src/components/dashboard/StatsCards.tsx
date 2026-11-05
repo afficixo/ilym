@@ -32,6 +32,7 @@ interface StatsCardsProps {
   onPeriodChange?: (period: 'week' | 'month' | 'year') => void
   totalPayout?: number
   showConversions?: boolean
+  isLoading?: boolean
 }
 
 function formatCurrency(value: number | undefined, decimalPlaces = 2) {
@@ -47,6 +48,7 @@ export default function StatsCards({
   onPeriodChange,
   totalPayout = 0,
   showConversions = false,
+  isLoading = false,
 }: StatsCardsProps) {
   const [showCredit, setShowCredit] = useState(false)
 
@@ -70,6 +72,7 @@ export default function StatsCards({
           icon={Link2}
           color="purple"
           delay={0}
+          isLoading={isLoading}
         />
         <StatsCard
           title="Total Clicks"
@@ -78,6 +81,8 @@ export default function StatsCards({
           color="green"
           sparklineData={clickTrend}
           delay={100}
+          isLoading={isLoading}
+          showSparklinePlaceholder
         />
         <StatsCard
           title="Unique Visitors"
@@ -86,6 +91,8 @@ export default function StatsCards({
           color="blue"
           sparklineData={visitorTrend}
           delay={200}
+          isLoading={isLoading}
+          showSparklinePlaceholder
         />
         {showConversions ? (
           <motion.button
@@ -96,6 +103,8 @@ export default function StatsCards({
             className="h-full min-h-[94px] min-w-0 w-full rounded-xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-3 text-left shadow-[var(--shadow-sm)] transition-colors duration-200 hover:border-[var(--primary-600)] hover:bg-[var(--primary-50)] sm:p-4 lg:p-3 dark:hover:border-[var(--primary-500)] dark:hover:bg-[#5ff442]/10"
             onClick={() => setShowCredit((current) => !current)}
             aria-label={`Toggle balance view. Current value: ${activeLabel}`}
+            aria-busy={isLoading}
+            disabled={isLoading}
           >
             <div className="flex items-center justify-between gap-2">
               <p className="text-[10px] font-semibold uppercase leading-[14px] tracking-[0.08em] text-slate-500 dark:text-slate-400 sm:text-xs sm:leading-5 sm:tracking-[0.12em]">{activeLabel}</p>
@@ -103,7 +112,11 @@ export default function StatsCards({
                 <CircleDollarSign className="h-[18px] w-[18px]" strokeWidth={1.8} />
               </span>
             </div>
-            <p className="mt-0.5 text-xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-2xl">{formatCurrency(activeValue)}</p>
+            {isLoading ? (
+              <div aria-hidden="true" className="dashboard-skeleton mt-1 h-7 w-24 max-w-full sm:h-8" />
+            ) : (
+              <p className="mt-0.5 text-xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-2xl">{formatCurrency(activeValue)}</p>
+            )}
           </motion.button>
         ) : (
           <StatsCard
@@ -114,6 +127,7 @@ export default function StatsCards({
             prefix="$"
             decimalPlaces={2}
             delay={300}
+            isLoading={isLoading}
           />
         )}
       </div>

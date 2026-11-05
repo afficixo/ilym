@@ -24,10 +24,19 @@ async function getLandingPageSubdomain(host?: string | null) {
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
-  const host = request.headers.get('host')
-  const subdomain = await getLandingPageSubdomain(host)
+  const response = NextResponse.next()
 
-  // If subdomain is detected and root path, route to landing page
+  if (path.startsWith('/api')) {
+    response.headers.set('Access-Control-Allow-Credentials', 'true')
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
+    response.headers.set('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization')
+    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+    return response
+  }
+
+  const subdomain = await getLandingPageSubdomain(request.headers.get('host'))
+
   if (subdomain && (path === '/' || path === '')) {
     const landingPageUrl = new URL(`/lp/${encodeURIComponent(subdomain)}${request.nextUrl.search}`, request.url)
     return NextResponse.rewrite(landingPageUrl)
@@ -38,15 +47,6 @@ export async function proxy(request: NextRequest) {
 
   const cookieHeader = request.headers.get('cookie') || ''
   const token = getCookieValue(cookieHeader, 'auth-token')
-
-  const response = NextResponse.next()
-
-  if (path.startsWith('/api')) {
-    response.headers.set('Access-Control-Allow-Credentials', 'true')
-    response.headers.set('Access-Control-Allow-Origin', '*')
-    response.headers.set('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
-    response.headers.set('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization')
-  }
 
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
 
@@ -87,7 +87,6 @@ export const config = {
     // Match all paths except:
     // - _next internals (static, image optimization)
     // - Static files and assets (all common file extensions)
-    // - API auth endpoints
-    '/((?!_next|favicon|robots\\.txt|sitemap\\.xml|api/auth|.*\\.(?:png|jpg|jpeg|gif|ico|svg|webp|css|js|json|woff|woff2|ttf|eot|txt|xml|map)).*)',
+    '/((?!_next|favicon|robots\\.txt|sitemap\\.xml|.*\\.(?:png|jpg|jpeg|gif|ico|svg|webp|css|js|json|woff|woff2|ttf|eot|txt|xml|map)).*)',
   ],
 }

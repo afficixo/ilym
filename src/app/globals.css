@@ -94,27 +94,75 @@ html.dark {
   font-family: var(--font-inter), 'Segoe UI', sans-serif;
 }
 
-html.theme-colors-transitioning .dashboard-shell,
-html.theme-colors-transitioning .dashboard-shell * {
+.dashboard-skeleton {
+  border-radius: 0.375rem;
+  background-color: #e2e8f0;
+  background-image: linear-gradient(105deg, #e2e8f0 20%, #f8fafc 48%, #e2e8f0 76%);
+  background-size: 220% 100%;
+  filter: blur(1.5px);
+  animation: dashboard-skeleton-shimmer 1.8s ease-in-out infinite;
+}
+
+.dark .dashboard-skeleton {
+  background-color: rgba(255, 255, 255, 0.07);
+  background-image: linear-gradient(105deg, rgba(255, 255, 255, 0.055) 20%, rgba(255, 255, 255, 0.13) 48%, rgba(255, 255, 255, 0.055) 76%);
+}
+
+.dashboard-skeleton-chart-line {
+  fill: none;
+  stroke: #cbd5e1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4;
+  filter: blur(1px);
+  animation: dashboard-skeleton-chart-pulse 1.8s ease-in-out infinite;
+}
+
+.dark .dashboard-skeleton-chart-line {
+  stroke: rgba(255, 255, 255, 0.14);
+}
+
+@keyframes dashboard-skeleton-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -120% 0; }
+}
+
+@keyframes dashboard-skeleton-chart-pulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.9; }
+}
+
+html.theme-colors-transitioning,
+html.theme-colors-transitioning body,
+html.theme-colors-transitioning body * {
   transition-property:
     color,
     background-color,
+    background-image,
     border-color,
     outline-color,
     text-decoration-color,
     fill,
     stroke,
     box-shadow !important;
-  transition-duration: 240ms !important;
-  transition-timing-function: cubic-bezier(0.2, 0, 0, 1) !important;
+  transition-duration: 320ms !important;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1) !important;
 }
 
-html.theme-colors-transitioning .dashboard-shell [data-theme-toggle] svg {
+html.theme-colors-transitioning [data-theme-toggle] svg {
   transition-property: color, opacity, transform !important;
 }
 
+::view-transition-group(root),
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 .theme-toggle-header-pulse .dashboard-shell header [data-theme-toggle="header"]::after,
-.theme-toggle-sidebar-pulse .dashboard-shell [data-theme-toggle="sidebar"]::after {
+.theme-toggle-sidebar-pulse .dashboard-shell [data-theme-toggle="sidebar"]::after,
+.theme-toggle-public-stats-pulse [data-theme-toggle="public-stats"]::after {
   position: absolute;
   inset: -2px;
   border: 1.5px solid #4ade80;
@@ -126,7 +174,8 @@ html.theme-colors-transitioning .dashboard-shell [data-theme-toggle] svg {
 }
 
 .dark.theme-toggle-header-pulse .dashboard-shell header [data-theme-toggle="header"]::after,
-.dark.theme-toggle-sidebar-pulse .dashboard-shell [data-theme-toggle="sidebar"]::after {
+.dark.theme-toggle-sidebar-pulse .dashboard-shell [data-theme-toggle="sidebar"]::after,
+.dark.theme-toggle-public-stats-pulse [data-theme-toggle="public-stats"]::after {
   border-color: #a3e635;
   box-shadow: 0 0 0 3px rgba(163, 230, 53, 0.14);
 }
@@ -143,8 +192,20 @@ html.theme-colors-transitioning .dashboard-shell [data-theme-toggle] svg {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html.theme-colors-transitioning,
+  html.theme-colors-transitioning body,
+  html.theme-colors-transitioning body * {
+    transition-duration: 0ms !important;
+  }
+
   .theme-toggle-header-pulse .dashboard-shell header [data-theme-toggle="header"]::after,
-  .theme-toggle-sidebar-pulse .dashboard-shell [data-theme-toggle="sidebar"]::after {
+  .theme-toggle-sidebar-pulse .dashboard-shell [data-theme-toggle="sidebar"]::after,
+  .theme-toggle-public-stats-pulse [data-theme-toggle="public-stats"]::after {
+    animation: none;
+  }
+
+  .dashboard-skeleton,
+  .dashboard-skeleton-chart-line {
     animation: none;
   }
 }

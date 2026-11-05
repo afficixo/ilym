@@ -572,9 +572,22 @@ export default function ClickLogs({ canDelete }: { canDelete: boolean }) {
             type="button"
             onClick={() => void loadMore()}
             disabled={loadingMore}
-            className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface-card)] px-4 py-2 text-sm font-medium text-slate-700 shadow-[var(--shadow-sm)] transition hover:bg-[var(--surface-elevated)] disabled:cursor-wait disabled:opacity-60 dark:text-slate-200"
+            aria-label={loadingMore ? 'Loading more click logs' : 'Load more click logs'}
+            title={loadingMore ? 'Loading more click logs' : 'Load more click logs'}
+            aria-busy={loadingMore}
+            className={`inline-flex min-h-10 items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 disabled:cursor-wait disabled:opacity-100 ${
+              loadingMore
+                ? 'h-10 w-10 bg-transparent text-emerald-700 shadow-none dark:text-emerald-300'
+                : 'border border-[var(--surface-border)] bg-[var(--surface-card)] px-4 py-2 text-slate-700 shadow-[var(--shadow-sm)] hover:bg-[var(--surface-elevated)] dark:text-slate-200'
+            }`}
           >
-            {loadingMore ? 'Loading…' : 'Load more click logs'}
+            {loadingMore ? (
+              <span className="page-load-spinner scale-[0.72]" aria-hidden="true">
+                {Array.from({ length: 8 }, (_, index) => <span key={index} />)}
+              </span>
+            ) : (
+              'Load more click logs'
+            )}
           </button>
         </div>
       )}

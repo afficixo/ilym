@@ -16,6 +16,7 @@ interface TrafficBreakdownProps {
   browserBreakdown?: BreakdownItem[]
   deviceBreakdown?: BreakdownItem[]
   countryBreakdown?: BreakdownItem[]
+  isLoading?: boolean
 }
 
 const palette = {
@@ -77,19 +78,21 @@ function BreakdownSection({
   items,
   accent,
   iconColor,
+  isLoading,
 }: {
   title: string
   icon: typeof Globe2
   items: BreakdownItem[]
   accent: string
   iconColor?: string
+  isLoading: boolean
 }) {
   const filteredItems = items.filter(item => item.name && item.name.trim() !== '' && item.name.trim().toLowerCase() !== 'unknown')
   const maxValue = Math.max(...filteredItems.map(item => Math.max(0, item.clicks)), 1)
   const isReferrerSection = title === 'Top Referrers'
 
   return (
-    <section className="flex h-full flex-col rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-4 shadow-[var(--shadow-sm)] sm:p-5 min-[1728px]:p-3">
+    <section aria-busy={isLoading} className="flex h-full flex-col rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-4 shadow-[var(--shadow-sm)] sm:p-5 min-[1728px]:p-3">
       <div className="mb-4 flex items-center gap-2.5 min-[1728px]:mb-3">
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[var(--surface-elevated)] ring-1 ring-inset ring-[var(--surface-border)]">
           <Icon className={`h-4 w-4 ${iconColor ?? 'text-slate-500 dark:text-slate-400'}`} aria-hidden="true" />
@@ -98,7 +101,25 @@ function BreakdownSection({
         <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Clicks</span>
       </div>
 
-      {filteredItems.length === 0 ? (
+      {isLoading ? (
+        <div aria-hidden="true" className="flex flex-col space-y-3.5 sm:flex-1 sm:space-y-0">
+          {[...Array(4)].map((_, index) => (
+            <div key={index} className="border-b border-[var(--surface-border)] pb-3.5 last:border-0 last:pb-0 sm:flex sm:flex-1 sm:flex-col sm:justify-center sm:py-2 min-[1728px]:py-1">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                  <div className="dashboard-skeleton h-4 w-4 shrink-0" style={{ animationDelay: `${index * 90}ms` }} />
+                  <div className="dashboard-skeleton h-3.5 w-28 max-w-[70%]" style={{ animationDelay: `${index * 90}ms` }} />
+                </div>
+                <div className="dashboard-skeleton h-3.5 w-10 shrink-0" style={{ animationDelay: `${index * 90}ms` }} />
+              </div>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--surface-elevated)]">
+                <div className="dashboard-skeleton h-full w-2/3 rounded-full" style={{ animationDelay: `${index * 90}ms` }} />
+              </div>
+              <div className="dashboard-skeleton mt-1.5 h-2.5 w-24 max-w-[50%]" style={{ animationDelay: `${index * 90}ms` }} />
+            </div>
+          ))}
+        </div>
+      ) : filteredItems.length === 0 ? (
         <div className="rounded-xl border border-dashed border-[var(--surface-border)] px-4 py-6 text-center">
           <p className="text-sm font-medium text-slate-700 dark:text-slate-200">No data to display</p>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Traffic details will appear here when available.</p>
@@ -156,6 +177,7 @@ export function TrafficBreakdown({
   browserBreakdown = [],
   deviceBreakdown = [],
   countryBreakdown = [],
+  isLoading = false,
 }: TrafficBreakdownProps) {
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-3 min-[1728px]:grid-cols-4 min-[1728px]:gap-2">
@@ -165,6 +187,7 @@ export function TrafficBreakdown({
           items={deviceBreakdown}
           accent={palette.devices}
           iconColor="text-emerald-600 dark:text-emerald-300"
+          isLoading={isLoading}
         />
         <BreakdownSection
           title="Top Countries"
@@ -172,6 +195,7 @@ export function TrafficBreakdown({
           items={countryBreakdown}
           accent={palette.countries}
           iconColor="text-sky-500"
+          isLoading={isLoading}
         />
         <BreakdownSection
           title="Browsers"
@@ -179,6 +203,7 @@ export function TrafficBreakdown({
           items={browserBreakdown}
           accent={palette.browsers}
           iconColor="text-violet-600 dark:text-violet-300"
+          isLoading={isLoading}
         />
         <BreakdownSection
           title="Top Referrers"
@@ -186,6 +211,7 @@ export function TrafficBreakdown({
           items={referrerBreakdown}
           accent={palette.referrers}
           iconColor="text-emerald-600 dark:text-emerald-300"
+          isLoading={isLoading}
         />
     </div>
   )

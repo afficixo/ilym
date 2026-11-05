@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { use, useState, useEffect, useCallback, useMemo, useRef, type MouseEvent as ReactMouseEvent } from 'react'
 import { formatNumber } from '@/lib/utils/helpers'
 import { getCountryLabel } from '@/lib/utils/country'
 import { calculateCountryEarnings, type CountryRate } from '@/lib/utils/country-click-rates'
@@ -8,6 +8,7 @@ import { isDesktopDeviceType } from '@/lib/utils/visitor-profile'
 import { Chart } from '@/components/ui/Chart'
 import { CountryFlag } from '@/components/ui/CountryFlag'
 import { BrowserLogo } from '@/components/ui/BrowserLogo'
+import { applyDashboardTheme } from '@/lib/dashboard-theme'
 import Image from 'next/image'
 import {
   Eye,
@@ -300,7 +301,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
 
   const [isDark, setIsDark] = useState(true)
   const [themeLoaded, setThemeLoaded] = useState(false)
-  const originalDarkClass = useRef<boolean | null>(null)
 
   useEffect(() => {
     const stored = localStorage.getItem('theme')
@@ -310,25 +310,11 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     setThemeLoaded(true)
   }, [])
 
-  useEffect(() => {
-    if (themeLoaded) localStorage.setItem('theme', isDark ? 'dark' : 'light')
-  }, [isDark, themeLoaded])
-
-  useEffect(() => {
-    if (!themeLoaded) return
-
-    const root = document.documentElement
-    if (originalDarkClass.current === null) {
-      originalDarkClass.current = root.classList.contains('dark')
-    }
-    root.classList.toggle('dark', isDark)
-
-    return () => {
-      root.classList.toggle('dark', originalDarkClass.current === true)
-    }
-  }, [isDark, themeLoaded])
-
-  const toggleTheme = () => setIsDark(!isDark)
+  const toggleTheme = (event: ReactMouseEvent<HTMLButtonElement>) => {
+    const nextIsDark = !isDark
+    applyDashboardTheme(nextIsDark, event.currentTarget)
+    setIsDark(nextIsDark)
+  }
 
   const [stats, setStats] = useState<Stats | null>(null)
   const [accountName, setAccountName] = useState('Afficix')
@@ -750,12 +736,29 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 </button>
                 <button
                   onClick={toggleTheme}
+                  data-theme-toggle="public-stats"
                   className={`inline-flex h-8 w-8 items-center justify-center rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/60 sm:h-9 sm:w-9 ${
                     isDark ? 'bg-white/5 border-white/10 text-white/40 hover:text-white/70' : 'bg-white border-gray-200 text-slate-700 hover:text-slate-900'
                   }`}
-                  aria-label="Toggle theme"
+                  aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
+                  title={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
                 >
-                  {isDark ? <Sun className="h-3.5 w-3.5" strokeWidth={1.5} /> : <Moon className="h-3.5 w-3.5" strokeWidth={1.5} />}
+                  <span className="relative grid h-3.5 w-3.5 place-items-center">
+                    <Sun
+                      aria-hidden="true"
+                      strokeWidth={1.5}
+                      className={`absolute h-full w-full text-amber-500 transition-[opacity,transform] duration-[240ms] ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none dark:text-amber-300 ${
+                        isDark ? 'rotate-0 scale-100 opacity-100' : 'rotate-45 scale-75 opacity-0'
+                      }`}
+                    />
+                    <Moon
+                      aria-hidden="true"
+                      strokeWidth={1.5}
+                      className={`absolute h-full w-full text-indigo-500 transition-[opacity,transform] duration-[240ms] ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none dark:text-sky-200 ${
+                        isDark ? '-rotate-45 scale-75 opacity-0' : 'rotate-0 scale-100 opacity-100'
+                      }`}
+                    />
+                  </span>
                 </button>
               </div>
             </div>
