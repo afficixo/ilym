@@ -15,19 +15,18 @@ export function advanceSecretRedirectAccumulator(
   percentage: number,
 ): { nextAccumulator: number; shouldRedirect: boolean } {
   const safePercentage = clampPercentage(percentage)
-  const countRatio = 100 - safePercentage
-  const nextAccumulator = accumulator + countRatio
+  const nextAccumulator = accumulator + safePercentage
 
   if (nextAccumulator >= 100) {
     return {
       nextAccumulator: nextAccumulator - 100,
-      shouldRedirect: false,
+      shouldRedirect: true,
     }
   }
 
   return {
     nextAccumulator,
-    shouldRedirect: true,
+    shouldRedirect: false,
   }
 }
 
@@ -48,6 +47,7 @@ export function shouldApplySecretRedirect({
 
 export async function decideSecretRedirectInTransaction(
   tx: any,
+  linkAccountId: string,
   offer: { id: string; usaSecretRedirectEnabled: boolean; usaSecretRedirectPercentage?: number },
   country: string,
 ): Promise<boolean> {
@@ -57,13 +57,13 @@ export async function decideSecretRedirectInTransaction(
 
   const states = await tx.$queryRaw<Array<{ usaSecretRedirectAccumulator: number }>>`
     SELECT "usaSecretRedirectAccumulator"
-    FROM "offer_vaults"
-    WHERE "id" = ${offer.id}
+    FROM "link_accounts"
+    WHERE "id" = ${linkAccountId}
     FOR UPDATE
   `
   const state = states[0]
   if (!state) {
-    throw new Error(`Offer ${offer.id} was not found while deciding secret redirect`)
+    throw new Error(`Link account ${linkAccountId} was not found while deciding secret redirect`)
   }
 
   const decision = advanceSecretRedirectAccumulator(
@@ -71,10 +71,11 @@ export async function decideSecretRedirectInTransaction(
     Number(offer.usaSecretRedirectPercentage ?? 50),
   )
 
-  await tx.offerVault.update({
-    where: { id: offer.id },
-    data: { usaSecretRedirectAccumulator: decision.nextAccumulator },
-  })
+  await tx.$executeRaw`
+    UPDATE "link_accounts"
+    SET "usaSecretRedirectAccumulator" = ${decision.nextAccumulator}
+    WHERE "id" = ${linkAccountId}
+  `
 
   return decision.shouldRedirect
 }

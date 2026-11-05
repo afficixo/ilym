@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, getOwnerUserId } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
+import { clampPercentage } from '@/lib/utils/secret-redirect'
 
 export async function PUT(
   request: NextRequest,
@@ -81,7 +82,7 @@ export async function PUT(
       ? Math.max(1, Math.min(999, Number(priority)))
       : offer.priority
     const nextUsaSecretRedirectPercentage = Number.isFinite(Number(body?.usaSecretRedirectPercentage))
-      ? Math.max(1, Math.min(100, Number(body?.usaSecretRedirectPercentage)))
+      ? clampPercentage(Number(body?.usaSecretRedirectPercentage))
       : offer.usaSecretRedirectPercentage
     const nextRotationMode = rotationMode === 'RANDOM' ? 'RANDOM' : 'PRIORITY'
     const nextUsaSecretRedirectEnabled = typeof body?.usaSecretRedirectEnabled === 'boolean'

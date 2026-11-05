@@ -7,36 +7,8 @@ export interface ClickFingerprintInput {
   deviceType?: string | null
 }
 
-export interface DuplicateClickContext {
-  clickSignature?: string | null
-  ipAddress?: string | null
-  userAgent?: string | null
-  lastClickSignature?: string | null
-  lastIpAddress?: string | null
-  lastUserAgent?: string | null
-}
-
-export const CLICK_DEDUPE_WINDOW_MS = 10 * 60 * 1000
-
-export function getClickDedupeWindowMs(): number {
-  const minutesEnv = process.env.CLICK_DEDUPE_WINDOW_MINUTES || process.env.DUPLICATE_DEDUPE_WINDOW_MINUTES
-  if (minutesEnv) {
-    const minutes = Number(minutesEnv)
-    if (Number.isFinite(minutes) && minutes > 0) {
-      return minutes * 60 * 1000
-    }
-  }
-
-  const msEnv = process.env.CLICK_DEDUPE_WINDOW_MS
-  if (msEnv) {
-    const ms = Number(msEnv)
-    if (Number.isFinite(ms) && ms > 0) {
-      return ms
-    }
-  }
-
-  return CLICK_DEDUPE_WINDOW_MS
-}
+export type ClickDedupeCondition = { ipAddress: string } | { userAgent: string }
+export type ClickDedupeWhere = { linkAccountId: string; OR: ClickDedupeCondition[] }
 
 export function buildClickFingerprint({
   linkId,
@@ -62,11 +34,6 @@ export function buildClickFingerprint({
   ].join('|')
 }
 
-export function isDuplicateVisit(lastSeenAt: Date, now: Date, windowMs = CLICK_DEDUPE_WINDOW_MS): boolean {
-  const delta = now.getTime() - lastSeenAt.getTime()
-  return Number.isFinite(delta) && delta >= 0 && delta <= windowMs
-}
-
 const normalizeMatchValue = (value?: string | null) => (value || '').trim().replace(/\s+/g, ' ').toLowerCase()
 
 const hasMeaningfulMatchValue = (value?: string | null) => {
@@ -74,47 +41,41 @@ const hasMeaningfulMatchValue = (value?: string | null) => {
   return normalized !== '' && normalized !== 'unknown'
 }
 
-export function isDuplicateClickEvent(
-  lastSeenAt: Date,
-  now: Date,
-  context: DuplicateClickContext,
-  windowMs = CLICK_DEDUPE_WINDOW_MS,
-): boolean {
-  const sameIpAddress = Boolean(
-    hasMeaningfulMatchValue(context.ipAddress) &&
-      hasMeaningfulMatchValue(context.lastIpAddress) &&
-      normalizeMatchValue(context.ipAddress) === normalizeMatchValue(context.lastIpAddress),
-  )
+export function buildClickDedupeConditions(
+  ipAddress?: string | null,
+  userAgent?: string | null,
+): ClickDedupeCondition[] {
+  const conditions: ClickDedupeCondition[] = []
+  const normalizedIp = (ipAddress || '').trim()
+  const normalizedUserAgent = (userAgent || '').trim()
 
-  if (sameIpAddress && isDuplicateVisit(lastSeenAt, now, windowMs)) {
-    return true
-  }
+  if (hasMeaningfulMatchValue(normalizedIp)) conditions.push({ ipAddress: normalizedIp })
+  if (hasMeaningfulMatchValue(normalizedUserAgent)) conditions.push({ userAgent: normalizedUserAgent })
 
-  if (!isDuplicateVisit(lastSeenAt, now, windowMs)) {
-    return false
-  }
-
-  const sameClickSignature = Boolean(
-    context.clickSignature &&
-      context.lastClickSignature &&
-      normalizeMatchValue(context.clickSignature) === normalizeMatchValue(context.lastClickSignature),
-  )
-
-  if (sameClickSignature) {
-    return true
-  }
-
-  const sameUserAgent = Boolean(
-    hasMeaningfulMatchValue(context.userAgent) &&
-      hasMeaningfulMatchValue(context.lastUserAgent) &&
-      normalizeMatchValue(context.userAgent) === normalizeMatchValue(context.lastUserAgent),
-  )
-
-  return sameUserAgent
+  return conditions
 }
 
-export function isUniqueVisit(lastSeenAt: Date, now: Date, windowMs = CLICK_DEDUPE_WINDOW_MS): boolean {
-  return !isDuplicateVisit(lastSeenAt, now, windowMs)
+export function buildClickDedupeWhere(
+  linkAccountId: string,
+  ipAddress?: string | null,
+  userAgent?: string | null,
+): ClickDedupeWhere | null {
+  const conditions = buildClickDedupeConditions(ipAddress, userAgent)
+  return conditions.length > 0 ? { linkAccountId, OR: conditions } : null
 }
 
-export const CLICK_DEDUPE_WINDOW = CLICK_DEDUPE_WINDOW_MS
+export function buildClickDedupeLockKeys(
+  linkAccountId: string,
+  clickSignature: string,
+  ipAddress: string,
+  userAgent: string,
+): string[] {
+  const linkScope = `link:${linkAccountId}:`
+  const keys = [
+    hasMeaningfulMatchValue(clickSignature) ? `${linkScope}signature:${normalizeMatchValue(clickSignature)}` : '',
+    hasMeaningfulMatchValue(ipAddress) ? `${linkScope}ip:${normalizeMatchValue(ipAddress)}` : '',
+    hasMeaningfulMatchValue(userAgent) ? `${linkScope}ua:${normalizeMatchValue(userAgent)}` : '',
+  ]
+
+  return keys.filter(Boolean).sort()
+}

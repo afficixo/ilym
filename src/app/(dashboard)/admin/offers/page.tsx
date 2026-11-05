@@ -254,6 +254,9 @@ export default function OffersPage() {
     priority: 100,
     rotationMode: "PRIORITY" as "PRIORITY" | "RANDOM",
   });
+  const normalizedSecretRedirectPercentage = Number.isFinite(formData.usaSecretRedirectPercentage)
+    ? Math.round(Math.max(1, Math.min(100, formData.usaSecretRedirectPercentage)))
+    : 50;
   const [formError, setFormError] = useState("");
   const [formLoading, setFormLoading] = useState(false);
   const [isCountryMenuOpen, setIsCountryMenuOpen] = useState(false);
@@ -613,7 +616,6 @@ export default function OffersPage() {
       const url = editingId ? `/api/offers/${editingId}` : "/api/offers";
       const method = editingId ? "PUT" : "POST";
       const priorityVal = Number(formData.priority);
-      const percentageVal = Number(formData.usaSecretRedirectPercentage);
       const payload = {
         country: formData.isGlobal || formData.isContentLocker ? "GLOBAL" : formData.country,
         groupName: formData.groupName.trim(),
@@ -621,9 +623,7 @@ export default function OffersPage() {
         isGlobal: formData.isGlobal,
         isContentLocker: formData.isContentLocker,
         usaSecretRedirectEnabled: Boolean(formData.usaSecretRedirectEnabled),
-        usaSecretRedirectPercentage: Number.isFinite(percentageVal)
-          ? Math.max(1, Math.min(100, percentageVal))
-          : 50,
+        usaSecretRedirectPercentage: normalizedSecretRedirectPercentage,
         priority: Number.isFinite(priorityVal) ? Math.max(1, Math.min(999, priorityVal)) : 100,
         rotationMode: formData.rotationMode === "RANDOM" ? "RANDOM" : "PRIORITY",
       };
@@ -1092,6 +1092,7 @@ export default function OffersPage() {
                             type="number"
                             min={1}
                             max={100}
+                            step={1}
                             value={formData.usaSecretRedirectPercentage}
                             onChange={(e) =>
                               setFormData({
@@ -1102,6 +1103,9 @@ export default function OffersPage() {
                             className="offer-vault-input min-h-9 w-20 rounded-lg border px-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
                           />
                         </div>
+                        <p className="offer-vault-muted basis-full text-[11px] leading-4">
+                          Applied independently per link account. {normalizedSecretRedirectPercentage}% of eligible US clicks are secretly redirected.
+                        </p>
                       </div>
                     )}
                   </div>}

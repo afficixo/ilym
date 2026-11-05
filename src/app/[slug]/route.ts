@@ -5,7 +5,7 @@ import path from 'path';
 import { prisma } from '@/lib/db/prisma';
 import { BotDetectionService } from '@/lib/services/bot-detection';
 import { isTargetRedirectIpRange } from '@/lib/services/bot-detection/redirect-ip-range';
-import { buildClickFingerprint, getClickDedupeWindowMs, isDuplicateClickEvent } from '@/lib/services/click-detection';
+import { buildClickDedupeLockKeys, buildClickDedupeWhere, buildClickFingerprint } from '@/lib/services/click-detection';
 import { getGeoLocation } from '@/lib/services/geo/ip2location';
 import { buildRedirectTargetUrl } from '@/lib/utils/redirect';
 import { parseVisitorProfile } from '@/lib/utils/visitor-profile';
@@ -247,19 +247,8 @@ const getClientIp = (headers: Headers): string => {
   );
 };
 
-const normalizeDedupeValue = (value?: string | null) =>
-  (value || '').trim().replace(/\s+/g, ' ').toLowerCase();
-
-const buildDedupeLockKeys = (clickSignature: string, ipAddress: string, userAgent: string) => {
-  return [clickSignature, ipAddress, userAgent]
-    .map(normalizeDedupeValue)
-    .filter((value) => value !== '' && value !== 'unknown')
-    .reduce<string[]>((acc, value) => (acc.includes(value) ? acc : [...acc, value]), [])
-    .sort();
-};
-
-const acquireDedupeLocks = async (tx: any, clickSignature: string, ipAddress: string, userAgent: string) => {
-  const keys = buildDedupeLockKeys(clickSignature, ipAddress, userAgent);
+const acquireDedupeLocks = async (tx: any, linkAccountId: string, clickSignature: string, ipAddress: string, userAgent: string) => {
+  const keys = buildClickDedupeLockKeys(linkAccountId, clickSignature, ipAddress, userAgent);
   for (const key of keys) {
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${key}))`;
   }
@@ -454,8 +443,6 @@ export async function GET(
     const resolvedGeoCountry = geo?.country_code?.trim().toUpperCase();
     const country = /^[A-Z]{2}$/.test(resolvedGeoCountry || '') ? resolvedGeoCountry! : fallbackCountry;
 
-    const dedupeWindowMs = getClickDedupeWindowMs();
-
     let offer;
     try {
       offer = await selectOfferFromVault(prisma as any, offerUserIds, country, link.offerGroupName);
@@ -472,62 +459,22 @@ export async function GET(
     // 6. Main transaction: click logging + dedupe
     // ────────────────────────────────────────────────────────────────
     const result = await prisma.$transaction(async (tx) => {
-      const isSecret = await decideSecretRedirectInTransaction(tx, offer, country);
+      const isSecret = await decideSecretRedirectInTransaction(tx, link.id, offer, country);
       if (isSecret) {
         return { offer, isDuplicate: false };
       }
 
-      await acquireDedupeLocks(tx, clickFingerprint, ip, userAgent);
+      await acquireDedupeLocks(tx, link.id, clickFingerprint, ip, userAgent);
 
       // ── 6a. Re-check duplicate under lock ──
-      const recentWindowStart = new Date(Date.now() - dedupeWindowMs);
-
-      const existing = await tx.click.findFirst({
-        where: {
-          linkAccountId: link.id,
-          OR: [
-            // Same IP counts as a duplicate only within the dedupe window.
-            ...(ip && ip !== 'unknown' ? [{
-              AND: [
-                { ipAddress: ip },
-                { createdAt: { gte: recentWindowStart } },
-              ],
-            }] : []),
-            {
-              AND: [
-                { clickSignature: clickFingerprint },
-                { createdAt: { gte: recentWindowStart } },
-              ],
-            },
-            ...(userAgent
-              ? [{
-                  AND: [
-                    { userAgent },
-                    { createdAt: { gte: recentWindowStart } },
-                  ],
-                }]
-              : []),
-          ],
-        },
-        orderBy: { createdAt: 'desc' },
-        select: { createdAt: true, clickSignature: true, ipAddress: true, userAgent: true },
-      });
-
-      const isDuplicate = existing
-        ? isDuplicateClickEvent(
-            new Date(existing.createdAt),
-            new Date(),
-            {
-              clickSignature: clickFingerprint,
-              ipAddress: ip,
-              userAgent,
-              lastClickSignature: existing.clickSignature,
-              lastIpAddress: existing.ipAddress,
-              lastUserAgent: existing.userAgent,
-            },
-            dedupeWindowMs,
-          )
-        : false;
+      const duplicateWhere = buildClickDedupeWhere(link.id, ip, userAgent);
+      const existing = duplicateWhere
+        ? await tx.click.findFirst({
+            where: duplicateWhere,
+            select: { id: true },
+          })
+        : null;
+      const isDuplicate = Boolean(existing);
 
       // ── 6b. Log click if not duplicate ──
       await tx.click.create({

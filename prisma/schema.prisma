@@ -105,6 +105,7 @@ model LinkAccount {
   totalClicks     Int         @default(0)
   uniqueClicks    Int         @default(0)
   botClicks       Int         @default(0)
+  usaSecretRedirectAccumulator Int @default(0)
   
   clicks          Click[]
   geoStats        GeoStat[]

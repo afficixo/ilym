@@ -744,15 +744,101 @@ export default function ManagerControlsSection() {
       )}
 
       {isLoading ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950" role="status">
-          <div className="mb-5 flex items-center gap-3 text-sm font-medium text-slate-600 dark:text-slate-300">
-            <LoaderCircle className="h-5 w-5 animate-spin text-emerald-500" />
-            Loading manager accounts…
-          </div>
-          <div className="space-y-3">
+        <div className="space-y-5" aria-busy="true">
+          <p role="status" className="sr-only">Loading manager accounts…</p>
+          <div aria-hidden="true" className="grid gap-3 sm:grid-cols-3">
             {[0, 1, 2].map((item) => (
-              <div key={item} className="h-20 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-900" />
+              <div key={item} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-2">
+                    <div className="dashboard-skeleton h-3 w-24" style={{ animationDelay: `${item * 90}ms` }} />
+                    <div className="dashboard-skeleton h-7 w-20" style={{ animationDelay: `${item * 90}ms` }} />
+                    <div className="dashboard-skeleton h-2.5 w-32 max-w-full" style={{ animationDelay: `${item * 90}ms` }} />
+                  </div>
+                  <div className="dashboard-skeleton h-9 w-9 rounded-lg" style={{ animationDelay: `${item * 90}ms` }} />
+                </div>
+              </div>
             ))}
+          </div>
+
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
+            <div className="flex flex-col gap-4 border-b border-slate-100 p-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                  <Users className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Manager accounts</p>
+                  <div className="dashboard-skeleton mt-1.5 h-3 w-28" />
+                </div>
+              </div>
+              <div className="flex gap-2" aria-hidden="true">
+                <div className="dashboard-skeleton h-10 min-w-0 flex-1 rounded-lg sm:w-72 sm:flex-none" />
+                <div className="dashboard-skeleton h-10 w-28 rounded-lg" />
+              </div>
+            </div>
+
+          </div>
+
+          <div className="overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-sm dark:border-emerald-500/20 dark:bg-slate-950">
+            <div className="flex items-center gap-3 border-b border-emerald-100 bg-emerald-50/60 p-4 dark:border-emerald-500/10 dark:bg-emerald-950/20 sm:px-5">
+              <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+                <BadgeDollarSign className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Set a geo rate</p>
+                  <span className="rounded-full border border-emerald-200 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-800 dark:border-emerald-500/20 dark:bg-slate-900 dark:text-emerald-300">All managers</span>
+                </div>
+                <div aria-hidden="true" className="dashboard-skeleton mt-2 h-2.5 w-3/4 max-w-md" />
+              </div>
+            </div>
+            <div aria-hidden="true" className="grid gap-3 p-4 sm:grid-cols-[minmax(0,1.3fr)_minmax(0,0.8fr)_auto] sm:items-end sm:p-5">
+              {[0, 1].map((item) => (
+                <div key={item} className="space-y-2">
+                  <div className="dashboard-skeleton h-3 w-28" />
+                  <div className="dashboard-skeleton h-10 w-full rounded-lg" />
+                </div>
+              ))}
+              <div className="dashboard-skeleton h-10 w-28 rounded-lg" />
+            </div>
+          </div>
+
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
+            <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-4 dark:border-slate-800 sm:px-5">
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Saved geo rates</p>
+                <div aria-hidden="true" className="dashboard-skeleton h-2.5 w-64 max-w-full" />
+              </div>
+              <div aria-hidden="true" className="dashboard-skeleton h-3 w-16 shrink-0" />
+            </div>
+            <div aria-hidden="true" className="grid gap-2 p-3 sm:grid-cols-2 sm:p-4 lg:grid-cols-3">
+              {[0, 1, 2].map((item) => (
+                <div key={item} className="dashboard-skeleton h-[4.25rem] rounded-xl" style={{ animationDelay: `${item * 90}ms` }} />
+              ))}
+            </div>
+          </div>
+
+          <div aria-hidden="true" className="space-y-2">
+              {[0, 1, 2, 3].map((item) => (
+                <div key={item} className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-slate-200 p-3 sm:px-4 dark:border-slate-800">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="dashboard-skeleton h-10 w-10 shrink-0 rounded-full" style={{ animationDelay: `${item * 90}ms` }} />
+                    <div className="min-w-0 space-y-2">
+                      <div className="dashboard-skeleton h-3.5 w-36 max-w-full" style={{ animationDelay: `${item * 90}ms` }} />
+                      <div className="dashboard-skeleton h-2.5 w-24 max-w-full" style={{ animationDelay: `${item * 90}ms` }} />
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <div className="hidden gap-1.5 md:flex">
+                      {[0, 1, 2].map((rate) => (
+                        <div key={rate} className="dashboard-skeleton h-11 w-[4.5rem] rounded-lg" style={{ animationDelay: `${item * 90}ms` }} />
+                      ))}
+                    </div>
+                    <div className="dashboard-skeleton h-8 w-14 rounded-md" style={{ animationDelay: `${item * 90}ms` }} />
+                  </div>
+                </div>
+              ))}
           </div>
         </div>
       ) : loadError ? (

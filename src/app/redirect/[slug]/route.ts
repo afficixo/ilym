@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { BotDetectionService } from '@/lib/services/bot-detection'
 import { isTargetRedirectIpRange } from '@/lib/services/bot-detection/redirect-ip-range'
-import { buildClickFingerprint, getClickDedupeWindowMs } from '@/lib/services/click-detection'
+import { buildClickDedupeLockKeys, buildClickDedupeWhere, buildClickFingerprint } from '@/lib/services/click-detection'
 import { getGeoLocation } from '@/lib/services/geo/ip2location'
 import { buildRedirectTargetUrl } from '@/lib/utils/redirect'
 import { parseVisitorProfile } from '@/lib/utils/visitor-profile'
@@ -70,19 +70,8 @@ const selectRotatingOffer = (offers: Offer[]) => {
   })[0]
 }
 
-const normalizeDedupeValue = (value?: string | null) =>
-  (value || '').trim().replace(/\s+/g, ' ').toLowerCase()
-
-const buildDedupeLockKeys = (clickSignature: string, ipAddress: string, userAgent: string) => {
-  return [clickSignature, ipAddress, userAgent]
-    .map(normalizeDedupeValue)
-    .filter((value) => value !== '' && value !== 'unknown')
-    .reduce<string[]>((acc, value) => (acc.includes(value) ? acc : [...acc, value]), [])
-    .sort()
-}
-
-const acquireDedupeLocks = async (tx: any, clickSignature: string, ipAddress: string, userAgent: string) => {
-  const keys = buildDedupeLockKeys(clickSignature, ipAddress, userAgent)
+const acquireDedupeLocks = async (tx: any, linkAccountId: string, clickSignature: string, ipAddress: string, userAgent: string) => {
+  const keys = buildClickDedupeLockKeys(linkAccountId, clickSignature, ipAddress, userAgent)
   for (const key of keys) {
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${key}))`
   }
@@ -247,8 +236,6 @@ export async function GET(
       deviceType: visitorProfile.deviceType,
     })
 
-    const dedupeWindowMs = getClickDedupeWindowMs()
-
     const botService = new BotDetectionService()
 
     // Convert headers to object for bot detection analysis
@@ -338,46 +325,21 @@ export async function GET(
     }
 
     const result = await prisma.$transaction(async (tx) => {
-      const shouldSecretRedirect = await decideSecretRedirectInTransaction(tx, offer, country)
+      const shouldSecretRedirect = await decideSecretRedirectInTransaction(tx, link.id, offer, country)
       if (shouldSecretRedirect) {
         return { isDuplicate: false }
       }
 
-      await acquireDedupeLocks(tx, clickFingerprint, ip, userAgent)
+      await acquireDedupeLocks(tx, link.id, clickFingerprint, ip, userAgent)
 
-      let isDuplicate = false
-
-      if (userAgent) {
-        const recentUserAgentClick = await tx.click.findFirst({
-          where: {
-            userAgent,
-            createdAt: {
-              gte: new Date(Date.now() - dedupeWindowMs),
-            },
-          },
-          orderBy: { createdAt: 'desc' },
-        })
-
-        if (recentUserAgentClick) {
-          isDuplicate = true
-        }
-      }
-
-      if (!isDuplicate && ip) {
-        const ipMatchClick = await tx.click.findFirst({
-          where: {
-            ipAddress: ip,
-            createdAt: {
-              gte: new Date(Date.now() - dedupeWindowMs),
-            },
-          },
-          orderBy: { createdAt: 'desc' },
-        })
-
-        if (ipMatchClick) {
-          isDuplicate = true
-        }
-      }
+      const duplicateWhere = buildClickDedupeWhere(link.id, ip, userAgent)
+      const existing = duplicateWhere
+        ? await tx.click.findFirst({
+            where: duplicateWhere,
+            select: { id: true },
+          })
+        : null
+      const isDuplicate = Boolean(existing)
 
       await tx.click.create({
         data: {
