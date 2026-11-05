@@ -25,6 +25,21 @@ export async function GET(request: Request) {
   }
 
   if (isOwner(user)) {
+    if (new URL(request.url).searchParams.get('unread') === '1') {
+      const conversations = await prisma.supportConversation.findMany({
+        select: {
+          id: true,
+          messages: {
+            where: { sender: { is: { role: 'MANAGER' } } },
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+            select: { id: true },
+          },
+        },
+      })
+      return NextResponse.json({ conversations })
+    }
+
     const [conversations, users, contactInquiries] = await Promise.all([
       prisma.supportConversation.findMany({ orderBy: { updatedAt: 'desc' }, include: messageInclude }),
       prisma.user.findMany({

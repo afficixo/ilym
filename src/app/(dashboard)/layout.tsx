@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { useEffect, useState, type MouseEvent } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Menu, MessageCircle, Moon, Settings, Sun, X } from 'lucide-react'
 import Sidebar from '@/components/layout/Sidebar'
@@ -14,11 +14,13 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
+  const pathname = usePathname()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isDark, setIsDark] = useState(false)
   const [userRole, setUserRole] = useState<string | null>(null)
   const [now, setNow] = useState<Date | null>(null)
+  const [hasUnreadSupportMessages, setHasUnreadSupportMessages] = useState(false)
 
   useEffect(() => {
     const updateTime = () => setNow(new Date())
@@ -73,6 +75,47 @@ export default function DashboardLayout({
       isActive = false
     }
   }, [router])
+
+  useEffect(() => {
+    if (userRole !== 'OWNER') {
+      setHasUnreadSupportMessages(false)
+      return
+    }
+
+    let active = true
+    const refreshSupportUnread = async () => {
+      try {
+        const response = await fetch('/api/support?unread=1', { credentials: 'include', cache: 'no-store' })
+        if (!response.ok) throw new Error(`Unable to check support inbox (${response.status}).`)
+        const data = await response.json()
+        if (!active) return
+
+        const conversations = Array.isArray(data.conversations) ? data.conversations : []
+        let hasUnread = false
+        for (const conversation of conversations) {
+          const latestManagerMessage = conversation.messages?.[0]
+          if (!latestManagerMessage) continue
+
+          const storageKey = `owner-support-last-seen-message:${conversation.id}`
+          if (pathname === '/owner/support') {
+            window.localStorage.setItem(storageKey, latestManagerMessage.id)
+          } else if (window.localStorage.getItem(storageKey) !== latestManagerMessage.id) {
+            hasUnread = true
+          }
+        }
+        setHasUnreadSupportMessages(hasUnread)
+      } catch (error) {
+        if (active) console.error('Support inbox unread check failed:', error)
+      }
+    }
+
+    void refreshSupportUnread()
+    const interval = window.setInterval(refreshSupportUnread, 5000)
+    return () => {
+      active = false
+      window.clearInterval(interval)
+    }
+  }, [pathname, userRole])
 
   const toggleTheme = (event: MouseEvent<HTMLButtonElement>) => {
     const nextIsDark = !document.documentElement.classList.contains('dark')
@@ -163,11 +206,24 @@ export default function DashboardLayout({
               {userRole === 'OWNER' && (
                 <Link
                   href="/owner/support"
-                  className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-white hover:text-[#24651d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#359f25] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-[#a2fa8e] min-[360px]:h-8 min-[360px]:w-8 sm:h-9 sm:w-9"
-                  aria-label="Support Inbox"
-                  title="Support Inbox"
+                  className={`relative inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-[color,background-color,border-color,box-shadow,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#359f25] motion-reduce:transition-none min-[360px]:h-8 min-[360px]:w-8 sm:h-9 sm:w-9 ${
+                    hasUnreadSupportMessages
+                      ? 'support-inbox-unread'
+                      : 'text-slate-600 hover:bg-white hover:text-[#24651d] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-[#a2fa8e]'
+                  }`}
+                  aria-label={hasUnreadSupportMessages ? 'Support Inbox, unread messages' : 'Support Inbox'}
+                  title={hasUnreadSupportMessages ? 'Support Inbox — unread messages' : 'Support Inbox'}
                 >
-                  <MessageCircle className="h-4 w-4 sm:h-[17px] sm:w-[17px]" aria-hidden="true" />
+                  <MessageCircle className="relative z-10 h-4 w-4 sm:h-[17px] sm:w-[17px]" aria-hidden="true" />
+                  {hasUnreadSupportMessages && (
+                    <>
+                      <span className="support-inbox-unread-pulse" aria-hidden="true" />
+                      <span
+                        className="support-inbox-unread-dot"
+                        aria-hidden="true"
+                      />
+                    </>
+                  )}
                 </Link>
               )}
             </nav>

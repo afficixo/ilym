@@ -191,6 +191,77 @@ html.theme-colors-transitioning [data-theme-toggle] svg {
   }
 }
 
+.support-inbox-unread {
+  border: 1px solid #8bd878;
+  background: linear-gradient(145deg, #f3fff0, #e1f9da);
+  color: #24651d;
+  box-shadow: 0 2px 8px rgba(43, 125, 32, 0.14);
+}
+
+.support-inbox-unread:hover {
+  transform: translateY(-1px);
+  border-color: #57b943;
+  background: linear-gradient(145deg, #e8ffe2, #d6f5ce);
+  box-shadow: 0 4px 12px rgba(43, 125, 32, 0.2);
+}
+
+.dark .support-inbox-unread {
+  border-color: #4f9e43;
+  background: linear-gradient(145deg, #263d2b, #203528);
+  color: #b6ffa8;
+  box-shadow: 0 2px 10px rgba(95, 244, 66, 0.12);
+}
+
+.dark .support-inbox-unread:hover {
+  border-color: #75d75f;
+  background: linear-gradient(145deg, #2d4b31, #25402c);
+  box-shadow: 0 4px 14px rgba(95, 244, 66, 0.2);
+}
+
+.support-inbox-unread-pulse {
+  position: absolute;
+  inset: -3px;
+  border: 1.5px solid #359f25;
+  border-radius: inherit;
+  box-shadow: 0 0 0 2px rgba(53, 159, 37, 0.1);
+  pointer-events: none;
+  animation: support-inbox-unread-pulse 2.4s ease-out infinite;
+}
+
+.dark .support-inbox-unread-pulse {
+  border-color: #75d75f;
+  box-shadow: 0 0 0 2px rgba(138, 255, 112, 0.12);
+}
+
+.support-inbox-unread-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  z-index: 20;
+  width: 10px;
+  height: 10px;
+  border: 2px solid #fff;
+  border-radius: 9999px;
+  background: #e53935;
+  box-shadow: 0 1px 3px rgba(38, 50, 56, 0.24);
+}
+
+.dark .support-inbox-unread-dot {
+  border-color: #202b2f;
+}
+
+@keyframes support-inbox-unread-pulse {
+  0% {
+    opacity: 0.65;
+    transform: scale(0.96);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.32);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html.theme-colors-transitioning,
   html.theme-colors-transitioning body,
@@ -205,8 +276,13 @@ html.theme-colors-transitioning [data-theme-toggle] svg {
   }
 
   .dashboard-skeleton,
-  .dashboard-skeleton-chart-line {
+  .dashboard-skeleton-chart-line,
+  .support-inbox-unread-pulse {
     animation: none;
+  }
+
+  .support-inbox-unread:hover {
+    transform: none;
   }
 }
 
