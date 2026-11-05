@@ -81,6 +81,7 @@ export async function proxy(request: NextRequest) {
     path.startsWith('/owner/payments/') ||
     path === '/owner/support' ||
     path === '/publisher/dashboard' ||
+    path === '/publisher/getting-started' ||
     path === '/publisher/help' ||
     path === '/publisher/referrals'
 

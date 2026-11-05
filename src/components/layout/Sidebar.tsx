@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { FormEvent, useState, useEffect, useRef, type MouseEvent } from 'react'
 import {
   LayoutDashboard,
+  BookOpenCheck,
   Plus,
   Package,
   Globe2,
@@ -184,6 +185,9 @@ export default function Sidebar({ collapsed, mobileOpen, onMobileOpenChange }: S
       label: 'Overview',
       items: [
         { href: getDashboardPath(userRole), label: 'Dashboard', icon: LayoutDashboard },
+        ...(userRole === 'MANAGER'
+          ? [{ href: '/publisher/getting-started', label: 'Getting started', icon: BookOpenCheck }]
+          : []),
       ],
     },
     {
