@@ -3,19 +3,14 @@ const pageLoadRoutes = new Set([
   '/owner/dashboard',
   '/publisher/dashboard',
   '/admin/links',
-  '/owner/links',
-  '/publisher/links',
   '/admin/postbacks',
-  '/owner/postbacks',
-  '/publisher/postbacks',
   '/admin/landing-builder',
-  '/owner/landing-builder',
-  '/publisher/landing-builder',
+  '/admin/templates',
+  '/admin/url-shortener',
+  '/owner/url-shortener',
   '/admin/payments',
   '/owner/payments',
   '/publisher/payments',
-  '/owner/templates',
-  '/publisher/templates',
 ])
 
 export function shouldShowPageLoader(pathname: string) {

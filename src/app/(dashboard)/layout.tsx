@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Menu, MessageCircle, Moon, Settings, Sun, X } from 'lucide-react'
 import Sidebar from '@/components/layout/Sidebar'
-import { getDashboardBasePath } from '@/lib/auth/dashboard-path'
 import { applyDashboardTheme } from '@/lib/dashboard-theme'
 
 export default function DashboardLayout({
@@ -154,7 +153,7 @@ export default function DashboardLayout({
           <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
             <nav aria-label="Quick links" className="flex shrink-0 items-center gap-0.5 sm:gap-1">
               <Link
-                href={`${getDashboardBasePath(userRole)}/settings`}
+                href="/admin/settings"
                 className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-white hover:text-[#24651d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#359f25] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-[#a2fa8e] min-[360px]:h-8 min-[360px]:w-8 sm:h-9 sm:w-9"
                 aria-label="Settings"
                 title="Settings"

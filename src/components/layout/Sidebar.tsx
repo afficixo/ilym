@@ -27,7 +27,7 @@ import {
   Moon,
   ChevronDown,
 } from 'lucide-react'
-import { getDashboardBasePath, getDashboardPath } from '@/lib/auth/dashboard-path'
+import { getDashboardPath } from '@/lib/auth/dashboard-path'
 import { applyDashboardTheme } from '@/lib/dashboard-theme'
 
 type SupportMessage = { id: string; body: string; sender: { role: string } }
@@ -169,7 +169,7 @@ export default function Sidebar({ collapsed, mobileOpen, onMobileOpenChange }: S
     fetchUser()
   }, [])
 
-  const dashboardBasePath = getDashboardBasePath(userRole)
+  const dashboardBasePath = '/admin'
   const isLinkAccountsRoute =
     pathname === `${dashboardBasePath}/links` ||
     pathname?.startsWith(`${dashboardBasePath}/links/`) ||
@@ -208,7 +208,11 @@ export default function Sidebar({ collapsed, mobileOpen, onMobileOpenChange }: S
         ...(userRole !== 'MANAGER'
           ? [{ href: `${dashboardBasePath}/postbacks`, label: 'S2S Postbacks', icon: Webhook }]
           : []),
-        { href: `${dashboardBasePath}/url-shortener`, label: 'URL Shortener', icon: Link2 },
+        {
+          href: userRole === 'OWNER' ? '/owner/url-shortener' : `${dashboardBasePath}/url-shortener`,
+          label: 'URL Shortener',
+          icon: Link2,
+        },
         ...(userRole === 'OWNER'
           ? [{ href: `${dashboardBasePath}/templates`, label: 'Templates', icon: Layers }]
           : []),
@@ -217,9 +221,17 @@ export default function Sidebar({ collapsed, mobileOpen, onMobileOpenChange }: S
     {
       label: 'Finance',
       items: [
-        { href: `${dashboardBasePath}/payments`, label: 'Payments', icon: WalletCards },
+        {
+          href: userRole === 'OWNER'
+            ? '/owner/payments'
+            : userRole === 'MANAGER'
+              ? '/publisher/payments'
+              : `${dashboardBasePath}/payments`,
+          label: 'Payments',
+          icon: WalletCards,
+        },
         ...(userRole === 'MANAGER'
-          ? [{ href: `${dashboardBasePath}/referrals`, label: 'Referrals', icon: UsersRound }]
+          ? [{ href: '/publisher/referrals', label: 'Referrals', icon: UsersRound }]
           : []),
       ],
     },
