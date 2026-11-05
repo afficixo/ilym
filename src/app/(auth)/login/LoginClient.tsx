@@ -8,7 +8,7 @@ import { getDashboardPath } from "@/lib/auth/dashboard-path";
 import PublicLayout from "@/components/layout/PublicLayout";
 import { AlertCircle, CheckCircle2, Clock3 } from "lucide-react";
 
-const APPROVAL_SUPPORT_TELEGRAM = "Rayanveyron";
+const APPROVAL_SUPPORT_TELEGRAM = "affiliate_king_rafsan";
 
 export default function LoginClient() {
   const router = useRouter();

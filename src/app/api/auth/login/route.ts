@@ -94,7 +94,7 @@ export async function POST(request: Request) {
         {
           error: message,
           ...(user.role === 'MANAGER' && (user.status === 'PENDING' || user.status === 'DISABLED')
-            ? { supportTelegram: 'Rayanveyron' }
+            ? { supportTelegram: 'affiliate_king_rafsan' }
             : {}),
         },
         { status: 403, headers: getCorsHeaders(origin) }
