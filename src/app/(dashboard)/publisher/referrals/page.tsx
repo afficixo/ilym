@@ -155,9 +155,6 @@ export default function PublisherReferralsPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#359f25] dark:text-[#a2fa8e]">
             Publisher program
           </p>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-[var(--text-primary)] sm:text-3xl">
-            Referral program
-          </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--text-secondary)]">
             Invite publishers to Afficix and earn a share of their eligible payouts.
           </p>
