@@ -42,6 +42,17 @@ export async function proxy(request: NextRequest) {
     return NextResponse.rewrite(landingPageUrl)
   }
 
+  const sectionRedirects: Record<string, string> = {
+    '/about': '/#about',
+    '/publishers': '/#publishers',
+    '/advertisers': '/#advertisers',
+    '/contact': '/#contact',
+  }
+  const sectionRedirect = sectionRedirects[path.replace(/\/$/, '')]
+  if (sectionRedirect) {
+    return NextResponse.redirect(new URL(sectionRedirect, request.url))
+  }
+
   const publicPaths = ['/', '/login', '/stats']
   const isPublicPath = publicPaths.some(p => path.startsWith(p))
 

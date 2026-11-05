@@ -8,11 +8,11 @@ import Image from "next/image";
 import { Menu, X } from "lucide-react";
 
 const navLinks = [
-  { href: "#home", label: "Home" },
-  { href: "#about", label: "About Us" },
-  { href: "#publishers", label: "Publishers" },
-  { href: "#advertisers", label: "Advertisers" },
-  { href: "#contact", label: "Contact" },
+  { href: "/#home", label: "Home" },
+  { href: "/#about", label: "About Us" },
+  { href: "/#publishers", label: "Publishers" },
+  { href: "/#advertisers", label: "Advertisers" },
+  { href: "/#contact", label: "Contact" },
 ];
 
 export default function PublicLayout({
@@ -25,7 +25,7 @@ export default function PublicLayout({
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const isHomePage = pathname === "/";
-  const [active, setActive] = useState<string | null>(isHomePage ? "#home" : null);
+  const [active, setActive] = useState<string | null>(isHomePage ? "/#home" : null);
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -59,9 +59,9 @@ export default function PublicLayout({
       return;
     }
 
-    setActive("#home");
+    setActive("/#home");
     const sections = navLinks
-      .map((l) => document.getElementById(l.href.slice(1)))
+      .map((link) => document.getElementById(link.href.split("#")[1]))
       .filter((el): el is HTMLElement => !!el);
     if (!sections.length) return;
 
@@ -70,7 +70,7 @@ export default function PublicLayout({
         const top = entries
           .filter((e) => e.isIntersecting)
           .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-        if (top) setActive(`#${top.target.id}`);
+        if (top) setActive(`/#${top.target.id}`);
       },
       { rootMargin: "-45% 0px -45% 0px", threshold: [0, 0.25, 0.5, 1] }
     );
@@ -79,14 +79,15 @@ export default function PublicLayout({
   }, [isHomePage]);
 
   const go = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    if (!href.startsWith("#")) return;
+    const hash = new URL(href, window.location.origin).hash;
+    if (!hash) return;
     e.preventDefault();
-    const el = document.querySelector(href);
+    const el = document.querySelector(hash);
     if (!el) return;
     const headerHeight = document.querySelector("header")?.getBoundingClientRect().height ?? 72;
     const y = (el as HTMLElement).getBoundingClientRect().top + window.scrollY - headerHeight;
     window.scrollTo({ top: y, behavior: "smooth" });
-    history.replaceState(null, "", href);
+    history.replaceState(null, "", hash);
     setOpen(false);
   };
 
@@ -124,7 +125,7 @@ export default function PublicLayout({
               {navLinks.map((link) => (
                 <a
                   key={link.href}
-                  href={isHomePage ? link.href : `/${link.href}`}
+                  href={link.href}
                   onClick={isHomePage ? (e) => go(e, link.href) : undefined}
                   aria-current={active === link.href ? "location" : undefined}
                   className={`text-sm font-medium transition-colors ${
@@ -180,7 +181,7 @@ export default function PublicLayout({
                     {navLinks.map((link) => (
                       <a
                         key={link.href}
-                        href={isHomePage ? link.href : `/${link.href}`}
+                        href={link.href}
                         onClick={(event) => {
                           if (isHomePage) go(event, link.href);
                           else setOpen(false);
