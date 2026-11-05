@@ -293,10 +293,6 @@ html.theme-colors-transitioning [data-theme-toggle] svg {
   font-family: 'Montserrat', var(--font-inter), 'Segoe UI', sans-serif;
 }
 
-.home-hero-background {
-  background-position: center 44%;
-}
-
 .home-hero-overlay {
   background-color: rgba(15, 23, 42, 0.28);
 }
@@ -403,12 +399,6 @@ html.theme-colors-transitioning [data-theme-toggle] svg {
 
   .page-load-spinner span::before {
     animation-duration: 2.4s;
-  }
-}
-
-@media (max-width: 639px) {
-  .home-hero-background {
-    background-position: center 44%;
   }
 }
 
