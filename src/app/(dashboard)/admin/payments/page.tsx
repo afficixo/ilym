@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Check, CheckCircle, ChevronDown, CircleDollarSign, Copy, CreditCard, Eye, EyeOff, Info, Pencil, Search, UserRound, WalletCards, X } from "lucide-react";
@@ -101,6 +102,7 @@ export default function PaymentsPage() {
   const [paymentLink, setPaymentLink] = useState<PaymentLink | null>(null);
   const [paymentReference, setPaymentReference] = useState("");
   const [showPayoutTransactions, setShowPayoutTransactions] = useState(false);
+  const [modalPortalRoot, setModalPortalRoot] = useState<HTMLElement | null>(null);
   const [payoutMethod, setPayoutMethod] = useState("BKASH");
   const [payoutAccount, setPayoutAccount] = useState("");
   const [paymentPassword, setPaymentPassword] = useState("");
@@ -135,6 +137,10 @@ export default function PaymentsPage() {
   useEffect(() => {
     void fetchPayments();
   }, [fetchPayments]);
+
+  useEffect(() => {
+    setModalPortalRoot(document.body);
+  }, []);
 
   useEffect(() => {
     const storedCurrency = window.localStorage.getItem(PAYMENT_CURRENCY_STORAGE_KEY);
@@ -719,36 +725,64 @@ export default function PaymentsPage() {
       </section>
       ) : null}
 
-      {showPayoutTransactions && userRole === "OWNER" && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="payout-transactions-title">
-          <div className="w-full max-w-2xl overflow-hidden rounded-xl bg-slate-900 shadow-2xl">
-            <div className="flex items-center justify-between px-4 py-3">
-              <div>
-                <h2 id="payout-transactions-title" className="text-sm font-bold text-white">History</h2>
-                <p className="mt-0.5 text-sm text-slate-300">Here is your all Pay Out Record</p>
+      {showPayoutTransactions && userRole === "OWNER" && modalPortalRoot && createPortal(
+        <div className="payout-history-backdrop fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/75 p-3 backdrop-blur-sm sm:p-5" role="dialog" aria-modal="true" aria-labelledby="payout-transactions-title" aria-describedby="payout-transactions-description">
+          <div className="flex max-h-[88dvh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-900 shadow-2xl shadow-black/40">
+            <div className="flex items-center justify-between gap-4 border-b border-white/10 bg-gradient-to-r from-emerald-400/[0.08] via-transparent to-transparent px-4 py-4 sm:px-5">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-300/15 bg-emerald-300/[0.08] text-emerald-300">
+                  <WalletCards className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 id="payout-transactions-title" className="text-base font-semibold tracking-tight text-white">Payout history</h2>
+                    <span className="rounded-full border border-white/10 bg-white/[0.06] px-2 py-0.5 text-[11px] font-medium tabular-nums text-slate-300">
+                      {payoutTransactions.length} {payoutTransactions.length === 1 ? "record" : "records"}
+                    </span>
+                  </div>
+                  <p id="payout-transactions-description" className="mt-0.5 text-xs text-slate-400">Completed payouts and their transaction details</p>
+                </div>
               </div>
-              <button type="button" onClick={() => setShowPayoutTransactions(false)} className="rounded p-1 text-slate-300 hover:bg-white/10 hover:text-white" aria-label="Close paid out transactions">
+              <button type="button" onClick={() => setShowPayoutTransactions(false)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 text-slate-400 transition hover:border-white/20 hover:bg-white/[0.06] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/70" aria-label="Close payout history">
                 <X className="h-4 w-4" />
               </button>
             </div>
             {payoutTransactions.length === 0 ? (
-              <p className="p-6 text-sm text-slate-300">No paid out transactions yet.</p>
-            ) : (
-              <div className="max-h-[60vh] divide-y divide-white/10 overflow-y-auto">
-                {payoutTransactions.map(({ manager, payout }) => (
-                  <div key={payout.payoutNumber} className="grid gap-2 px-4 py-3 sm:grid-cols-[1fr_auto] sm:items-center">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-white">{manager.fullName || manager.username}</p>
-                      <p className="mt-1 text-xs text-slate-300">{payout.payoutNumber} · {new Date(payout.paidAt || payout.createdAt).toLocaleString()}</p>
-                      <p className="mt-1 text-xs text-slate-300">Method: {payout.payoutMethod || "Not provided"} · Transaction ID: {payout.paymentReference || "Not provided"}</p>
-                    </div>
-                    <p className="text-sm font-bold text-emerald-300">{money(Number(payout.totalEarning || 0))}</p>
-                  </div>
-                ))}
+              <div className="flex min-h-48 flex-col items-center justify-center px-6 py-10 text-center">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.05] text-slate-400">
+                  <WalletCards className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <p className="mt-3 text-sm font-medium text-slate-200">No payout records yet</p>
+                <p className="mt-1 text-xs text-slate-400">Completed payouts will appear here.</p>
               </div>
+            ) : (
+              <ul className="min-h-0 divide-y divide-white/[0.07] overflow-y-auto overscroll-contain">
+                {payoutTransactions.map(({ manager, payout }) => (
+                  <li key={payout.payoutNumber} className="grid gap-3 px-4 py-3.5 transition-colors hover:bg-white/[0.025] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:px-5">
+                    <div className="min-w-0">
+                      <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                        <p className="max-w-full truncate text-sm font-semibold text-slate-100">{manager.fullName || manager.username}</p>
+                        <span className="inline-flex items-center rounded-full border border-emerald-300/15 bg-emerald-300/[0.07] px-2 py-0.5 text-[10px] font-semibold tracking-wide text-emerald-200">
+                          {payout.payoutMethod || "Method not provided"}
+                        </span>
+                      </div>
+                      <p className="mt-1.5 truncate font-mono text-[11px] text-slate-400" title={payout.payoutNumber}>{payout.payoutNumber}</p>
+                      <div className="mt-1.5 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1 text-xs">
+                        <span className="shrink-0 text-slate-500">Transaction ID</span>
+                        <span className="min-w-0 break-all font-mono text-slate-300">{payout.paymentReference || "Not provided"}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 border-t border-white/[0.06] pt-2 sm:flex-col sm:items-end sm:border-0 sm:pt-0">
+                      <span className="text-[11px] text-slate-500">{new Date(payout.paidAt || payout.createdAt).toLocaleString()}</span>
+                      <p className="text-sm font-semibold tabular-nums text-emerald-300">{money(Number(payout.totalEarning || 0))}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
-        </div>
+        </div>,
+        modalPortalRoot
       )}
 
       <section className="overflow-hidden rounded-2xl bg-white/75 shadow-sm shadow-slate-900/[0.04] dark:bg-[#202b2f]/80">

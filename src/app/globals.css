@@ -1815,6 +1815,10 @@ html:not(.dark) [class*="bg-slate-700"] {
   background-color: rgba(255, 255, 255, 0.84) !important;
 }
 
+html:not(.dark) .payout-history-backdrop {
+  background-color: rgba(15, 23, 42, 0.38) !important;
+}
+
 html:not(.dark) [class*="from-black"],
 html:not(.dark) [class*="via-gray-900"],
 html:not(.dark) [class*="to-black"],
