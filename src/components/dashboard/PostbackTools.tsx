@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, ChevronDown, Copy, Database, MessageCircle, RefreshCw, Search, Webhook, XCircle } from "lucide-react";
+import { CheckCircle2, ChevronDown, Copy, Database, MessageCircle, RefreshCw, Search, Trash2, Webhook, XCircle } from "lucide-react";
 
 interface PostbackConfig {
   id: string;
@@ -195,65 +195,6 @@ export default function PostbackTools() {
         </div>
       )}
 
-      <section className="postback-section">
-        <div className="postback-section-heading">
-          <div>
-            <h2 className="postback-section-title">Postback endpoints</h2>
-            <p className="postback-muted mt-1 text-sm">Connect your affiliate networks to receive conversion events.</p>
-          </div>
-          <span className="postback-count">{configs.length} configured</span>
-        </div>
-        <div className="postback-endpoint-grid">
-          {(["AFFMINE", "ADBLUMEDIA"] as const).map((provider) => {
-            const config = configs.find((item) => item.provider === provider);
-            const providerName = provider === "AFFMINE" ? "Affmine" : "AdBluMedia";
-            const previewUrl = config && typeof window !== "undefined"
-              ? getPostbackTemplate(window.location.origin, config).replace(config.token, "••••••••")
-              : null;
-            return (
-              <article key={provider} className="postback-endpoint-card">
-                <div className="postback-endpoint-top">
-                  <div>
-                    <p className="postback-muted text-xs font-medium uppercase tracking-wider">Network</p>
-                    <h3 className="postback-endpoint-name">{providerName}</h3>
-                  </div>
-                  <span className={`postback-status ${config ? "is-ready" : "is-pending"}`}>
-                    {config ? "Connected" : "Not configured"}
-                  </span>
-                </div>
-                {config && previewUrl ? (
-                  <div className="postback-url-row">
-                    <p className="postback-url" aria-label={`${providerName} receiver URL. Secret is hidden.`}>{previewUrl}</p>
-                    <button
-                      type="button"
-                      title="Copy receiver URL"
-                      onClick={() => copyPostbackUrl(config.token)}
-                      className="postback-secondary-button"
-                    >
-                      <Copy className="h-3.5 w-3.5" />
-                      Copy URL
-                    </button>
-                  </div>
-                ) : (
-                  <div className="postback-endpoint-empty">
-                    <p className="postback-muted text-sm">Create a receiver URL to start tracking conversions.</p>
-                    <button
-                      type="button"
-                      onClick={() => createPostback(provider)}
-                      disabled={submitting === provider}
-                      className="postback-primary-button"
-                    >
-                      <Webhook className="h-4 w-4" />
-                      {submitting === provider ? "Creating..." : "Create URL"}
-                    </button>
-                  </div>
-                )}
-              </article>
-            );
-          })}
-        </div>
-      </section>
-
       <section className="postback-section postback-telegram">
         <button
           type="button"
@@ -296,6 +237,52 @@ export default function PostbackTools() {
         )}
       </section>
 
+      <section className="postback-section">
+        <div className="postback-endpoint-grid">
+          {(["AFFMINE", "ADBLUMEDIA"] as const).map((provider) => {
+            const config = configs.find((item) => item.provider === provider);
+            const providerName = provider === "AFFMINE" ? "Affmine" : "AdBluMedia";
+            const previewUrl = config && typeof window !== "undefined"
+              ? getPostbackTemplate(window.location.origin, config).replace(config.token, "••••••••")
+              : null;
+            return (
+              <article key={provider} className="postback-endpoint-card">
+                <div className="postback-endpoint-top">
+                  <h3 className="postback-endpoint-name">{providerName}</h3>
+                </div>
+                {config && previewUrl ? (
+                  <div className="postback-url-row">
+                    <p className="postback-url" aria-label={`${providerName} receiver URL. Secret is hidden.`}>{previewUrl}</p>
+                    <button
+                      type="button"
+                      title="Copy receiver URL"
+                      onClick={() => copyPostbackUrl(config.token)}
+                      className="postback-secondary-button"
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                      Copy URL
+                    </button>
+                  </div>
+                ) : (
+                  <div className="postback-endpoint-empty">
+                    <p className="postback-muted text-sm">Create a receiver URL to start tracking conversions.</p>
+                    <button
+                      type="button"
+                      onClick={() => createPostback(provider)}
+                      disabled={submitting === provider}
+                      className="postback-primary-button"
+                    >
+                      <Webhook className="h-4 w-4" />
+                      {submitting === provider ? "Creating..." : "Create URL"}
+                    </button>
+                  </div>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
       <section className="postback-report">
         <div className="postback-report-heading">
           <div className="flex min-w-0 items-center gap-3">
@@ -317,9 +304,14 @@ export default function PostbackTools() {
                 <button type="button" onClick={resetLeadData} className="postback-reset-confirm-action">Reset</button>
               </div>
             )}
-            <button type="button" title="Reset conversion data" onClick={() => setShowResetConfirm(true)} className="postback-danger-button">
+            <button
+              type="button"
+              title="Reset conversion data"
+              aria-label="Reset conversion data"
+              onClick={() => setShowResetConfirm(true)}
+              className="postback-secondary-button"
+            >
               <RefreshCw className="h-3.5 w-3.5" />
-              Reset data
             </button>
           </div>
         </div>
@@ -366,7 +358,15 @@ export default function PostbackTools() {
                     <td className={lead.sub4 ? "postback-subid" : "postback-subid is-empty"}>{lead.sub4 || "—"}</td>
                     <td className="postback-date">{new Date(lead.createdAt).toLocaleDateString()}</td>
                     <td className="postback-action-column">
-                      <button type="button" onClick={() => deleteLead(lead.id)} className="postback-row-delete">Delete</button>
+                      <button
+                        type="button"
+                        onClick={() => deleteLead(lead.id)}
+                        className="postback-row-delete"
+                        aria-label={`Delete ${lead.postback.provider === "AFFMINE" ? "Affmine" : "AdBluMedia"} conversion`}
+                        title="Delete conversion"
+                      >
+                        <Trash2 className="h-4 w-4" aria-hidden="true" />
+                      </button>
                     </td>
                   </tr>
                 ))}

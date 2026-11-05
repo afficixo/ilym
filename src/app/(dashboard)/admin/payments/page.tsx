@@ -21,6 +21,10 @@ interface PaymentLink {
   user?: { role: string };
   selectedInvoiceNumber?: string;
   selectedManagerId?: string;
+  selectedManagerOwnPending?: number;
+  selectedManagerReferralPending?: number;
+  selectedManagerTotalPending?: number;
+  selectedManagerTotalPendingCents?: number;
   invoiceSummary?: {
     pendingAmount: number;
     paidAmount: number;
@@ -245,7 +249,7 @@ export default function PaymentsPage() {
     }
   };
 
-  const recordManagerPayout = async (managerId: string, reference: string) => {
+  const recordManagerPayout = async (managerId: string, reference: string, payout: PaymentLink) => {
     setPayingLinkId(managerId);
     setError("");
     try {
@@ -253,10 +257,18 @@ export default function PaymentsPage() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paymentReference: reference }),
+        body: JSON.stringify({
+          paymentReference: reference,
+          expectedTotalCents: payout.selectedManagerTotalPendingCents,
+          expectedPayoutMethod: payout.payoutMethod,
+          expectedPayoutAccount: payout.payoutAccount,
+        }),
       });
       const data = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(data?.error || "Unable to record manager payout");
+      if (!response.ok) {
+        if (response.status === 409) await fetchManagerPayments();
+        throw new Error(data?.error || "Unable to record manager payout");
+      }
       await fetchManagerPayments();
       await fetchPayments();
       return true;
@@ -272,7 +284,7 @@ export default function PaymentsPage() {
     event.preventDefault();
     if (!paymentLink || !paymentReference.trim()) return;
     const success = paymentLink.selectedManagerId
-      ? await recordManagerPayout(paymentLink.selectedManagerId, paymentReference.trim())
+      ? await recordManagerPayout(paymentLink.selectedManagerId, paymentReference.trim(), paymentLink)
       : await markInvoicePaid(paymentLink.id, paymentReference.trim());
     if (success) {
       setPaymentLink(null);
@@ -344,20 +356,22 @@ export default function PaymentsPage() {
     const commissionRate = Number(manager.commissionRate ?? 20) || 0;
     const paid = manager.managerPayouts.filter((payout) => payout.isPaid).reduce((sum, payout) => sum + Number(payout.totalEarning || 0), 0);
     const pendingInvoices = invoices.filter((invoice) => !invoice.isPaid && invoice.managerPayouts.length === 0);
+    const ownPending = calculatePendingAmount(pendingInvoices, commissionRate);
     const referralPending = manager.referralCommissionsEarned
       .filter((commission) => !commission.paidAt)
       .reduce((sum, commission) => sum + Number(commission.amount || 0), 0);
-    const pending = calculatePendingAmount(pendingInvoices, commissionRate) + referralPending;
+    const pending = ownPending + referralPending;
     const revenue = managerRevenueByUserId.get(manager.id) || 0;
     const nextUnpaidInvoice = manager.linkAccounts
       .flatMap((link) => link.invoices.filter((invoice) => !invoice.isPaid && invoice.managerPayouts.length === 0).map((invoice) => ({ invoice, link })))
       .sort((firstInvoice, secondInvoice) => firstInvoice.invoice.invoiceNumber.localeCompare(secondInvoice.invoice.invoiceNumber))[0];
     return {
       manager,
-      invoiceCount: invoices.length,
+      pendingInvoiceCount: pendingInvoices.length,
       paid,
       total: revenue,
       pending,
+      ownPending,
       referralPending,
       commissionRate,
       payoutMethod: manager.payoutMethod || (manager.bkashNumber ? "BKASH" : null),
@@ -365,23 +379,25 @@ export default function PaymentsPage() {
       nextUnpaidInvoice,
     };
   });
-  const activeManagerPaymentRows = useMemo(
-    () => managerPaymentRows.filter(({ manager }) => manager.status === "ACTIVE"),
+  const payableManagerRows = useMemo(
+    () => managerPaymentRows.filter(({ manager, pending, paid }) =>
+      manager.status === "ACTIVE" || pending > 0 || paid > 0,
+    ),
     [managerPaymentRows],
   );
   const visibleManagerPaymentRows = useMemo(
     () => managerPaymentFilter === "unpaid"
-      ? activeManagerPaymentRows.filter(({ pending, nextUnpaidInvoice }) => pending > 0 || Boolean(nextUnpaidInvoice))
-      : activeManagerPaymentRows,
-    [activeManagerPaymentRows, managerPaymentFilter],
+      ? payableManagerRows.filter(({ pending, nextUnpaidInvoice }) => pending > 0 || Boolean(nextUnpaidInvoice))
+      : payableManagerRows,
+    [payableManagerRows, managerPaymentFilter],
   );
   const pendingSummary = userRole === "OWNER"
-    ? activeManagerPaymentRows.reduce((sum, row) => sum + row.pending, 0)
+    ? managerPaymentRows.reduce((sum, row) => sum + row.pending, 0)
     : userRole === "MANAGER"
       ? paymentRows.reduce((sum, row) => sum + calculateManagerOwnerPendingAmount(row.invoices, Number(row.link.commissionRate ?? 20)), 0)
     : totals.invoices;
   const paidOutSummary = userRole === "OWNER"
-    ? activeManagerPaymentRows.reduce((sum, row) => sum + row.paid, 0)
+    ? managerPaymentRows.reduce((sum, row) => sum + row.paid, 0)
     : userRole === "MANAGER"
       ? managerPaidOutAmount
     : totals.paid;
@@ -485,9 +501,9 @@ export default function PaymentsPage() {
                 <span className="flex items-center gap-2 text-sm font-semibold text-slate-950 dark:text-white">
                   <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/80 text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-300"><WalletCards className="h-4 w-4" /></span>
                   Manager payouts
-                  <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-200">{visibleManagerPaymentRows.length}{managerPaymentFilter === "unpaid" ? `/${activeManagerPaymentRows.length}` : ""}</span>
+                  <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-200">{visibleManagerPaymentRows.length}{managerPaymentFilter === "unpaid" ? `/${payableManagerRows.length}` : ""}</span>
                 </span>
-                <span className="mt-0.5 block text-xs leading-4 text-slate-600 dark:text-slate-300">Manager balances and payout history</span>
+                <span className="mt-0.5 block text-xs leading-4 text-slate-600 dark:text-slate-300">Review manager earnings and referral commissions before paying the total.</span>
               </span>
               <ChevronDown className={`h-4 w-4 shrink-0 text-slate-500 transition-transform dark:text-slate-400 ${showManagerPayments ? "rotate-180" : ""}`} />
             </button>
@@ -511,26 +527,52 @@ export default function PaymentsPage() {
           {showManagerPayments && managerPaymentsError ? (
             <p className="p-6 text-sm text-rose-600 dark:text-rose-300">{managerPaymentsError}</p>
           ) : showManagerPayments && (visibleManagerPaymentRows.length === 0 ? (
-            <p className="p-6 text-sm text-slate-700 dark:text-slate-300">{managerPaymentFilter === "unpaid" ? "No unpaid manager balances found." : "No active manager accounts found."}</p>
+            <p className="p-6 text-sm text-slate-700 dark:text-slate-300">{managerPaymentFilter === "unpaid" ? "No unpaid manager balances found." : "No manager accounts or payout history found."}</p>
           ) : (
             <div className="grid gap-2.5 bg-slate-50/60 p-3 dark:bg-black/10 sm:gap-3">
-              {visibleManagerPaymentRows.map(({ manager, invoiceCount, paid, pending, referralPending, total, commissionRate, payoutMethod, payoutAccount, nextUnpaidInvoice }) => {
+              {visibleManagerPaymentRows.map(({ manager, pendingInvoiceCount, paid, pending, referralPending, total, commissionRate, payoutMethod, payoutAccount, nextUnpaidInvoice }) => {
                 const canRecordManagerPayout = Boolean(payoutMethod && payoutAccount);
                 const hasPendingFunds = pending > 0;
-                const openManagerPayoutDialog = () => {
-                  setPaymentLink({
-                    id: manager.id,
-                    userId: manager.id,
-                    accountName: manager.fullName || manager.username,
-                    slug: "",
-                    isActive: true,
-                    totalEarning: 0,
-                    qualifiedClicks: 0,
-                    payoutMethod,
-                    payoutAccount,
-                    selectedManagerId: manager.id,
-                  });
-                  setPaymentReference("");
+                const openManagerPayoutDialog = async () => {
+                  setPayingLinkId(manager.id);
+                  setError("");
+                  try {
+                    const response = await fetch(`/api/owner/managers/${manager.id}/payout`, {
+                      credentials: "include",
+                      cache: "no-store",
+                    });
+                    const data = await response.json().catch(() => null);
+                    if (!response.ok) throw new Error(data?.error || "Unable to load current manager payout details");
+                    if (!data.totalPendingCents) {
+                      await fetchManagerPayments();
+                      throw new Error("No unpaid manager earnings or referral commissions remain for this account.");
+                    }
+                    if (!data.payoutMethod || !data.payoutAccount) {
+                      await fetchManagerPayments();
+                      throw new Error("Manager payment details are not configured. Update the account before recording this payout.");
+                    }
+                    setPaymentLink({
+                      id: manager.id,
+                      userId: manager.id,
+                      accountName: data.fullName || data.username,
+                      slug: "",
+                      isActive: true,
+                      totalEarning: 0,
+                      qualifiedClicks: 0,
+                      payoutMethod: data.payoutMethod,
+                      payoutAccount: data.payoutAccount,
+                      selectedManagerId: manager.id,
+                      selectedManagerOwnPending: data.ownPending,
+                      selectedManagerReferralPending: data.referralPending,
+                      selectedManagerTotalPending: data.totalPending,
+                      selectedManagerTotalPendingCents: data.totalPendingCents,
+                    });
+                    setPaymentReference("");
+                  } catch (actionError) {
+                    setError(actionError instanceof Error ? actionError.message : "Unable to load current manager payout details");
+                  } finally {
+                    setPayingLinkId(null);
+                  }
                 };
                 return (
                 <div key={manager.id} className="relative grid gap-2.5 overflow-hidden rounded-2xl border border-l-[3px] border-teal-200/80 border-l-teal-600 bg-white p-2.5 shadow-sm shadow-slate-900/[0.04] transition duration-200 hover:-translate-y-px hover:border-teal-300 hover:shadow-md sm:gap-3 sm:p-3 lg:grid-cols-[minmax(190px,1.1fr)_minmax(330px,2fr)_minmax(175px,1.2fr)] lg:items-center dark:border-teal-300/10 dark:border-l-teal-400 dark:bg-[#202b2f] dark:hover:border-teal-300/20 dark:shadow-black/10">
@@ -539,7 +581,8 @@ export default function PaymentsPage() {
                       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600 dark:bg-white/[0.06] dark:text-slate-300"><UserRound className="h-4 w-4" /></span>
                       <div className="min-w-0">
                         <p className="truncate text-base font-bold text-slate-950 dark:text-white">{manager.fullName || manager.username}</p>
-                        <p className="mt-0.5 truncate text-xs text-slate-700 dark:text-slate-300">@{manager.username} · {invoiceCount} {invoiceCount === 1 ? "invoice" : "invoices"}{referralPending > 0 ? ` · ${money(referralPending)} referral` : ""}</p>
+                        <p className="mt-0.5 truncate text-xs text-slate-700 dark:text-slate-300">@{manager.username} · {pendingInvoiceCount} pending {pendingInvoiceCount === 1 ? "invoice" : "invoices"}{referralPending > 0 ? ` · ${money(referralPending)} referral` : ""}</p>
+                        {manager.status !== "ACTIVE" && <span className="mt-1 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800 dark:bg-amber-400/10 dark:text-amber-200">{manager.status}</span>}
                       </div>
                     </div>
                     <div className="mt-2 min-w-0 rounded-xl bg-slate-50/80 px-2.5 py-2 dark:bg-white/[0.025] sm:hidden">
@@ -553,15 +596,26 @@ export default function PaymentsPage() {
                           {copiedPaymentAccount === manager.id ? <Check className="h-3.5 w-3.5 text-emerald-700 dark:text-emerald-300" /> : <Copy className="h-3.5 w-3.5" />}
                         </button>}
                       </div>
-                      {hasPendingFunds && (canRecordManagerPayout ? <button type="button" onClick={openManagerPayoutDialog} aria-label={nextUnpaidInvoice ? "Record manager payout" : "Pay referral commission"} className="mt-1.5 inline-flex min-h-8 w-fit items-center justify-center gap-1.5 rounded-md border border-teal-200 bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-800 transition-colors hover:border-teal-300 hover:bg-teal-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 dark:border-teal-400/20 dark:bg-teal-400/[0.08] dark:text-teal-200 dark:hover:border-teal-300/30 dark:hover:bg-teal-400/[0.14] dark:focus-visible:ring-offset-[#202b2f]"><CheckCircle className="h-3.5 w-3.5" />{nextUnpaidInvoice ? "Record payout" : "Pay referral"}</button> : <p className="mt-1.5 text-xs leading-5 text-amber-800 dark:text-amber-200">Add payout details to release this balance.</p>)}
+                      {hasPendingFunds && (canRecordManagerPayout ? (
+                        <button
+                          type="button"
+                          onClick={() => void openManagerPayoutDialog()}
+                          disabled={payingLinkId === manager.id}
+                          aria-label={nextUnpaidInvoice ? "Record manager payout" : "Pay referral commission"}
+                          className="mt-1.5 inline-flex min-h-8 w-fit items-center justify-center gap-1.5 rounded-md border border-teal-200 bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-800 transition-colors hover:border-teal-300 hover:bg-teal-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-60 dark:border-teal-400/20 dark:bg-teal-400/[0.08] dark:text-teal-200 dark:hover:border-teal-300/30 dark:hover:bg-teal-400/[0.14] dark:focus-visible:ring-offset-[#202b2f]"
+                        >
+                          <CheckCircle className="h-3.5 w-3.5" />
+                          {payingLinkId === manager.id ? "Checking balance..." : nextUnpaidInvoice ? "Record payout" : "Pay referral"}
+                        </button>
+                      ) : <p className="mt-1.5 text-xs leading-5 text-amber-800 dark:text-amber-200">Add payout details to release this balance.</p>)}
                     </div>
                   </div>
                   <div className="grid min-w-0 grid-cols-[repeat(3,minmax(0,1fr))] gap-1.5 sm:gap-2">
-                  <div className="relative flex min-h-[76px] min-w-0 flex-col justify-center overflow-hidden rounded-xl bg-gradient-to-br from-sky-50 to-sky-100/70 p-2 pt-3.5 leading-tight sm:min-h-[82px] sm:p-3 sm:pt-4 dark:from-sky-400/[0.08] dark:to-sky-400/[0.03]"><span className="absolute inset-x-0 top-0 h-1 bg-sky-500 dark:bg-sky-400" aria-hidden="true" /><p className="truncate text-[10px] font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">Revenue</p><p className="mt-1 truncate text-sm font-bold tabular-nums text-slate-950 dark:text-white sm:mt-1.5 sm:text-base">{money(total)}</p><p className="mt-1 truncate text-[10px] tabular-nums text-slate-500 dark:text-slate-400 sm:text-[11px]">{commissionRate.toFixed(2)}% share</p></div>
+                  <div className="relative flex min-h-[76px] min-w-0 flex-col justify-center overflow-hidden rounded-xl bg-gradient-to-br from-sky-50 to-sky-100/70 p-2 pt-3.5 leading-tight sm:min-h-[82px] sm:p-3 sm:pt-4 dark:from-sky-400/[0.08] dark:to-sky-400/[0.03]"><span className="absolute inset-x-0 top-0 h-1 bg-sky-500 dark:bg-sky-400" aria-hidden="true" /><p className="truncate text-[10px] font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">Manager revenue</p><p className="mt-1 truncate text-sm font-bold tabular-nums text-slate-950 dark:text-white sm:mt-1.5 sm:text-base">{money(total)}</p><p className="mt-1 truncate text-[10px] tabular-nums text-slate-500 dark:text-slate-400 sm:text-[11px]">{commissionRate.toFixed(2)}% share</p></div>
                   <div className="relative flex min-h-[76px] min-w-0 flex-col justify-center overflow-hidden rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100/70 p-2 pt-3.5 leading-tight sm:min-h-[82px] sm:p-3 sm:pt-4 dark:from-emerald-400/[0.08] dark:to-emerald-400/[0.03]"><span className="absolute inset-x-0 top-0 h-1 bg-emerald-500 dark:bg-emerald-400" aria-hidden="true" /><p className="truncate text-[10px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Paid out</p><p className="mt-1 truncate text-sm font-bold tabular-nums text-slate-950 dark:text-white sm:mt-1.5 sm:text-base">{money(paid)}</p></div>
                   <div className={`relative flex min-h-[76px] min-w-0 flex-col justify-center overflow-hidden rounded-xl p-2 pt-3.5 leading-tight sm:min-h-[82px] sm:p-3 sm:pt-4 ${hasPendingFunds ? "bg-gradient-to-br from-amber-100 to-orange-100/80 dark:from-amber-400/[0.12] dark:to-orange-400/[0.06]" : "bg-gradient-to-br from-slate-50 to-slate-100/80 dark:from-white/[0.045] dark:to-white/[0.02]"}`} aria-label={hasPendingFunds ? `Pending funds ${money(pending)}` : "No pending funds"}>
                     <span className={`absolute inset-x-0 top-0 h-1 ${hasPendingFunds ? "bg-amber-500 dark:bg-amber-400" : "bg-slate-300 dark:bg-slate-600"}`} aria-hidden="true" />
-                    <div className="flex items-center justify-between gap-1"><p className={`text-[10px] font-semibold uppercase tracking-wide ${hasPendingFunds ? "text-amber-800 dark:text-amber-300" : "text-slate-500 dark:text-slate-400"}`}>Pending</p>{hasPendingFunds && <span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden="true" />}</div>
+                    <div className="flex items-center justify-between gap-1"><p className={`text-[10px] font-semibold uppercase tracking-wide ${hasPendingFunds ? "text-amber-800 dark:text-amber-300" : "text-slate-500 dark:text-slate-400"}`}>Total to pay</p>{hasPendingFunds && <span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden="true" />}</div>
                     <p className={`mt-1.5 truncate text-base font-bold tabular-nums ${hasPendingFunds ? "text-amber-950 dark:text-amber-100" : "text-slate-900 dark:text-white"}`}>{money(pending)}</p>
                     {hasPendingFunds && <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-amber-800 dark:text-amber-300">Action needed</p>}
                     </div>
@@ -578,7 +632,18 @@ export default function PaymentsPage() {
                         {copiedPaymentAccount === manager.id ? <Check className="h-3.5 w-3.5 text-emerald-700 dark:text-emerald-300" /> : <Copy className="h-3.5 w-3.5" />}
                       </button>}
                     </div>
-                    {hasPendingFunds && (canRecordManagerPayout ? <button type="button" onClick={openManagerPayoutDialog} aria-label={nextUnpaidInvoice ? "Record manager payout" : "Pay referral commission"} className="mt-2 inline-flex min-h-9 max-w-full items-center justify-center gap-1.5 rounded-md border border-teal-200 bg-teal-50 px-3 py-1.5 text-xs font-semibold text-teal-800 transition-colors hover:border-teal-300 hover:bg-teal-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 dark:border-teal-400/20 dark:bg-teal-400/[0.08] dark:text-teal-200 dark:hover:border-teal-300/30 dark:hover:bg-teal-400/[0.14] dark:focus-visible:ring-offset-[#202b2f]"><CheckCircle className="h-3.5 w-3.5 shrink-0" />{nextUnpaidInvoice ? "Record payout" : "Pay referral"}</button> : <p className="mt-2 text-xs font-medium text-amber-800 dark:text-amber-200">Add manager payment details to release pending funds.</p>)}
+                    {hasPendingFunds && (canRecordManagerPayout ? (
+                      <button
+                        type="button"
+                        onClick={() => void openManagerPayoutDialog()}
+                        disabled={payingLinkId === manager.id}
+                        aria-label={nextUnpaidInvoice ? "Record manager payout" : "Pay referral commission"}
+                        className="mt-2 inline-flex min-h-9 max-w-full items-center justify-center gap-1.5 rounded-md border border-teal-200 bg-teal-50 px-3 py-1.5 text-xs font-semibold text-teal-800 transition-colors hover:border-teal-300 hover:bg-teal-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-60 dark:border-teal-400/20 dark:bg-teal-400/[0.08] dark:text-teal-200 dark:hover:border-teal-300/30 dark:hover:bg-teal-400/[0.14] dark:focus-visible:ring-offset-[#202b2f]"
+                      >
+                        <CheckCircle className="h-3.5 w-3.5 shrink-0" />
+                        {payingLinkId === manager.id ? "Checking balance..." : nextUnpaidInvoice ? "Record payout" : "Pay referral"}
+                      </button>
+                    ) : <p className="mt-2 text-xs font-medium text-amber-800 dark:text-amber-200">Add manager payment details to release pending funds.</p>)}
                   </div>
                 </div>
                 );
@@ -820,14 +885,25 @@ export default function PaymentsPage() {
               )}
             </div>
           </div>
-          <p id="payment-dialog-description" className="mt-3 text-xs leading-5 text-slate-300">{paymentLink.selectedManagerId ? "This payout settles all outstanding team invoices and available referral commissions." : "This records the payment and closes the outstanding invoice."}</p>
+          {paymentLink.selectedManagerId ? (
+            <div id="payment-dialog-description" className="mt-3 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2.5 text-xs text-slate-300">
+              <p className="font-medium text-white">Payout breakdown</p>
+              <div className="mt-2 space-y-1.5">
+              <div className="flex justify-between gap-3"><span>Manager's pending earnings</span><span className="tabular-nums">{money(paymentLink.selectedManagerOwnPending ?? 0)}</span></div>
+              <div className="flex justify-between gap-3"><span>Referral commission due</span><span className="tabular-nums">{money(paymentLink.selectedManagerReferralPending ?? 0)}</span></div>
+                <div className="flex justify-between gap-3 border-t border-white/10 pt-1.5 font-semibold text-emerald-200"><span>Total to pay</span><span className="tabular-nums">{money(paymentLink.selectedManagerTotalPending ?? 0)}</span></div>
+              </div>
+            </div>
+          ) : (
+            <p id="payment-dialog-description" className="mt-3 text-xs leading-5 text-slate-300">This records the payment and closes the outstanding invoice.</p>
+          )}
           <label className="mt-4 block text-sm font-semibold text-slate-200" htmlFor="payment-reference">
             {paymentLink.payoutMethod === "BKASH" ? "bKash transaction ID" : paymentLink.payoutMethod === "BINANCE" ? "Binance order ID" : "Payment reference"}
             <input id="payment-reference" value={paymentReference} onChange={(event) => setPaymentReference(event.target.value)} autoFocus required placeholder={paymentLink.payoutMethod === "BKASH" ? "Enter bKash transaction ID" : paymentLink.payoutMethod === "BINANCE" ? "Enter Binance order ID" : "Enter payment reference"} className="mt-1.5 h-10 w-full rounded-lg bg-slate-950 px-3 text-sm text-white outline-none placeholder:text-slate-400 transition focus:ring-2 focus:ring-emerald-300/30" />
           </label>
           <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <button type="button" onClick={() => setPaymentLink(null)} className="rounded-lg bg-white/[0.06] px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300">Cancel</button>
-            <button type="submit" disabled={!paymentReference.trim() || payingLinkId === paymentLink.id} className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-400 px-3 py-2 text-xs font-bold text-slate-950 shadow-sm shadow-emerald-950/30 transition hover:bg-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/70 disabled:cursor-not-allowed disabled:opacity-60"><CheckCircle className="h-3.5 w-3.5" />{payingLinkId === paymentLink.id ? "Recording..." : "Record payment"}</button>
+            <button type="submit" disabled={!paymentReference.trim() || payingLinkId === paymentLink.id} className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-400 px-3 py-2 text-xs font-bold text-slate-950 shadow-sm shadow-emerald-950/30 transition hover:bg-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/70 disabled:cursor-not-allowed disabled:opacity-60"><CheckCircle className="h-3.5 w-3.5" />{payingLinkId === paymentLink.id ? "Recording..." : paymentLink.selectedManagerId ? `Record ${money(paymentLink.selectedManagerTotalPending ?? 0)} payout` : "Record payment"}</button>
           </div>
         </form>
       </div>}

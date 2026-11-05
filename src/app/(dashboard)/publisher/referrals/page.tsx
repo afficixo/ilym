@@ -111,7 +111,7 @@ export default function PublisherReferralsPage() {
     {
       label: 'Pending commission',
       value: data ? formatMoney(data.summary.pendingAmount) : '—',
-      detail: 'Added to your next payout',
+      detail: 'Awaiting owner payout',
       icon: WalletCards,
       tone: 'text-amber-600 dark:text-amber-300',
     },
@@ -215,7 +215,7 @@ export default function PublisherReferralsPage() {
               ))}
             </ol>
             <p className="mt-4 border-t border-slate-200 pt-3 text-xs leading-5 text-[var(--text-secondary)] dark:border-white/10">
-              Your commission is added to your publisher balance and paid with your normal payout.
+              Your commission is added to your balance. The owner includes it in a manager payout and records the payment.
             </p>
           </aside>
         </div>
