@@ -280,9 +280,9 @@ export default function ClickLogs({ canDelete }: { canDelete: boolean }) {
     const ispText = click.isp?.trim() && click.isp !== 'Unknown' && click.isp !== 'Proxy Geo Header' ? click.isp.trim() : null
     if (showGeoInfo === click.id) {
       return (
-        <div className="flex flex-col gap-0.5">
-          <div className="flex items-center gap-1.5"><CountryFlag country={click.country} /><span className="font-medium text-slate-800 dark:text-white/80">{countryLabel}</span></div>
-          {(locationText || ispText) && <div className="text-xs text-slate-600 dark:text-slate-300">{locationText}{locationText && ispText ? ` • ${ispText}` : ispText}</div>}
+        <div className="flex min-w-0 max-w-full flex-col gap-0.5">
+        <div className="flex min-w-0 items-center gap-1.5"><CountryFlag country={click.country} /><span className="break-words font-medium text-slate-800 dark:text-white/80">{countryLabel}</span></div>
+        {(locationText || ispText) && <div className="break-words text-xs text-slate-600 dark:text-slate-300">{locationText}{locationText && ispText ? ` • ${ispText}` : ispText}</div>}
         </div>
       )
     }
@@ -342,7 +342,7 @@ export default function ClickLogs({ canDelete }: { canDelete: boolean }) {
                 className={`rounded-xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-2.5 shadow-[var(--shadow-sm)] ${click.isUnique ? '' : 'border-amber-400/40 bg-amber-50 dark:bg-amber-500/5'}`}
               >
                 <div className="flex min-w-0 items-center justify-between gap-2">
-                  <div className="min-w-0 truncate text-[13px] font-semibold text-slate-900 dark:text-white" title={click.linkAccount.accountName}>
+                  <div className="min-w-0 break-words text-[13px] font-semibold text-slate-900 dark:text-white" title={click.linkAccount.accountName}>
                     {click.linkAccount.accountName}
                   </div>
                   <time
@@ -406,23 +406,23 @@ export default function ClickLogs({ canDelete }: { canDelete: boolean }) {
                         type="button"
                         onClick={() => setClickToDelete(click)}
                         disabled={deletingClickId !== null}
-                        className="max-w-[78%] truncate font-medium text-slate-800 underline decoration-dotted underline-offset-2 transition hover:text-[#24651d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#359f25] disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-100 dark:hover:text-[#a2fa8e]"
+                        className="max-w-[78%] break-all text-right font-medium text-slate-800 underline decoration-dotted underline-offset-2 transition hover:text-[#24651d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#359f25] disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-100 dark:hover:text-[#a2fa8e]"
                         aria-label={`Delete click log from ${click.ipAddress || 'unknown IP'}`}
                         title="Click the IP address to delete this click log"
                       >
                         {deletingClickId === click.id ? 'Deleting…' : click.ipAddress || 'Unknown'}
                       </button>
                     ) : (
-                      <span className="max-w-[78%] truncate font-medium text-slate-800 dark:text-slate-100">{click.ipAddress || 'Unknown'}</span>
+                      <span className="max-w-[78%] break-all text-right font-medium text-slate-800 dark:text-slate-100">{click.ipAddress || 'Unknown'}</span>
                     )}
                   </div>
                   <div className="flex items-center justify-between gap-2 py-1">
                     <span className="text-slate-600 dark:text-slate-300">Campaign:</span>
-                    <span className="truncate text-[var(--primary-700)] dark:text-[var(--primary-300)]">{click.linkAccount.slug}</span>
+                    <span className="min-w-0 break-all text-right text-[var(--primary-700)] dark:text-[var(--primary-300)]">{click.linkAccount.slug}</span>
                   </div>
                   <div className="flex min-w-0 items-center justify-between gap-2 py-1">
                     <span className="text-slate-600 dark:text-slate-300">Referrer:</span>
-                    <span className="max-w-[78%] truncate text-right text-slate-600 dark:text-slate-300" title={click.referrer || 'Direct'}>
+                    <span className="max-w-[78%] break-all text-right text-slate-600 dark:text-slate-300" title={click.referrer || 'Direct'}>
                       {click.referrer || 'Direct'}
                     </span>
                   </div>
@@ -433,18 +433,18 @@ export default function ClickLogs({ canDelete }: { canDelete: boolean }) {
         )}
       </div>
 
-      <div className="hidden overflow-x-auto rounded-xl border border-[var(--surface-border)] bg-[var(--surface-card)] shadow-[var(--shadow-sm)] lg:block" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <table className={`${clicks.length > 0 ? 'w-full min-w-[980px] table-auto' : 'w-full table-fixed'}`}>
+      <div className="hidden overflow-hidden rounded-xl border border-[var(--surface-border)] bg-[var(--surface-card)] shadow-[var(--shadow-sm)] lg:block">
+        <table className="w-full table-fixed">
           <thead className={`${clicks.length === 0 ? 'hidden lg:table-header-group' : ''} border-b border-[var(--surface-border)] bg-[var(--surface-elevated)]`}>
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-600 dark:text-slate-300">Campaign</th>
-              <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-600 dark:text-slate-300">Location</th>
-              <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-600 dark:text-slate-300">Device</th>
-              <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-600 dark:text-slate-300">Browser</th>
-              <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-600 dark:text-slate-300">Referrer</th>
-              <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-600 dark:text-slate-300">IP Address</th>
-              <th className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-600 dark:text-slate-300">Status</th>
-              <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-600 dark:text-slate-300">Time</th>
+              <th className="px-2 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-600 dark:text-slate-300">Campaign</th>
+              <th className="px-2 py-2 text-left text-xs font-medium uppercase tracking-wider text-slate-600 dark:text-slate-300">Location</th>
+              <th className="px-2 py-2 text-left text-xs font-medium uppercase tracking-wider text-slate-600 dark:text-slate-300">Device</th>
+              <th className="px-2 py-2 text-left text-xs font-medium uppercase tracking-wider text-slate-600 dark:text-slate-300">Browser</th>
+              <th className="px-2 py-2 text-left text-xs font-medium uppercase tracking-wider text-slate-600 dark:text-slate-300">Referrer</th>
+              <th className="px-2 py-2 text-left text-xs font-medium uppercase tracking-wider text-slate-600 dark:text-slate-300">IP Address</th>
+              <th className="px-2 py-2 text-center text-xs font-medium uppercase tracking-wider text-slate-600 dark:text-slate-300">Status</th>
+              <th className="px-2 py-2 text-left text-xs font-medium uppercase tracking-wider text-slate-600 dark:text-slate-300">Time</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--surface-border)]">
@@ -467,32 +467,32 @@ export default function ClickLogs({ canDelete }: { canDelete: boolean }) {
                   className={`transition-all duration-200 ${click.isUnique ? 'hover:bg-[var(--primary-50)] dark:hover:bg-[#5ff442]/10' : 'bg-amber-50 hover:bg-amber-100 dark:bg-amber-500/5 dark:hover:bg-amber-500/10'}`}
                   style={{ animationDelay: `${Math.min(index, 10) * 25}ms` }}
                 >
-                  <td className="px-4 py-2 text-sm text-slate-700 dark:text-slate-300">
-                    <div className="flex flex-col gap-0">
-                      <span className="font-medium text-[var(--primary-700)] dark:text-[var(--primary-300)]">{click.linkAccount.accountName}</span>
-                      <span className="text-xs text-slate-500 dark:text-slate-300">/{click.linkAccount.slug}</span>
+                  <td className="break-words px-2 py-2 text-sm text-slate-700 dark:text-slate-300">
+                    <div className="flex min-w-0 flex-col gap-0">
+                      <span className="break-words font-medium text-[var(--primary-700)] dark:text-[var(--primary-300)]">{click.linkAccount.accountName}</span>
+                      <span className="break-all text-xs text-slate-500 dark:text-slate-300">/{click.linkAccount.slug}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-2 text-sm text-slate-700 dark:text-slate-300">
+                  <td className="break-words px-2 py-2 text-sm text-slate-700 dark:text-slate-300">
                     <button onClick={() => setShowGeoInfo(showGeoInfo === click.id ? null : click.id)} className="hover:opacity-70 cursor-pointer transition" title="Click to see geo details">
                       {getLocationSummary(click)}
                     </button>
                   </td>
-                  <td className="px-4 py-2 text-sm text-slate-700 dark:text-slate-300">
-                    <button onClick={() => setShowDeviceInfo(showDeviceInfo === click.id ? null : click.id)} className="flex items-center gap-1 hover:text-[var(--primary-700)] dark:hover:text-[var(--primary-300)] cursor-pointer transition" title="Click for more details">
+                  <td className="px-2 py-2 text-sm text-slate-700 dark:text-slate-300">
+                    <button onClick={() => setShowDeviceInfo(showDeviceInfo === click.id ? null : click.id)} className="flex min-w-0 items-start gap-1 break-words hover:text-[var(--primary-700)] dark:hover:text-[var(--primary-300)] cursor-pointer transition" title="Click for more details">
                       {getDeviceIcon(click.deviceType, click.os, click.deviceBrand)}
-                      <span className="truncate max-w-[140px]">{getDeviceLabel(click)}</span>
+                      <span className="min-w-0 break-words">{getDeviceLabel(click)}</span>
                     </button>
                   </td>
-                  <td className="px-4 py-2 text-sm text-slate-700 dark:text-slate-300">
+                  <td className="px-2 py-2 text-sm text-slate-700 dark:text-slate-300">
                     <div className="flex min-w-0 items-center gap-1.5">
                       <BrowserLogo name={getBrowserLabel(click)} />
-                      <button onClick={() => setShowBrowserVersion(showBrowserVersion === click.id ? null : click.id)} className="truncate max-w-[140px] text-violet-700 hover:text-violet-900 dark:text-violet-300 dark:hover:text-violet-200 cursor-pointer transition" title="Click to see version">
+                      <button onClick={() => setShowBrowserVersion(showBrowserVersion === click.id ? null : click.id)} className="min-w-0 break-words text-left text-violet-700 hover:text-violet-900 dark:text-violet-300 dark:hover:text-violet-200 cursor-pointer transition" title="Click to see version">
                         {showBrowserVersion === click.id ? getBrowserVersion(click) : getBrowserLabel(click)}
                       </button>
                     </div>
                   </td>
-                  <td className="px-4 py-2 text-sm text-[var(--primary-700)] dark:text-[var(--primary-300)]">
+                  <td className="px-2 py-2 text-sm text-[var(--primary-700)] dark:text-[var(--primary-300)]">
                     {click.referrer ? (() => {
                       const referrerInfo = getReferrerInfo(click.referrer)
                       return (
@@ -500,13 +500,13 @@ export default function ClickLogs({ canDelete }: { canDelete: boolean }) {
                           href={referrerInfo.href || '#'}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-slate-500 hover:text-[var(--primary-700)] hover:underline transition dark:text-slate-400 dark:hover:text-[var(--primary-300)]"
+                          className="flex min-w-0 items-start gap-1 text-slate-500 hover:text-[var(--primary-700)] hover:underline transition dark:text-slate-400 dark:hover:text-[var(--primary-300)]"
                           title={click.referrer}
                           onClick={(event) => {
                             if (!referrerInfo.href) event.preventDefault()
                           }}
                         >
-                          <span className="truncate">{referrerInfo.hostname}</span>
+                          <span className="min-w-0 break-all">{referrerInfo.hostname}</span>
                           <ExternalLink className="w-3 h-3 flex-shrink-0" />
                         </a>
                       )
@@ -514,7 +514,7 @@ export default function ClickLogs({ canDelete }: { canDelete: boolean }) {
                       <span className="text-slate-600 dark:text-slate-300">Direct</span>
                     )}
                   </td>
-                  <td className="px-4 py-2 text-sm font-mono text-slate-600 dark:text-slate-400">
+                  <td className="break-all px-2 py-2 text-sm font-mono text-slate-600 dark:text-slate-400">
                     {canDelete ? (
                       <button
                         type="button"
@@ -530,7 +530,7 @@ export default function ClickLogs({ canDelete }: { canDelete: boolean }) {
                       click.ipAddress || 'Unknown'
                     )}
                   </td>
-                  <td className="px-4 py-2 text-center">
+                  <td className="px-2 py-2 text-center">
                     <div className="flex items-center justify-center">
                       {click.isUnique ? (
                         <span className="inline-flex h-6 w-6 items-center justify-center text-emerald-400 transition-transform hover:scale-110" aria-label="Unique click" title="Unique click">
@@ -543,7 +543,7 @@ export default function ClickLogs({ canDelete }: { canDelete: boolean }) {
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-2 text-xs whitespace-nowrap text-slate-700 dark:text-slate-300">
+                  <td className="break-words px-2 py-2 text-xs text-slate-700 dark:text-slate-300">
                     <div className="flex flex-col items-start gap-0">
                       {(() => {
                         const { date, time } = formatDateTwoLines(click.createdAt)
