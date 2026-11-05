@@ -74,6 +74,10 @@ html:not(.dark) {
   --shadow-xl: 0 16px 48px rgba(15, 23, 42, 0.2);
 }
 
+html.dark {
+  --page-bg: #1d282b;
+}
+
 .dashboard-shell {
   --dashboard-sidebar-width: clamp(12.5rem, 13.5vw, 14rem);
   --dashboard-sidebar-collapsed-width: 4rem;
@@ -314,6 +318,8 @@ html {
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
   scroll-behavior: smooth;
+  min-height: 100%;
+  background-color: var(--page-bg);
 }
 
 body {
@@ -321,6 +327,7 @@ body {
   background-color: var(--page-bg);
   color: var(--text-primary);
   min-height: 100vh;
+  min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-image:
@@ -349,6 +356,7 @@ html.dark body {
   background: #071014;
   color: #f1f5f3;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .public-site h1, .public-site h2, .public-site h3,

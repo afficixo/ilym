@@ -87,8 +87,8 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   themeColor: [
-    { media: '(prefers-color-scheme: dark)', color: '#34d399' },
-    { media: '(prefers-color-scheme: light)', color: '#34d399' },
+    { media: '(prefers-color-scheme: dark)', color: '#1d282b' },
+    { media: '(prefers-color-scheme: light)', color: '#eef2f7' },
   ],
   viewportFit: 'cover',
 }
@@ -102,7 +102,7 @@ export default function RootLayout({
     <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body suppressHydrationWarning className={`${inter.variable} font-sans antialiased`}>
         <ThemeInitializer />
-        <div className="min-h-screen">
+        <div className="min-h-dvh">
           <PageTransition>{children}</PageTransition>
         </div>
       </body>

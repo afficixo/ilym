@@ -1,13 +1,19 @@
 'use client'
 
 import { useEffect } from 'react'
+import { usePathname } from 'next/navigation'
+import { syncBrowserThemeColor } from '@/lib/dashboard-theme'
 
 export default function ThemeInitializer() {
+  const pathname = usePathname()
+
   useEffect(() => {
     const applyTheme = () => {
       const storedTheme = window.localStorage.getItem('theme')
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      document.documentElement.classList.toggle('dark', storedTheme ? storedTheme === 'dark' : prefersDark)
+      const isDark = storedTheme ? storedTheme === 'dark' : prefersDark
+      document.documentElement.classList.toggle('dark', isDark)
+      syncBrowserThemeColor(isDark)
     }
 
     applyTheme()
@@ -19,6 +25,12 @@ export default function ThemeInitializer() {
       window.removeEventListener('themechange', applyTheme)
     }
   }, [])
+
+  useEffect(() => {
+    const storedTheme = window.localStorage.getItem('theme')
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    syncBrowserThemeColor(storedTheme ? storedTheme === 'dark' : prefersDark)
+  }, [pathname])
 
   return null
 }

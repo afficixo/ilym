@@ -1,6 +1,14 @@
 let themeTransitionTimer: number | undefined
 let activePulseClass: string | undefined
 
+export function syncBrowserThemeColor(isDark: boolean) {
+  const isDarkPage = document.querySelector('.public-site, .auth-site') !== null
+  const color = isDarkPage ? '#071014' : isDark ? '#1d282b' : '#eef2f7'
+  document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((meta) => {
+    if (meta.content !== color) meta.setAttribute('content', color)
+  })
+}
+
 export function applyDashboardTheme(isDark: boolean, button: HTMLButtonElement) {
   const root = document.documentElement
 
@@ -25,6 +33,7 @@ export function applyDashboardTheme(isDark: boolean, button: HTMLButtonElement) 
 
   root.classList.toggle('dark', isDark)
   window.localStorage.setItem('theme', isDark ? 'dark' : 'light')
+  syncBrowserThemeColor(isDark)
   window.dispatchEvent(new Event('themechange'))
 
   if (shouldAnimate) {

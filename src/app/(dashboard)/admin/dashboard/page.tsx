@@ -60,7 +60,6 @@ export default function DashboardPage() {
   const [browserBreakdown, setBrowserBreakdown] = useState<any[]>([]);
   const [deviceBreakdown, setDeviceBreakdown] = useState<any[]>([]);
   const [, setRefreshing] = useState(false);
-  const [logFilter] = useState<string>("all");
   const [userRole, setUserRole] = useState<string | null>(null);
 
   // ─── ZOOM FIX: ensure viewport meta is correct ───
@@ -224,7 +223,7 @@ export default function DashboardPage() {
         </section>
 
         <div className="overflow-x-auto">
-          <ClickLogs filter={logFilter} canDelete={userRole === "OWNER" || userRole === "ADMIN"} />
+          <ClickLogs canDelete={userRole === "OWNER" || userRole === "ADMIN"} />
         </div>
 
       </div>

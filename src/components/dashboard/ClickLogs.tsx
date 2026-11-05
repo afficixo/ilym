@@ -6,8 +6,6 @@ import { getCountryLabel } from '@/lib/utils/country'
 import { BrowserLogo } from '@/components/ui/BrowserLogo'
 import { CountryFlag } from '@/components/ui/CountryFlag'
 import {
-  ChevronLeft,
-  ChevronRight,
   Monitor,
   Smartphone,
   Tablet,
@@ -43,12 +41,16 @@ interface Click {
   }
 }
 
-interface ClickLogsProps {
-  filter: string
-  canDelete: boolean
+function uniqueClicks(clicks: Click[]) {
+  const seenIds = new Set<string>()
+  return clicks.filter((click) => {
+    if (seenIds.has(click.id)) return false
+    seenIds.add(click.id)
+    return true
+  })
 }
 
-export default function ClickLogs({ filter, canDelete }: ClickLogsProps) {
+export default function ClickLogs({ canDelete }: { canDelete: boolean }) {
   const router = useRouter()
   const [clicks, setClicks] = useState<Click[]>([])
   const [total, setTotal] = useState(0)
@@ -97,7 +99,7 @@ export default function ClickLogs({ filter, canDelete }: ClickLogsProps) {
     fetchPage(1)
       .then((data) => {
         if (!active || !data) return
-        setClicks(data.clicks || [])
+        setClicks(uniqueClicks(data.clicks || []))
         setTotal(data.total || 0)
         setNextPage(2)
         setHasMore((data.page || 1) < (data.totalPages || 1))
@@ -125,7 +127,7 @@ export default function ClickLogs({ filter, canDelete }: ClickLogsProps) {
     try {
       const data = await fetchPage(nextPage)
       if (!data) return
-      setClicks((currentClicks) => currentClicks.concat(data.clicks || []))
+      setClicks((currentClicks) => uniqueClicks(currentClicks.concat(data.clicks || [])))
       setNextPage((data.page || nextPage) + 1)
       setHasMore((data.page || nextPage) < (data.totalPages || nextPage))
     } catch (error) {
@@ -261,10 +263,19 @@ export default function ClickLogs({ filter, canDelete }: ClickLogsProps) {
   const getBrowserVersion = (click: Click) => click.browserVersion || 'Version not available'
   const getDeviceLabel = (click: Click) => `${click.os || click.deviceType || 'Unknown OS'} • ${click.deviceBrand || click.deviceType || 'Unknown Device'}`
 
+  const decodeLocationPart = (value: string | null) => {
+    if (!value) return null
+    try {
+      return decodeURIComponent(value)
+    } catch {
+      return value
+    }
+  }
+
   const getLocationSummary = (click: Click) => {
     const countryLabel = getCountryLabel(click.country)
-    const decodedCity = click.city ? decodeURIComponent(click.city) : null
-    const decodedRegion = click.region ? decodeURIComponent(click.region) : null
+    const decodedCity = decodeLocationPart(click.city)
+    const decodedRegion = decodeLocationPart(click.region ?? null)
     const locationText = [decodedCity, decodedRegion].filter(Boolean).join(', ')
     const ispText = click.isp?.trim() && click.isp !== 'Unknown' && click.isp !== 'Proxy Geo Header' ? click.isp.trim() : null
     if (showGeoInfo === click.id) {
