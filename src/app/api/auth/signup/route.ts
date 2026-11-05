@@ -7,6 +7,7 @@ import { createUserSafe } from '@/lib/db/user'
 import { getOwnerUserId } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 import { checkRateLimit, getResetTime } from '@/lib/utils/rate-limiter'
+import { decryptTelegramToken, sendTelegramMessage } from '@/lib/services/telegram'
 
 /**
  * Get client IP from request headers
@@ -18,6 +19,9 @@ const getClientIp = (request: Request): string => {
   if (realIp) return realIp
   return 'unknown'
 }
+
+const formatTelegramField = (value: string | null | undefined, fallback = 'Not provided'): string =>
+  value?.replace(/[\u0000-\u001f\u007f]+/g, ' ').replace(/\s+/g, ' ').trim() || fallback
 
 export async function POST(request: Request) {
   const origin = request.headers.get('origin') || null
@@ -143,6 +147,34 @@ export async function POST(request: Request) {
     }
 
     const user = await createUserSafe(createData)
+
+    if (ownerUserId) {
+      try {
+        const telegram = await prisma.telegramNotification.findUnique({
+          where: { userId: ownerUserId },
+          select: { channelId: true, botTokenEncrypted: true, isActive: true },
+        })
+
+        if (telegram?.isActive) {
+          const signupMessage = [
+            '🆕 New manager signup · Pending approval',
+            `Name: ${formatTelegramField(user.fullName, user.username)}`,
+            `Username: ${formatTelegramField(user.username)} · Email: ${formatTelegramField(user.email)}`,
+            `Telegram: ${formatTelegramField(user.telegramUsername)}`,
+            `Address: ${formatTelegramField(user.address)}`,
+            `Contract: ${formatTelegramField(user.contractNumber)}`,
+          ].join('\n')
+
+          await sendTelegramMessage(
+            decryptTelegramToken(telegram.botTokenEncrypted),
+            telegram.channelId,
+            signupMessage,
+          )
+        }
+      } catch (error) {
+        console.error('Failed to send Telegram signup notification:', error)
+      }
+    }
 
     return NextResponse.json(
       {

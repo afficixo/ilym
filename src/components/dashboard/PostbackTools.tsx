@@ -206,7 +206,7 @@ export default function PostbackTools() {
             <span className="postback-heading-icon is-small"><MessageCircle className="h-4 w-4" /></span>
             <span className="min-w-0 text-left">
               <span className="postback-section-title block">Telegram notifications</span>
-              <span className="postback-muted mt-0.5 block text-sm">Configure alerts for incoming conversions.</span>
+              <span className="postback-muted mt-0.5 block text-sm">Configure alerts for pending manager signups and incoming conversions.</span>
             </span>
           </span>
           <ChevronDown className={`postback-chevron h-4 w-4 transition-transform ${showTelegramSettings ? "rotate-180" : ""}`} />
