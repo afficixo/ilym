@@ -69,7 +69,7 @@ export default function PublisherHelpPage() {
         <div className="flex items-center justify-between border-b border-slate-200/70 px-4 py-3 dark:border-white/10">
           <div className="flex min-w-0 items-center gap-2.5">
             <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-slate-200 shadow-sm dark:border-white/10"><Image src="/afficix_favicon.png" alt="Afficix" fill sizes="40px" className="object-cover" /><span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-400 dark:border-slate-900" /></div>
-            <div className="min-w-0"><h2 className="truncate text-base font-semibold leading-5 tracking-tight text-slate-800 dark:text-slate-100">Rayan</h2></div>
+            <div className="min-w-0"><h2 className="truncate text-base font-semibold leading-5 tracking-tight text-slate-800 dark:text-slate-100">Rafsan</h2></div>
           </div>
         </div>
         <div ref={transcriptRef} className="h-[min(22rem,45vh)] min-h-64 space-y-3 overflow-y-auto bg-slate-50/60 px-5 py-4 dark:bg-slate-950/20">

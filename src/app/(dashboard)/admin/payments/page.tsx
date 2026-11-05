@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Check, CheckCircle, ChevronDown, CircleDollarSign, Copy, CreditCard, Eye, EyeOff, Info, Pencil, Search, UserRound, WalletCards, X } from "lucide-react";
+import { Check, CheckCircle, ChevronDown, CircleDollarSign, Copy, CreditCard, Eye, EyeOff, Info, Loader2, Pencil, Search, ShieldCheck, UserRound, WalletCards, X } from "lucide-react";
 import { coerceArray } from "@/lib/utils/array-response";
 import { calculateManagerOwnerPendingAmount, calculatePendingAmount, getManagerInvoicePaymentState, type ManagerPayoutStatus } from "@/lib/utils/payment-pending";
 
@@ -105,10 +105,14 @@ export default function PaymentsPage() {
   const [modalPortalRoot, setModalPortalRoot] = useState<HTMLElement | null>(null);
   const [payoutMethod, setPayoutMethod] = useState("BKASH");
   const [payoutAccount, setPayoutAccount] = useState("");
+  const [savedPayoutMethod, setSavedPayoutMethod] = useState("BKASH");
+  const [savedPayoutAccount, setSavedPayoutAccount] = useState("");
   const [paymentPassword, setPaymentPassword] = useState("");
   const [showPaymentPassword, setShowPaymentPassword] = useState(false);
   const [isEditingPaymentMethod, setIsEditingPaymentMethod] = useState(false);
   const [bindingMessage, setBindingMessage] = useState("");
+  const [bindingError, setBindingError] = useState("");
+  const [isSavingPaymentBinding, setIsSavingPaymentBinding] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [managerPaidOutAmount, setManagerPaidOutAmount] = useState(0);
   const [managerPaidOutError, setManagerPaidOutError] = useState("");
@@ -175,6 +179,8 @@ export default function PaymentsPage() {
       setUserRole(data.role || null);
       setPayoutMethod(data.payoutMethod || "BKASH");
       setPayoutAccount(data.payoutAccount || "");
+      setSavedPayoutMethod(data.payoutMethod || "BKASH");
+      setSavedPayoutAccount(data.payoutAccount || "");
 
       if (data.role === "OWNER") {
         await fetchManagerPayments();
@@ -198,6 +204,8 @@ export default function PaymentsPage() {
     event.preventDefault();
     setError("");
     setBindingMessage("");
+    setBindingError("");
+    setIsSavingPaymentBinding(true);
     try {
       const response = await fetch("/api/settings", {
         method: "POST",
@@ -207,11 +215,17 @@ export default function PaymentsPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || "Unable to save payment binding");
+      setSavedPayoutMethod(payoutMethod);
+      setSavedPayoutAccount(payoutAccount.trim());
+      setPayoutAccount(payoutAccount.trim());
       setPaymentPassword("");
+      setShowPaymentPassword(false);
       setIsEditingPaymentMethod(false);
       setBindingMessage(data.message || "Payment method saved successfully.");
     } catch (actionError) {
-      setError(actionError instanceof Error ? actionError.message : "Unable to save payment binding");
+      setBindingError(actionError instanceof Error ? actionError.message : "Unable to save payment binding");
+    } finally {
+      setIsSavingPaymentBinding(false);
     }
   };
 
@@ -658,70 +672,157 @@ export default function PaymentsPage() {
           ))}
         </section>
       ) : userRole === "MANAGER" ? (
-      <section className="space-y-4 rounded-2xl bg-white/70 p-4 dark:bg-[#202b2f]/70">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Payout details</h2>
-                <span className={`rounded-full px-2 py-1 text-xs font-semibold ${payoutAccount ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-300/10 dark:text-emerald-200" : "bg-amber-100 text-amber-900 dark:bg-amber-300/10 dark:text-amber-100"}`}>
-                  {payoutAccount ? "Payable" : "Action needed"}
+      <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm shadow-slate-900/[0.04] dark:border-white/10 dark:bg-[#202b2f]">
+        <div className="flex flex-col gap-4 border-b border-slate-200/70 bg-gradient-to-r from-indigo-50/80 via-white to-white px-4 py-4 dark:border-white/10 dark:from-indigo-400/[0.07] dark:via-[#202b2f] dark:to-[#202b2f] sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <div className="flex min-w-0 items-start gap-3">
+            <span className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${payoutAccount ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-300/10 dark:text-emerald-200" : "bg-amber-100 text-amber-800 dark:bg-amber-300/10 dark:text-amber-200"}`}>
+              {payoutAccount ? <CheckCircle className="h-5 w-5" aria-hidden="true" /> : <WalletCards className="h-5 w-5" aria-hidden="true" />}
+            </span>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-base font-semibold tracking-tight text-slate-900 dark:text-white">Payout details</h2>
+                <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${payoutAccount ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-300/10 dark:text-emerald-200" : "bg-amber-100 text-amber-900 dark:bg-amber-300/10 dark:text-amber-100"}`}>
+                  {payoutAccount ? "Ready for payouts" : "Setup required"}
                 </span>
               </div>
-              <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-700 dark:text-slate-300">{payoutAccount ? "Your saved payout details are visible here. An access password is required only when you edit them." : "Add a payout method so your account is ready for payouts."}</p>
             </div>
-            {!isEditingPaymentMethod && <button type="button" title={payoutAccount ? "Edit payment method" : "Set up payment method"} aria-label={payoutAccount ? "Edit payment method" : "Set up payment method"} onClick={() => setIsEditingPaymentMethod(true)} className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-900 transition hover:bg-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 dark:bg-indigo-300/10 dark:text-indigo-100 dark:hover:bg-indigo-300/20">
-              <Pencil className="h-3 w-3" />
-              {payoutAccount ? "Edit" : "Set up"}
-            </button>}
           </div>
-          {!isEditingPaymentMethod ? (
-            payoutAccount ? (
-              <dl className="grid gap-4 pt-2 sm:grid-cols-2">
-                <div>
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">Payment method</dt>
-                  <dd className="mt-1 text-sm font-medium text-slate-900 dark:text-white">{payoutMethod === "BINANCE" ? "Binance" : "bKash"}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">Account</dt>
-                  <dd className="mt-1 break-all text-sm font-medium text-slate-900 dark:text-white">{payoutAccount}</dd>
-                </div>
-              </dl>
-            ) : (
-              <div className="pt-2">
-                <p className="text-sm font-medium text-slate-700 dark:text-slate-200">No payout method added yet</p>
-                <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">Select Set up to choose a payout method and add the account details needed for payments.</p>
-              </div>
-            )
-          ) : (
-            <form onSubmit={handlePaymentBindingSubmit} className="space-y-4">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <label className="space-y-1.5 text-sm font-medium text-slate-800 dark:text-slate-200">
-                  Payment method
-                  <select value={payoutMethod} onChange={(event) => setPayoutMethod(event.target.value)} className="w-full rounded-md bg-[var(--surface-elevated)] px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-indigo-500/40 dark:text-white">
-                    <option value="BKASH">bKash</option>
-                    <option value="BINANCE">Binance</option>
-                  </select>
-                </label>
-                <label className="space-y-1.5 text-sm font-medium text-slate-800 dark:text-slate-200">
-                  {payoutMethod === "BINANCE" ? "Binance ID" : "bKash number"}
-                  <input value={payoutAccount} onChange={(event) => setPayoutAccount(event.target.value)} placeholder={payoutMethod === "BINANCE" ? "Enter your Binance ID" : "Enter your bKash number"} required className="w-full rounded-md bg-[var(--surface-elevated)] px-3 py-2 text-sm text-slate-900 outline-none transition placeholder:text-slate-600 focus:ring-2 focus:ring-indigo-500/40 dark:text-white dark:placeholder:text-slate-400" />
-                </label>
-              </div>
-              <label className="block space-y-1.5 text-sm font-medium text-slate-800 dark:text-slate-200">
-                Access password to confirm changes
-                <span className="relative block">
-                  <input type={showPaymentPassword ? "text" : "password"} minLength={8} value={paymentPassword} onChange={(event) => setPaymentPassword(event.target.value)} placeholder="At least 8 characters" required className="w-full rounded-md bg-[var(--surface-elevated)] px-3 py-2 pr-10 text-sm text-slate-900 outline-none transition placeholder:text-slate-600 focus:ring-2 focus:ring-indigo-500/40 dark:text-white dark:placeholder:text-slate-400" />
-                  <button type="button" onClick={() => setShowPaymentPassword((previous) => !previous)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-700 transition hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white" aria-label={showPaymentPassword ? "Hide access password" : "Show password"}>
-                    {showPaymentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </span>
-              </label>
-              <div className="flex justify-end gap-2">
-                <button type="button" onClick={() => { setIsEditingPaymentMethod(false); setPaymentPassword(""); }} className="rounded-md bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-200 dark:bg-white/[0.06] dark:text-slate-200 dark:hover:bg-white/10">Cancel</button>
-                <button type="submit" className="rounded-md bg-indigo-700 px-3 py-2 text-sm font-semibold text-white transition hover:bg-indigo-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:bg-indigo-400 dark:text-slate-950 dark:hover:bg-indigo-300">Save payment method</button>
-              </div>
-            </form>
+          {!isEditingPaymentMethod && (
+            <button
+              type="button"
+              onClick={() => {
+                setBindingMessage("");
+                setBindingError("");
+                setPayoutMethod(savedPayoutMethod);
+                setPayoutAccount(savedPayoutAccount);
+                setIsEditingPaymentMethod(true);
+              }}
+              className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-indigo-200 bg-white px-3.5 text-sm font-semibold text-indigo-800 shadow-sm transition hover:border-indigo-300 hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 dark:border-indigo-300/20 dark:bg-white/[0.04] dark:text-indigo-100 dark:hover:bg-indigo-300/10"
+            >
+              <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+              {payoutAccount ? "Edit details" : "Set up payout"}
+            </button>
           )}
+        </div>
+
+        {!isEditingPaymentMethod ? (
+          payoutAccount ? (
+            <dl className="grid gap-3 p-4 sm:grid-cols-2 sm:p-5">
+              <div className="rounded-xl border border-slate-200/80 bg-slate-50/80 p-3.5 dark:border-white/[0.07] dark:bg-white/[0.025]">
+                <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Payment method</dt>
+                <dd className="mt-1.5 text-sm font-semibold text-slate-900 dark:text-white">{payoutMethod === "BINANCE" ? "Binance" : "bKash"}</dd>
+              </div>
+              <div className="rounded-xl border border-slate-200/80 bg-slate-50/80 p-3.5 dark:border-white/[0.07] dark:bg-white/[0.025]">
+                <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Account</dt>
+                <dd className="mt-1.5 break-all font-mono text-sm font-semibold text-slate-900 dark:text-white">{payoutAccount}</dd>
+              </div>
+            </dl>
+          ) : (
+            <div className="p-4 text-sm text-slate-600 dark:text-slate-300 sm:p-5">
+              No payout method set up.
+            </div>
+          )
+        ) : (
+          <form onSubmit={handlePaymentBindingSubmit} className="space-y-4 p-4 sm:p-5">
+            {bindingError && (
+              <p role="alert" className="rounded-lg border border-rose-200 bg-rose-50 px-3.5 py-3 text-sm font-medium text-rose-800 dark:border-rose-300/15 dark:bg-rose-300/[0.06] dark:text-rose-200">
+                {bindingError}
+              </p>
+            )}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label htmlFor="payout-method" className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
+                Payment method
+                <select
+                  id="payout-method"
+                  value={payoutMethod}
+                  onChange={(event) => {
+                    const nextMethod = event.target.value;
+                    setPayoutMethod(nextMethod);
+                    setPayoutAccount(nextMethod === savedPayoutMethod ? savedPayoutAccount : "");
+                    setBindingError("");
+                  }}
+                  className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-normal text-slate-900 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:border-white/15 dark:bg-[#192326] dark:text-white"
+                >
+                  <option value="BKASH">bKash</option>
+                  <option value="BINANCE">Binance</option>
+                </select>
+              </label>
+              <label htmlFor="payout-account" className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
+                {payoutMethod === "BINANCE" ? "Binance ID" : "bKash number"}
+                <input
+                  id="payout-account"
+                  autoComplete="off"
+                  inputMode={payoutMethod === "BKASH" ? "tel" : "text"}
+                  value={payoutAccount}
+                  onChange={(event) => {
+                    setPayoutAccount(event.target.value);
+                    setBindingError("");
+                  }}
+                  placeholder={payoutMethod === "BINANCE" ? "Enter your Binance ID" : "e.g. 01XXXXXXXXX"}
+                  required
+                  className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-normal text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:border-white/15 dark:bg-[#192326] dark:text-white dark:placeholder:text-slate-500"
+                />
+              </label>
+            </div>
+
+            <div>
+              <label htmlFor="payout-confirmation-password" className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
+                Access password
+              </label>
+              <span className="relative mt-1.5 block">
+                <input
+                  id="payout-confirmation-password"
+                  type={showPaymentPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  minLength={8}
+                  value={paymentPassword}
+                  onChange={(event) => {
+                    setPaymentPassword(event.target.value);
+                    setBindingError("");
+                  }}
+                  placeholder="Enter access password"
+                  required
+                  className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 pr-11 text-sm font-normal text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:border-white/15 dark:bg-[#192326] dark:text-white dark:placeholder:text-slate-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPaymentPassword((previous) => !previous)}
+                  className="absolute inset-y-0 right-1.5 flex w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:text-slate-400 dark:hover:bg-white/[0.06] dark:hover:text-white"
+                  aria-label={showPaymentPassword ? "Hide password" : "Show password"}
+                  aria-pressed={showPaymentPassword}
+                >
+                  {showPaymentPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
+                </button>
+              </span>
+            </div>
+
+            <div className="flex flex-col-reverse gap-2 border-t border-slate-200/70 pt-4 dark:border-white/10 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                disabled={isSavingPaymentBinding}
+                onClick={() => {
+                  setIsEditingPaymentMethod(false);
+                  setPaymentPassword("");
+                  setShowPaymentPassword(false);
+                  setPayoutMethod(savedPayoutMethod);
+                  setPayoutAccount(savedPayoutAccount);
+                  setBindingError("");
+                }}
+                className="min-h-10 rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 disabled:opacity-60 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-200 dark:hover:bg-white/[0.07]"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSavingPaymentBinding}
+                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[#5ff442] px-4 text-sm font-semibold text-[#263238] shadow-sm transition hover:bg-[#4dd935] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#359f25]/70 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#5ff442] dark:text-[#263238] dark:hover:bg-[#4dd935] dark:focus-visible:ring-offset-[#202b2f]"
+              >
+                {isSavingPaymentBinding ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <ShieldCheck className="h-4 w-4" aria-hidden="true" />}
+                {isSavingPaymentBinding ? "Saving..." : "Save payout details"}
+              </button>
+            </div>
+          </form>
+        )}
       </section>
       ) : null}
 
