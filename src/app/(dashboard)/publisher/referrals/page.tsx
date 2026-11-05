@@ -3,6 +3,17 @@
 import { useEffect, useState } from 'react'
 import { Check, Copy, Gift, UsersRound, WalletCards } from 'lucide-react'
 
+type ReferralActivityItem = {
+  id: string
+  amount: number
+  publisherPayoutAmount: number
+  createdAt: string
+  paidAt: string | null
+  status: 'paid' | 'pending' | 'estimated'
+  referredUser: { username: string }
+  invoice: { invoiceNumber: string }
+}
+
 type ReferralData = {
   referralCode: string | null
   commissionRate: number
@@ -12,19 +23,13 @@ type ReferralData = {
     createdAt: string
     status: string
   }>
-  commissions: Array<{
-    id: string
-    amount: number
-    publisherPayoutAmount: number
-    createdAt: string
-    paidAt: string | null
-    status: 'paid' | 'pending'
-    referredUser: { username: string }
-    invoice: { invoiceNumber: string }
-  }>
+  commissions: ReferralActivityItem[]
+  pendingEstimates: Array<Omit<ReferralActivityItem, 'paidAt' | 'status'>>
   summary: {
     referrals: number
     pendingAmount: number
+    pendingRecordedAmount: number
+    pendingEstimateAmount: number
     paidAmount: number
     totalAmount: number
   }
@@ -111,7 +116,9 @@ export default function PublisherReferralsPage() {
     {
       label: 'Pending commission',
       value: data ? formatMoney(data.summary.pendingAmount) : '—',
-      detail: 'Awaiting owner payout',
+      detail: data?.summary.pendingEstimateAmount
+        ? `Includes ${formatMoney(data.summary.pendingEstimateAmount)} estimated on unpaid invoices`
+        : 'Awaiting owner payout',
       icon: WalletCards,
       tone: 'text-amber-600 dark:text-amber-300',
     },
@@ -130,6 +137,16 @@ export default function PublisherReferralsPage() {
       tone: 'text-violet-600 dark:text-violet-300',
     },
   ]
+  const commissionActivity: ReferralActivityItem[] = data
+    ? [
+      ...data.commissions,
+      ...data.pendingEstimates.map((estimate) => ({
+        ...estimate,
+        paidAt: null,
+        status: 'estimated' as const,
+      })),
+    ].sort((first, second) => new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime())
+    : []
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6 pb-8">
@@ -204,7 +221,7 @@ export default function PublisherReferralsPage() {
               {[
                 ['01', 'Share your invite link'],
                 ['02', 'They join as a publisher'],
-                ['03', 'Earn when they are paid'],
+                ['03', 'Earn when their payout is recorded'],
               ].map(([step, label]) => (
                 <li key={step} className="flex items-center gap-3">
                   <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-[10px] font-bold text-slate-500 dark:border-white/10 dark:bg-[#202b2f] dark:text-slate-300">
@@ -215,7 +232,7 @@ export default function PublisherReferralsPage() {
               ))}
             </ol>
             <p className="mt-4 border-t border-slate-200 pt-3 text-xs leading-5 text-[var(--text-secondary)] dark:border-white/10">
-              Your commission is added to your balance. The owner includes it in a manager payout and records the payment.
+              Pending estimates are based on unpaid invoices. The final commission is recorded when the owner records the manager payout.
             </p>
           </aside>
         </div>
@@ -241,11 +258,11 @@ export default function PublisherReferralsPage() {
         <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-4 dark:border-white/10">
           <div>
             <h2 className="font-semibold text-[var(--text-primary)]">Commission activity</h2>
-            <p className="mt-1 text-xs text-[var(--text-secondary)]">Track commissions earned from referred publishers.</p>
+            <p className="mt-1 text-xs text-[var(--text-secondary)]">Track recorded commissions and estimates on unpaid invoices.</p>
           </div>
-          {data && data.commissions.length > 0 && (
+          {data && commissionActivity.length > 0 && (
             <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium tabular-nums text-slate-600 dark:bg-white/[0.06] dark:text-slate-300">
-              {data.commissions.length}
+              {commissionActivity.length}
             </span>
           )}
         </div>
@@ -267,14 +284,18 @@ export default function PublisherReferralsPage() {
               Try again
             </button>
           </div>
-        ) : !data || data.commissions.length === 0 ? (
+        ) : !data || commissionActivity.length === 0 ? (
           <div className="flex flex-col items-center px-5 py-12 text-center">
             <span className="grid h-11 w-11 place-items-center rounded-full bg-slate-100 text-slate-500 dark:bg-white/[0.06] dark:text-slate-300">
               <UsersRound className="h-5 w-5" aria-hidden="true" />
             </span>
-            <h3 className="mt-3 text-sm font-semibold text-[var(--text-primary)]">Your referrals start here</h3>
+            <h3 className="mt-3 text-sm font-semibold text-[var(--text-primary)]">
+              {data?.summary.referrals ? 'No commission activity yet' : 'Your referrals start here'}
+            </h3>
             <p className="mt-1 max-w-sm text-sm leading-5 text-[var(--text-secondary)]">
-              Share your invite link. When a referred publisher receives a payout, your commission will appear here.
+              {data?.summary.referrals
+                ? 'Pending estimates appear when referred publishers have unpaid invoices. Recorded commissions appear when their payout is recorded.'
+                : 'Share your invite link. Estimates appear when referred publishers have unpaid invoices, and the final commission is recorded with their payout.'}
             </p>
           </div>
         ) : (
@@ -283,14 +304,14 @@ export default function PublisherReferralsPage() {
               <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:bg-[#192326] dark:text-slate-400">
                 <tr>
                   <th scope="col" className="px-5 py-3">Publisher</th>
-                  <th scope="col" className="px-5 py-3">Earned on</th>
-                  <th scope="col" className="px-5 py-3 text-right">Publisher payout</th>
+                  <th scope="col" className="px-5 py-3">Date</th>
+                  <th scope="col" className="px-5 py-3 text-right">Payout amount</th>
                   <th scope="col" className="px-5 py-3 text-right">Your commission</th>
                   <th scope="col" className="px-5 py-3">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-white/[0.06]">
-                {data.commissions.map((commission) => (
+                {commissionActivity.map((commission) => (
                   <tr key={commission.id} className="transition-colors hover:bg-slate-50/80 dark:hover:bg-white/[0.025]">
                     <td className="px-5 py-3.5 font-medium text-[var(--text-primary)]">
                       <span className="inline-flex items-center gap-2">
@@ -312,7 +333,11 @@ export default function PublisherReferralsPage() {
                     <td className="px-5 py-3.5">
                       <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${commission.status === 'paid' ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-amber-500/10 text-amber-700 dark:text-amber-300'}`}>
                         <span className={`h-1.5 w-1.5 rounded-full ${commission.status === 'paid' ? 'bg-emerald-500' : 'bg-amber-500'}`} aria-hidden="true" />
-                        {commission.status === 'paid' ? 'Paid' : 'Pending payout'}
+                        {commission.status === 'paid'
+                          ? 'Paid'
+                          : commission.status === 'estimated'
+                            ? 'Estimated'
+                            : 'Pending payout'}
                       </span>
                     </td>
                   </tr>
