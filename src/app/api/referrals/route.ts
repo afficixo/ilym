@@ -6,6 +6,7 @@ import {
   DEFAULT_REFERRAL_COMMISSION_RATE,
   estimateReferralCommission,
 } from '@/lib/referrals'
+import { calculatePaidManagerPayoutAmount } from '@/lib/utils/payment-pending'
 
 export async function GET(request: Request) {
   const origin = request.headers.get('origin') || null
@@ -40,6 +41,9 @@ export async function GET(request: Request) {
             invoice: { select: { invoiceNumber: true } },
           },
           orderBy: { createdAt: 'desc' },
+        },
+        managerPayouts: {
+          select: { totalEarning: true, isPaid: true },
         },
       },
     })
@@ -99,6 +103,7 @@ export async function GET(request: Request) {
       .filter((commission) => commission.paidAt)
       .reduce((total, commission) => total + commission.amount, 0)
     const pendingAmount = pendingRecordedAmount + pendingEstimateAmount
+    const managerPaidOutAmount = calculatePaidManagerPayoutAmount(publisher.managerPayouts)
 
     return NextResponse.json({
       referralCode: publisher.referralCode,
@@ -112,6 +117,7 @@ export async function GET(request: Request) {
         pendingRecordedAmount,
         pendingEstimateAmount,
         paidAmount,
+        managerPaidOutAmount,
         totalAmount: pendingRecordedAmount + paidAmount,
       },
     }, { headers: getCorsHeaders(origin) })
