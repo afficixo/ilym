@@ -8,11 +8,15 @@ Set `LANDING_DATABASE_URL` in the local and production environments. Keep the co
 
 ## Initialize and migrate
 
+Initialize or update the landing database schema before deploying:
+
 ```powershell
 npm run db:landing:generate
 npm run db:landing:push
 npm run db:landing:migrate
 ```
+
+The Vercel build generates the landing Prisma client but does not connect to or modify the landing database. Ensure `LANDING_DATABASE_URL` points to a reachable database and run `db:landing:push` separately when initializing or changing its schema.
 
 `db:landing:migrate` copies existing templates and landing pages while preserving IDs, subdomains, publication state, counters, and timestamps. It is safe to run again because it uses upserts.
 
